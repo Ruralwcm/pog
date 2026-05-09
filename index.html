@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.0</title>
+<title>POG DESIGN by HaoDT v28.1</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.0</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.1</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.0</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.1</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.0</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.1</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3305,7 +3305,9 @@ function renderMultiDeviceCanvas() {
       const ov = document.createElement('div');
       ov.className = 'tầng-overlay';
       ov.dataset.deviceIdx = di;
+      ov.setAttribute('data-device-idx', di);
       ov.dataset.tang = ti;
+      ov.setAttribute('data-tang', ti);
       ov.style.cssText = 'position:absolute;left:' + offX + 'px;top:' + cumH + 'px;width:' + tangW + 'px;height:' + tangH + 'px;overflow:hidden;z-index:10;cursor:crosshair;';
       ov.addEventListener('dragenter', e=>e.preventDefault());
       ov.addEventListener('dragover', e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';ov.classList.add('drag-over');});
@@ -3661,9 +3663,11 @@ function _startPointerDrag(e, maSP, sourceEl) {
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const ov = el?.closest('.tầng-overlay');
     if (ov && _ptrDragMaSP) {
-      const _dIdx = parseInt(ov.dataset.deviceIdx ?? ov.closest('.device-col')?.dataset.deviceIdx ?? '0');
-      const _tIdx = parseInt(ov.dataset.tang);
-      console.log('[POINTER DROP] device=', _dIdx, 'tang=', _tIdx, 'maSP=', _ptrDragMaSP);
+      const _devCol = ov.closest('.device-col');
+      const _dIdxStr = ov.getAttribute('data-device-idx') || (_devCol && _devCol.getAttribute('data-device-idx')) || ov.dataset.deviceIdx || '0';
+      const _dIdx = parseInt(_dIdxStr);
+      const _tIdx = parseInt(ov.dataset.tang || ov.getAttribute('data-tang') || '0');
+      console.log('[POINTER DROP] device=', _dIdx, 'tang=', _tIdx, 'maSP=', _ptrDragMaSP, 'devCol:', _devCol?.dataset.deviceIdx);
       if (pogDevices && pogDevices.length > 0) {
         addProductToTangMulti(_dIdx, _tIdx, _ptrDragMaSP);
       } else {
