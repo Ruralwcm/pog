@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.2</title>
+<title>POG DESIGN by HaoDT v24.3</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -633,6 +633,8 @@ img { max-width: 100%; }
 .slot-btn.facing-up:hover { background: #219a52; }
 .slot-btn.facing-down { background: var(--warning); color: #fff; }
 .slot-btn.facing-down:hover { background: #d48806; }
+.slot-btn.rotate { background: #7b2d8b; color: #fff; }
+.slot-btn.rotate:hover { background: #5e1d6a; }
 .facing-count {
   position: absolute;
   bottom: 2px; left: 2px;
@@ -899,7 +901,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.2</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v24.3</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +920,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.2</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.3</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1005,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.2</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.3</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3503,13 +3505,19 @@ function renderPOGCanvas() {
 
     // Render products — căn giữa trong tầng
     const totalProductWidth = (tConfig.products || []).reduce((sum, p) => {
+      if (p.rotated) return sum + Math.min(Math.max(10, Math.round((p.cao||20)*sc)), tangW);
       return sum + Math.min(Math.max(10, Math.round((p.rong || 10) * sc)), tangW);
     }, 0);
     let xOffset = Math.max(0, Math.round((tangW - totalProductWidth) / 2)); // căn giữa
     (tConfig.products || []).forEach((prod, pi) => {
       const facing = prod.facing || 1;
-      const pxRong = Math.min(Math.max(10, Math.round((prod.rong || 10) * sc)), tangW); // clamp trong mâm
-      const pxCaoSingle = Math.max(8, Math.round((prod.cao || 20) * sc));
+      // Support rotation: swap rong/cao when rotated
+      const pxRong = prod.rotated
+        ? Math.min(Math.max(10, Math.round((prod.cao||20)*sc)), tangW)
+        : Math.min(Math.max(10, Math.round((prod.rong || 10) * sc)), tangW); // clamp trong mâm
+      const pxCaoSingle = prod.rotated
+        ? Math.max(8, Math.round((prod.rong||10)*sc))
+        : Math.max(8, Math.round((prod.cao || 20) * sc));
       const pxCao = Math.min(pxCaoSingle * facing, tangH - 4); // tổng cao = facing × đơn vị
 
       const slot = document.createElement('div');
@@ -3533,6 +3541,14 @@ function renderPOGCanvas() {
         renderPOGCanvas();
       });
 
+      slot.addEventListener('pointerdown', (e) => {
+        // Only if clicking on the slot itself (not controls)
+        if (e.target.closest('.slot-controls') || e.target.closest('.slot-btn')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        _startSlotReorder(e, ti, pi);
+      });
+
       // Build stacked facing images
       const imgContainer = document.createElement('div');
       imgContainer.style.cssText = `
@@ -3545,7 +3561,7 @@ function renderPOGCanvas() {
           const img = document.createElement('img');
           img.src = formatImgUrl(prod.linkAnh);
           img.alt = prod.tenSP || '';
-          img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;`;
+          img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;${prod.rotated ? ' transform:rotate(90deg);' : ''}`;
           img.onerror = () => { img.style.display = 'none'; };
           imgContainer.appendChild(img);
         } else {
@@ -3594,9 +3610,16 @@ function renderPOGCanvas() {
       faceDownBtn.title = 'Giảm facing';
       faceDownBtn.onclick = (e) => { e.stopPropagation(); changeFacing(ti, pi, -1); };
 
+      const rotBtn = document.createElement('button');
+      rotBtn.className = 'slot-btn rotate';
+      rotBtn.textContent = '↻';
+      rotBtn.title = 'Xoay 90°';
+      rotBtn.onclick = (e) => { e.stopPropagation(); rotateProduct(ti, pi); };
+
       controls.appendChild(delBtn);
       controls.appendChild(faceUpBtn);
       controls.appendChild(faceDownBtn);
+      controls.appendChild(rotBtn);
       slot.appendChild(controls);
 
       // Product name tooltip
@@ -3727,7 +3750,8 @@ function _doAddProductToTang(tangIndex, prod) {
     linkAnh: prod.linkAnh || '',
     rong: prod.rong || 10,
     cao: prod.cao || 20,
-    facing: 1
+    facing: 1,
+    rotated: false
   });
 
   selectedSlot = { tangIndex, slotIndex: pogConfig.tầng[tangIndex].products.length - 1 };
@@ -3750,6 +3774,79 @@ function changeFacing(tangIndex, slotIndex, delta) {
   prod.facing = Math.max(1, Math.min(10, (prod.facing || 1) + delta));
   renderPOGCanvas();
   markDirty();
+}
+
+function rotateProduct(tangIndex, slotIndex) {
+  const prod = pogConfig.tầng[tangIndex]?.products[slotIndex];
+  if (!prod) return;
+  prod.rotated = !prod.rotated;
+  renderPOGCanvas();
+  markDirty();
+}
+
+// ============================================================
+// DRAG REORDER (Canvas slots → reorder within/between tầng)
+// ============================================================
+let _reorderSrc = null; // {tangIndex, slotIndex}
+
+function _startSlotReorder(e, tangIndex, slotIndex) {
+  _reorderSrc = {tangIndex, slotIndex};
+  const prod = pogConfig.tầng[tangIndex]?.products[slotIndex];
+  if (!prod) return;
+
+  // Create ghost
+  const ghost = document.getElementById('dragGhost');
+  const ghostImg = document.getElementById('dragGhostImg');
+  if (prod.linkAnh) { ghostImg.src = formatImgUrl(prod.linkAnh); ghostImg.style.display='block'; }
+  document.getElementById('dragGhostName').textContent = prod.maSP || prod.tenSP;
+  ghost.classList.add('active');
+  ghost.style.left = (e.clientX + 12) + 'px';
+  ghost.style.top  = (e.clientY - 20) + 'px';
+
+  const onMove = (ev) => {
+    ev.preventDefault();
+    ghost.style.left = (ev.clientX + 12) + 'px';
+    ghost.style.top  = (ev.clientY - 20) + 'px';
+    // Highlight target overlay
+    document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
+    ghost.style.display = 'none';
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    ghost.style.display = '';
+    const ov = el?.closest('.tầng-overlay');
+    if (ov) ov.classList.add('drag-over');
+  };
+
+  const onUp = (ev) => {
+    ev.preventDefault();
+    document.removeEventListener('pointermove', onMove);
+    ghost.classList.remove('active');
+    document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
+
+    ghost.style.display = 'none';
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    ghost.style.display = '';
+    const targetOv = el?.closest('.tầng-overlay');
+
+    if (targetOv && _reorderSrc) {
+      const targetTang = parseInt(targetOv.dataset.tang);
+      const src = _reorderSrc;
+      if (targetTang !== src.tangIndex) {
+        // Move to different tầng
+        const movedProd = pogConfig.tầng[src.tangIndex]?.products.splice(src.slotIndex, 1)[0];
+        if (movedProd) {
+          if (!pogConfig.tầng[targetTang]) pogConfig.tầng[targetTang] = {index: targetTang, products: []};
+          pogConfig.tầng[targetTang].products.push(movedProd);
+          renderPOGCanvas();
+          markDirty();
+        }
+      }
+      // Same tầng: no-op (could add reorder within tầng later)
+    }
+    _reorderSrc = null;
+  };
+
+  document.addEventListener('pointermove', onMove, {passive:false});
+  document.addEventListener('pointerup', onUp, {once:true});
 }
 
 // ============================================================
