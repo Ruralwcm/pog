@@ -3503,12 +3503,16 @@ function renderPOGCanvas() {
       }
     });
 
-    // Render products — căn giữa trong tầng
-    const totalProductWidth = (tConfig.products || []).reduce((sum, p) => {
-      if (p.rotated) return sum + Math.min(Math.max(10, Math.round((p.cao||20)*sc)), tangW);
-      return sum + Math.min(Math.max(10, Math.round((p.rong || 10) * sc)), tangW);
-    }, 0);
-    let xOffset = Math.max(0, Math.round((tangW - totalProductWidth) / 2)); // căn giữa
+    // Render products — căn giữa + co fit nếu vượt tangW
+    const _rawW = (tConfig.products || []).map(p => {
+      const cmW = p.rotated ? (p.cao||20) : (p.rong||10);
+      return Math.max(8, Math.round(cmW * sc));
+    });
+    const _totalRaw = _rawW.reduce((s,w)=>s+w, 0);
+    const _ratio = _totalRaw > tangW ? (tangW / _totalRaw) : 1; // co fit nếu vượt
+    const _fitW = _rawW.map(w => Math.max(6, Math.round(w * _ratio)));
+    const _totalFit = _fitW.reduce((s,w)=>s+w, 0);
+    let xOffset = Math.max(0, Math.round((tangW - _totalFit) / 2));
     (tConfig.products || []).forEach((prod, pi) => {
       const facing = prod.facing || 1;
       // Support rotation: swap rong/cao when rotated
