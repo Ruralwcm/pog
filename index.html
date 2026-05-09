@@ -312,6 +312,9 @@ img { max-width: 100%; }
   padding: 2px 6px; border-radius: 20px;
   font-weight: 700;
 }
+/* Đảm bảo ảnh Drive hiển thị đúng trong grid và library */
+.product-img-wrap img { object-fit: contain; }
+.lib-product-thumb { object-fit: contain; background: #f8f9fa; }
 
 /* ============================================================
    SCREEN 4: THƯ VIỆN KỆ
@@ -1547,7 +1550,7 @@ function renderProductGrid(products) {
 
   grid.innerHTML = products.map(p => {
     const imgHtml = p.linkAnh
-      ? `<img src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const noImgStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="product-card">
@@ -3008,7 +3011,7 @@ function renderLibrary() {
   list.innerHTML = filtered.map(p => {
     const isSelected = selectedLibProduct && selectedLibProduct.maSP === p.maSP;
     const thumbHtml = p.linkAnh
-      ? `<img class="lib-product-thumb" src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="lib-product-thumb" src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const placeholderStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="lib-product-item${isSelected ? ' selected-product' : ''}"
@@ -3236,8 +3239,8 @@ function renderPOGCanvas() {
     // Render products
     let xOffset = 0;
     (tConfig.products || []).forEach((prod, pi) => {
-      const pxRong = Math.round(prod.rong * sc);
-      const pxCao = Math.min(Math.round(prod.cao * sc), tangH - 4);
+      const pxRong = Math.max(30, Math.round((prod.rong || 10) * sc));
+      const pxCao  = Math.min(Math.max(30, Math.round((prod.cao  || 20) * sc)), tangH - 4);
       const facing = prod.facing || 1;
 
       const slot = document.createElement('div');
@@ -3906,11 +3909,11 @@ function formatImgUrl(url) {
   return url;
 }
 
-// Thumbnail URL — dùng Drive thumbnail endpoint (hỗ trợ resize chuẩn)
+// Thumbnail URL — dùng uc?export=view (không bị CORS block từ GitHub Pages)
 function formatThumbUrl(url) {
   if (!url) return '';
   const id = _extractDriveId(url);
-  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w80-h80`;
+  if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
   return url;
 }
 
