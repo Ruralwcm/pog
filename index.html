@@ -1015,7 +1015,7 @@ img { max-width: 100%; }
           <select class="library-filter-select" id="libraryDanhMuc" onchange="onLibraryDanhMucChange()">
             <option value="">-- Tất cả danh mục --</option>
           </select>
-          <select class="library-filter-select" id="libraryMCH3" onchange="filterLibrary()" style="margin-top:4px">
+          <select class="library-filter-select" id="libraryMCH3" onchange="onLibraryMCH3Change()" style="margin-top:4px">
             <option value="">-- Tất cả MCH3 --</option>
           </select>
         </div>
@@ -1064,7 +1064,7 @@ img { max-width: 100%; }
   <div class="modal" style="max-width:680px;width:95vw">
     <div class="modal-header">
       <span class="modal-title">✏️ Chỉnh sửa sản phẩm</span>
-      <button class="modal-close" onclick="closeModal('modalEditProduct')">×</button>
+      <button class="modal-close" onclick="closeEditProductModal()">×</button>
     </div>
     <div class="modal-body">
       <div style="text-align:center;margin-bottom:12px">
@@ -1141,7 +1141,7 @@ img { max-width: 100%; }
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal('modalEditProduct')">Huỷ</button>
+      <button class="btn-secondary" onclick="closeEditProductModal()">Huỷ</button>
       <button class="btn-success" onclick="saveProductEdit()">💾 Lưu</button>
     </div>
   </div>
@@ -1536,6 +1536,19 @@ function openEditProduct(btnEl) {
   if (!maSP) { showToast('Không tìm thấy mã SP', 'error'); return; }
   const p = allProducts.find(x => x.maSP === maSP);
   if (!p) { showToast('Không tìm thấy sản phẩm: ' + maSP, 'error'); return; }
+
+  // Reset toàn bộ state cũ trước khi mở
+  _origImg = null; _correctedCanvas = null; _finalCanvas = null;
+  _perspPoints = []; _dragging = -1;
+  document.getElementById('editPhotoInput').value = '';
+  document.getElementById('removebgStatus').textContent = '';
+  goImgStep('select');
+  switchImgTab('upload');
+  ['previewBefore','previewAfter'].forEach(id => {
+    const c = document.getElementById(id);
+    if (c) { c.width = 1; c.height = 1; }
+  });
+
   editingProductMaSP = maSP;
   document.getElementById('editProductName').textContent = p.tenSP;
   document.getElementById('editProductMaSP').textContent = p.maSP;
@@ -1546,6 +1559,42 @@ function openEditProduct(btnEl) {
   imgEl.src = p.linkAnh ? formatImgUrl(p.linkAnh) : '';
   imgEl.style.display = p.linkAnh ? 'block' : 'none';
   openModal('modalEditProduct');
+}
+
+// ── Close & reset edit modal ──────────────────────────────────
+function closeEditProductModal() {
+  // Reset tất cả image processing state
+  _origImg        = null;
+  _correctedCanvas = null;
+  _finalCanvas    = null;
+  _perspPoints    = [];
+  _dragging       = -1;
+  editingProductMaSP = null;
+
+  // Reset UI về trạng thái ban đầu
+  goImgStep('select');
+  switchImgTab('upload');
+  document.getElementById('editPhotoInput').value = '';
+  document.getElementById('editLinkAnh').value = '';
+  document.getElementById('editProductImg').style.display = 'none';
+  document.getElementById('editProductImg').src = '';
+  document.getElementById('editRong').value = '';
+  document.getElementById('editCao').value = '';
+  document.getElementById('removebgStatus').textContent = '';
+
+  // Reset perspective canvas + SVG
+  const perspCanvas = document.getElementById('perspCanvas');
+  const ctx = perspCanvas.getContext('2d');
+  ctx.clearRect(0, 0, perspCanvas.width, perspCanvas.height);
+  document.getElementById('perspSVG').innerHTML = '';
+
+  // Reset before/after preview
+  ['previewBefore','previewAfter'].forEach(id => {
+    const c = document.getElementById(id);
+    if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  });
+
+  closeModal('modalEditProduct');
 }
 
 // ── Image tab switch ─────────────────────────────────────────
@@ -2031,17 +2080,20 @@ function openCreateShelfModal(shelfId) {
 
   document.getElementById('shelfModalTitle').textContent = shelfId ? '✏️ Sửa kệ' : '➕ Tạo kệ mới';
   document.getElementById('shelfTen').value = existing ? existing.ten : '';
-  document.getElementById('shelfSoTang').value = existing ? existing.soTang : 4;
+  const loai = existing ? existing.loai : 'ke';
+  const isDumpinType = loai === 'dumpin' || loai === 'uDao';
+  // Mặc định: ke/tu = 5 tầng, dumpin/uDao = 2 mâm
+  const defaultSoTang = existing ? existing.soTang : (isDumpinType ? 2 : 5);
+  document.getElementById('shelfSoTang').value = defaultSoTang;
   document.getElementById('shelfRong').value = existing ? (existing.rongTong || existing.rong || 120) : 120;
 
-  const loai = existing ? existing.loai : 'ke';
   document.querySelectorAll('[name="shelfLoai"]').forEach(r => {
     r.checked = r.value === loai;
   });
 
   // Pre-fill tangList if editing existing shelf
   const existingTangList = existing ? getShelfTangList(existing) : null;
-  const soTangVal = existing ? existing.soTang : 4;
+  const soTangVal = defaultSoTang;
   const rongVal = existing ? (existing.rongTong || existing.rong || 120) : 120;
 
   // Build initial rows
@@ -2064,35 +2116,54 @@ function _updateShelfFormLabels(loai) {
 // Called when loai radio changes
 function onShelfLoaiChange() {
   const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
-  const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
+  const isDumpinType = loai === 'dumpin' || loai === 'uDao';
   const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
 
-  // Get current values from inputs
-  const container = document.getElementById('shelfCaoTangList');
-  const existingInputs = container.querySelectorAll('[data-level-row]');
-  const currentVals = Array.from(existingInputs).map(row => {
-    const caoInput = row.querySelector('[data-cao]');
-    const rongInput = row.querySelector('[data-rong]');
-    return {
-      cao: parseFloat(caoInput?.value) || 40,
-      rong: parseFloat(rongInput?.value) || rongTong
-    };
-  });
+  // Reset số tầng về default khi đổi loại
+  const defaultSoTang = isDumpinType ? 2 : 5;
+  document.getElementById('shelfSoTang').value = defaultSoTang;
 
-  _buildTangListInputs(soTang, loai, rongTong, currentVals.length > 0 ? currentVals : null);
+  // Tạo default tangList phù hợp loại mới
+  let defaultList = null;
+  if (isDumpinType) {
+    // Dumpin/Ụ đảo: rộng giảm dần từ rongTong
+    defaultList = [
+      { cao: 40, rong: rongTong },
+      { cao: 40, rong: Math.round(rongTong * 0.7) }
+    ];
+  }
+
+  _buildTangListInputs(defaultSoTang, loai, rongTong, defaultList);
   _updateShelfFormLabels(loai);
   updateShelfPreview();
+}
+
+// Clamp rong input không vượt rongTong
+function clampRongInput(el, maxVal) {
+  const v = parseFloat(el.value);
+  if (!isNaN(v) && v > maxVal) el.value = maxVal;
 }
 
 // Called when rongTong input changes
 function onShelfRongChange() {
   const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
-  // For ke/tu, auto-update rong display in rows (they're read-only)
+  const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
+  const container = document.getElementById('shelfCaoTangList');
+
   if (loai === 'ke' || loai === 'tu') {
-    const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
-    const container = document.getElementById('shelfCaoTangList');
+    // Update display text
     container.querySelectorAll('[data-rong-display]').forEach(el => {
       el.textContent = rongTong + 'cm';
+    });
+  } else {
+    // Dumpin/Ụ đảo: update max + clamp values + update hint text
+    container.querySelectorAll('[data-rong]').forEach(el => {
+      el.max = rongTong;
+      if (parseFloat(el.value) > rongTong) el.value = rongTong;
+    });
+    container.querySelectorAll('[data-level-row]').forEach(row => {
+      const hint = row.querySelector('span:last-child');
+      if (hint) hint.textContent = `cm (≤${rongTong})`;
     });
   }
   updateShelfPreview();
@@ -2114,6 +2185,7 @@ function _buildTangListInputs(soTang, loai, rongTong, existingList) {
     row.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap';
 
     if (isDumpinType) {
+      const rongClamped = Math.min(existRong, rongTong); // không vượt rongTong
       // Both cao and rong inputs
       row.innerHTML = `
         <span style="font-size:12px;color:#718096;min-width:60px">${levelLabel}</span>
@@ -2122,9 +2194,9 @@ function _buildTangListInputs(soTang, loai, rongTong, existingList) {
           style="width:70px" oninput="updateShelfPreview()" placeholder="cm">
         <span style="font-size:11px;color:#718096">cm</span>
         <span style="font-size:11px;color:#9b8ec4;font-weight:600;margin-left:4px">Rộng:</span>
-        <input type="number" class="form-input" data-rong value="${existRong}" min="1" max="300" step="1"
-          style="width:70px" oninput="updateShelfPreview()" placeholder="cm">
-        <span style="font-size:11px;color:#718096">cm</span>
+        <input type="number" class="form-input" data-rong value="${rongClamped}" min="1" max="${rongTong}" step="1"
+          style="width:70px" oninput="clampRongInput(this,${rongTong});updateShelfPreview()" placeholder="cm">
+        <span style="font-size:11px;color:#718096">cm (≤${rongTong})</span>
       `;
     } else {
       // Only cao input; rong is auto = rongTong
@@ -2507,32 +2579,58 @@ function initPOGScreen() {
 }
 
 function populateLibraryFilters() {
+  // Load tất cả Danh mục và MCH3 (không filter lẫn nhau khi init)
+  _refreshDanhMucOptions('');
+  _refreshMCH3Options('');
+}
+
+// Refresh Danh mục dropdown — chỉ hiện những Danh mục có SP thỏa mch3Filter
+function _refreshDanhMucOptions(mch3Filter) {
   const sel = document.getElementById('libraryDanhMuc');
-  const danhMucs = [...new Set(allProducts.map(p => p.danhMuc).filter(Boolean))].sort();
+  const currentVal = sel.value;
+  const pool = mch3Filter
+    ? allProducts.filter(p => p.mch3 === mch3Filter)
+    : allProducts;
+  const danhMucs = [...new Set(pool.map(p => p.danhMuc).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">-- Tất cả danh mục --</option>';
   danhMucs.forEach(d => {
     const o = document.createElement('option');
     o.value = d; o.textContent = d;
     sel.appendChild(o);
   });
-  // Reset MCH3
-  document.getElementById('libraryMCH3').innerHTML = '<option value="">-- Tất cả MCH3 --</option>';
+  // Giữ lại giá trị đang chọn nếu còn hợp lệ
+  if (danhMucs.includes(currentVal)) sel.value = currentVal;
 }
 
+// Refresh MCH3 dropdown — chỉ hiện MCH3 có SP thỏa danhMucFilter
+function _refreshMCH3Options(danhMucFilter) {
+  const sel = document.getElementById('libraryMCH3');
+  const currentVal = sel.value;
+  const pool = danhMucFilter
+    ? allProducts.filter(p => p.danhMuc === danhMucFilter)
+    : allProducts;
+  const mch3s = [...new Set(pool.map(p => p.mch3).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">-- Tất cả MCH3 --</option>';
+  mch3s.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    sel.appendChild(o);
+  });
+  // Giữ lại giá trị đang chọn nếu còn hợp lệ
+  if (mch3s.includes(currentVal)) sel.value = currentVal;
+}
+
+// Chọn Danh mục → cập nhật MCH3 theo, giữ MCH3 nếu còn hợp lệ
 function onLibraryDanhMucChange() {
   const danhMuc = document.getElementById('libraryDanhMuc').value;
-  const mch3Sel = document.getElementById('libraryMCH3');
-  mch3Sel.innerHTML = '<option value="">-- Tất cả MCH3 --</option>';
-  if (danhMuc) {
-    const mch3s = [...new Set(
-      allProducts.filter(p => p.danhMuc === danhMuc).map(p => p.mch3).filter(Boolean)
-    )].sort();
-    mch3s.forEach(m => {
-      const o = document.createElement('option');
-      o.value = m; o.textContent = m;
-      mch3Sel.appendChild(o);
-    });
-  }
+  _refreshMCH3Options(danhMuc); // MCH3 lọc theo Danh mục vừa chọn
+  filterLibrary();
+}
+
+// Chọn MCH3 → cập nhật Danh mục theo, giữ Danh mục nếu còn hợp lệ
+function onLibraryMCH3Change() {
+  const mch3 = document.getElementById('libraryMCH3').value;
+  _refreshDanhMucOptions(mch3); // Danh mục lọc theo MCH3 vừa chọn
   filterLibrary();
 }
 
