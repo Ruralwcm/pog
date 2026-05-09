@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v26.6</title>
+<title>POG DESIGN by HaoDT v26.7</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v26.6</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v26.7</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.7</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.7</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1355,6 +1355,11 @@ img { max-width: 100%; }
         <select class="form-input" id="newPogTemplate">
           <option value="">-- Không dùng mẫu --</option>
         </select>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Tên Series TTB</label>
+        <input type="text" class="form-input" id="newPogSeries" placeholder="VD: A, B, Khu 1... (tùy chọn)">
+        <div style="font-size:11px;color:var(--gray-500);margin-top:4px">TTB sẽ đánh số: Series-1, Series-2...</div>
       </div>
       <div>
         <label class="form-label">Số lượng TTB</label>
@@ -3206,9 +3211,11 @@ function createNewPOG() {
   const defTangList = tmpl ? getShelfTangList(tmpl) : [{cao:40, rong:loai==='dumpin'||loai==='uDao'?80:100}];
   const defSoTang = tmpl ? tmpl.soTang : defTangList.length;
   const defRong = tmpl ? (tmpl.rongTong||tmpl.rong||100) : 100;
+  const series = document.getElementById('newPogSeries').value.trim();
   pogLoai = loai;
   pogDevices = Array.from({length: count}, (_, i) => ({
     id: i + 1,
+    series: series ? (series + '-' + (i+1)) : '',
     soTang: defSoTang,
     rongTong: defRong,
     loai: loai,
@@ -3255,7 +3262,8 @@ function renderMultiDeviceCanvas() {
 
     const hdr = document.createElement('div');
     hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:5px 8px;background:' + (di===currentDeviceIdx?'var(--primary)':'var(--gray-600)') + ';color:#fff;border-radius:6px 6px 0 0;font-size:12px;font-weight:700;cursor:pointer;user-select:none;';
-    hdr.innerHTML = '<span style="flex:1">📦 TTB #' + (di+1) + '</span><button onclick="event.stopPropagation();deleteDevice(' + di + ')" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
+    const devLabel = dev.series ? dev.series : ('TTB #' + (di+1));
+    hdr.innerHTML = '<span style="flex:1">📦 ' + escHtml(devLabel) + '</span><button onclick="event.stopPropagation();deleteDevice(' + di + ')" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
     hdr.addEventListener('click', () => { currentDeviceIdx = di; renderMultiDeviceCanvas(); });
     col.appendChild(hdr);
 
