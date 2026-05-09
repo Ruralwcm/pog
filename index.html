@@ -3565,7 +3565,11 @@ function renderPOGCanvas() {
           const img = document.createElement('img');
           img.src = formatImgUrl(prod.linkAnh);
           img.alt = prod.tenSP || '';
-          img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;${prod.rotated ? ' transform:rotate(90deg);' : ''}`;
+          if (prod.rotated) {
+            img.style.cssText = `width:${pxCaoSingle}px; height:${pxRong}px; object-fit:contain; display:block; flex-shrink:0; transform:rotate(90deg); transform-origin:center; position:relative; left:${Math.round((pxRong-pxCaoSingle)/2)}px; top:${Math.round((pxCaoSingle-pxRong)/2)}px;`;
+          } else {
+            img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;`;
+          }
           img.onerror = () => { img.style.display = 'none'; };
           imgContainer.appendChild(img);
         } else {
@@ -3834,17 +3838,28 @@ function _startSlotReorder(e, tangIndex, slotIndex) {
     if (targetOv && _reorderSrc) {
       const targetTang = parseInt(targetOv.dataset.tang);
       const src = _reorderSrc;
-      if (targetTang !== src.tangIndex) {
-        // Move to different tầng
-        const movedProd = pogConfig.tầng[src.tangIndex]?.products.splice(src.slotIndex, 1)[0];
-        if (movedProd) {
-          if (!pogConfig.tầng[targetTang]) pogConfig.tầng[targetTang] = {index: targetTang, products: []};
+      const movedProd = pogConfig.tầng[src.tangIndex]?.products.splice(src.slotIndex, 1)[0];
+      if (movedProd) {
+        if (!pogConfig.tầng[targetTang]) pogConfig.tầng[targetTang] = {index:targetTang, products:[]};
+        if (targetTang === src.tangIndex) {
+          // Cùng tầng: tính vị trí insert theo clientX
+          const ovRect = targetOv.getBoundingClientRect();
+          const relX = ev.clientX - ovRect.left;
+          const prods = pogConfig.tầng[targetTang].products;
+          let insertIdx = prods.length;
+          let cumX = 0;
+          for (let k = 0; k < prods.length; k++) {
+            const w = Math.max(6, Math.round(((prods[k].rotated ? prods[k].cao : prods[k].rong)||10) * (window.SCALE||4)));
+            if (relX < cumX + w/2) { insertIdx = k; break; }
+            cumX += w;
+          }
+          prods.splice(insertIdx, 0, movedProd);
+        } else {
+          // Tầng khác: thêm vào cuối
           pogConfig.tầng[targetTang].products.push(movedProd);
-          renderPOGCanvas();
-          markDirty();
         }
+        renderPOGCanvas(); markDirty();
       }
-      // Same tầng: no-op (could add reorder within tầng later)
     }
     _reorderSrc = null;
   };
