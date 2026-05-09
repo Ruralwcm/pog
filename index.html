@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v29.1</title>
+<title>POG DESIGN by HaoDT v29.2</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v29.1</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v29.2</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.2</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.2</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1027,9 +1027,9 @@ img { max-width: 100%; }
       <div class="sidebar-section" style="padding:8px 12px;border-bottom:1px solid var(--gray-200)">
         <div class="autosave-indicator" id="autosaveIndicator" style="margin-bottom:4px">Chưa lưu</div>
         <div style="display:flex;gap:4px">
-          <button class="btn-load-pog" onclick="openPOGListModal()" style="flex:1">📂 Tải</button>
-          <button class="btn-save-pog" onclick="savePOG()" style="flex:1">💾 Lưu</button>
-          <button class="btn-export-png" onclick="exportPNG()" style="flex:1">🖼️ PNG</button>
+          <button class="btn-load-pog" onclick="openPOGListModal()" style="flex:1">📂 Open</button>
+          <button class="btn-save-pog" onclick="savePOG()" style="flex:1">💾 Save</button>
+          <button class="btn-export-png" onclick="exportPNG()" style="flex:1">🖼️ Export</button>
         </div>
         <button onclick="cancelPOG()" style="width:100%;padding:6px;background:#fff;border:1px solid var(--danger);border-radius:var(--radius);color:var(--danger);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px">🗑️ Hủy POG</button>
       </div>
@@ -1211,7 +1211,7 @@ img { max-width: 100%; }
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeEditProductModal()">Huỷ</button>
-      <button class="btn-success" onclick="saveProductEdit()">💾 Lưu</button>
+      <button class="btn-success" onclick="saveProductEdit()">💾 Save</button>
     </div>
   </div>
 </div>
@@ -4576,28 +4576,26 @@ async function loadPOG(id) {
 
     currentPOGId = data.id;
     document.getElementById('pogNameInput').value = data.ten || 'POG';
-    pogConfig = data.jsonConfig || {};
-
-    // Load shelf
-    const shelfId = data.shelfId || pogConfig.shelfId;
-    let shelf = allShelves.find(s => s.id === shelfId);
-    if (!shelf && pogConfig.shelfConfig) {
-      shelf = pogConfig.shelfConfig;
+    const jc = data.jsonConfig || {};
+    if (jc.devices && Array.isArray(jc.devices)) {
+      pogDevices = jc.devices; pogLoai = jc.loai||(pogDevices[0]?.loai)||'ke';
+      currentDeviceIdx = 0; pogConfig = null; currentShelf = null;
+      renderMultiDeviceCanvas();
+    } else {
+      pogConfig = jc; pogDevices = [];
+      const shelfId = data.shelfId||jc.shelfId;
+      let shelf = allShelves.find(s=>s.id===shelfId);
+      if(!shelf&&jc.shelfConfig) shelf=jc.shelfConfig;
+      if(shelf){
+        currentShelf=shelf;
+        const et=jc.tầng||[];
+        pogConfig.tầng=Array.from({length:shelf.soTang},(_,i)=>et.find(t=>t.index===i)||{index:i,products:[]});
+        updateShelfInfoPanel(shelf);
+      }
+      renderPOGCanvas();
     }
-    if (shelf) {
-      currentShelf = shelf;
-      // Ensure tầng config matches shelf
-      const existingTangs = pogConfig.tầng || [];
-      pogConfig.tầng = Array.from({ length: shelf.soTang }, (_, i) => {
-        return existingTangs.find(t => t.index === i) || { index: i, products: [] };
-      });
-      updateShelfInfoPanel(shelf);
-    }
-
-    renderPOGCanvas();
-    setAutosave('saved');
-    isDirty = false;
-    showToast('Đã tải POG!', 'success');
+    setAutosave('saved'); isDirty=false;
+    showToast('✅ Đã mở: '+(data.ten||''), 'success');
   } catch(e) {
     showToast('Lỗi: ' + e.message, 'error');
   } finally {
