@@ -1,0 +1,2601 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📐 POG Designer 2D</title>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #1a3c6e;
+  --primary-light: #2a5298;
+  --primary-dark: #122a50;
+  --accent: #e8a020;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --gray-100: #f8f9fa;
+  --gray-200: #e9ecef;
+  --gray-300: #dee2e6;
+  --gray-400: #ced4da;
+  --gray-500: #adb5bd;
+  --gray-600: #6c757d;
+  --gray-700: #495057;
+  --gray-800: #343a40;
+  --gray-900: #212529;
+  --wood-light: #f5e6c8;
+  --wood-dark: #5d3a1a;
+  --fridge-header: #1a3c6e;
+  --fridge-body: #e8f4fd;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --transition: 0.2s ease;
+}
+html, body { height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--gray-100); color: var(--gray-900); }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+img { max-width: 100%; }
+
+/* ============================================================
+   SCREEN SYSTEM
+   ============================================================ */
+.screen { display: none; width: 100%; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ============================================================
+   LOADING OVERLAY
+   ============================================================ */
+#loadingOverlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+#loadingOverlay.active { display: flex; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loadingOverlay p { color: #fff; font-size: 14px; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toastContainer {
+  position: fixed; top: 20px; right: 20px;
+  z-index: 99999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  min-width: 260px; max-width: 380px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  animation: toastIn 0.3s ease;
+  display: flex; align-items: center; gap: 10px;
+}
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+.toast.info { background: var(--primary-light); }
+.toast.warning { background: var(--warning); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(40px); } }
+
+/* ============================================================
+   SCREEN 1: LOGIN
+   ============================================================ */
+#screenLogin {
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+}
+.login-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 48px 40px;
+  width: 100%; max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.login-logo { font-size: 48px; margin-bottom: 8px; }
+.login-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.login-subtitle { color: var(--gray-600); font-size: 14px; margin-bottom: 32px; }
+.form-group { text-align: left; margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+.form-control {
+  width: 100%; padding: 10px 14px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 15px;
+  transition: border-color var(--transition);
+  outline: none;
+}
+.form-control:focus { border-color: var(--primary-light); }
+.btn-primary {
+  width: 100%; padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  transition: background var(--transition), transform var(--transition);
+  margin-top: 8px;
+}
+.btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+.app-header .logo { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.app-header .user-info { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.app-header .username { font-weight: 600; }
+.btn-logout {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-size: 13px;
+  transition: background var(--transition);
+}
+.btn-logout:hover { background: rgba(255,255,255,0.25); }
+.btn-back {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-size: 13px;
+  transition: background var(--transition);
+}
+.btn-back:hover { background: rgba(255,255,255,0.25); }
+
+/* ============================================================
+   SCREEN 2: MAIN MENU
+   ============================================================ */
+#screenMenu { background: var(--gray-100); }
+.menu-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 800px;
+  width: 100%;
+}
+.menu-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid transparent;
+  transition: all var(--transition);
+}
+.menu-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+.menu-card .card-icon { font-size: 52px; margin-bottom: 16px; }
+.menu-card .card-title { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+.menu-card .card-desc { font-size: 13px; color: var(--gray-600); }
+
+/* ============================================================
+   SCREEN 3: DANH MỤC SẢN PHẨM
+   ============================================================ */
+#screenProducts { background: var(--gray-100); }
+.screen-body { flex: 1; overflow-y: auto; padding: 24px; }
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-bar select {
+  padding: 8px 12px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color var(--transition);
+  min-width: 160px;
+}
+.filter-bar select:focus { border-color: var(--primary-light); }
+.filter-bar .search-input {
+  padding: 8px 12px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 14px;
+  outline: none;
+  flex: 1; min-width: 200px;
+  transition: border-color var(--transition);
+}
+.filter-bar .search-input:focus { border-color: var(--primary-light); }
+.results-count { font-size: 13px; color: var(--gray-600); margin-left: auto; white-space: nowrap; }
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.product-card {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid transparent;
+  transition: all var(--transition);
+  position: relative;
+}
+.product-card:hover { border-color: var(--gray-300); box-shadow: var(--shadow-md); }
+.product-card .product-img-wrap {
+  width: 100%; padding-top: 100%;
+  position: relative;
+  background: var(--gray-100);
+}
+.product-card .product-img-wrap img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+.product-card .product-img-wrap .no-img {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 4px;
+  color: var(--gray-400); font-size: 12px;
+}
+.product-card .product-img-wrap .no-img-icon { font-size: 36px; }
+.product-card .product-info { padding: 10px 12px; }
+.product-card .product-name {
+  font-size: 12px; font-weight: 600;
+  color: var(--gray-800);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.product-card .product-size { font-size: 11px; color: var(--gray-500); margin-bottom: 6px; }
+.product-card .product-masp { font-size: 10px; color: var(--gray-400); margin-bottom: 4px; }
+.btn-edit-product {
+  width: 100%;
+  padding: 6px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.btn-edit-product:hover { background: var(--primary); color: #fff; }
+.has-photo-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: var(--success);
+  color: #fff; font-size: 10px;
+  padding: 2px 6px; border-radius: 20px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   SCREEN 4: THƯ VIỆN KỆ
+   ============================================================ */
+#screenShelves { background: var(--gray-100); }
+.shelves-toolbar {
+  display: flex; gap: 12px; align-items: center;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.btn-create {
+  padding: 10px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background var(--transition);
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-create:hover { background: var(--primary-light); }
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+.shelf-card {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid transparent;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.shelf-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); }
+.shelf-card.selected { border-color: var(--primary); }
+.shelf-preview { padding: 16px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; min-height: 140px; }
+.shelf-info { padding: 12px; }
+.shelf-info .shelf-name { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.shelf-info .shelf-specs { font-size: 12px; color: var(--gray-600); }
+.shelf-actions { padding: 0 12px 12px; display: flex; gap: 8px; }
+.btn-select-shelf {
+  flex: 1; padding: 7px;
+  background: var(--primary);
+  color: #fff; border: none;
+  border-radius: var(--radius);
+  font-size: 13px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-select-shelf:hover { background: var(--primary-light); }
+.btn-delete-shelf {
+  padding: 7px 12px;
+  background: var(--gray-100);
+  color: var(--danger); border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 13px;
+  transition: all var(--transition);
+}
+.btn-delete-shelf:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+/* ============================================================
+   SCREEN 5: POG DESIGNER
+   ============================================================ */
+#screenPOG { background: var(--gray-100); flex-direction: column; }
+.pog-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+/* LEFT SIDEBAR */
+.pog-sidebar {
+  width: 300px;
+  min-width: 280px;
+  background: #fff;
+  border-right: 2px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.sidebar-section-title {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--gray-500); margin-bottom: 10px;
+}
+.shelf-info-panel { font-size: 13px; color: var(--gray-700); }
+.shelf-info-panel .shelf-name-disp { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.no-shelf-msg { font-size: 13px; color: var(--gray-400); font-style: italic; }
+.btn-choose-shelf {
+  width: 100%; padding: 10px;
+  background: var(--primary);
+  color: #fff; border: none;
+  border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-choose-shelf:hover { background: var(--primary-light); }
+.product-library { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.library-filters { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); display: flex; flex-direction: column; gap: 8px; }
+.library-search {
+  padding: 8px 10px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 13px; outline: none; width: 100%;
+  transition: border-color var(--transition);
+}
+.library-search:focus { border-color: var(--primary-light); }
+.library-filter-select {
+  padding: 6px 10px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 13px; outline: none; width: 100%;
+  background: #fff; cursor: pointer;
+}
+.library-list { flex: 1; overflow-y: auto; padding: 8px; }
+.lib-product-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius);
+  cursor: grab;
+  transition: background var(--transition);
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+  user-select: none;
+}
+.lib-product-item:hover { background: var(--gray-100); border-color: var(--gray-300); }
+.lib-product-item.selected-product { background: #e8f0fe; border-color: var(--primary-light); }
+.lib-product-item:active { cursor: grabbing; }
+.lib-product-thumb {
+  width: 44px; height: 44px;
+  border-radius: 4px;
+  object-fit: contain;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  flex-shrink: 0;
+}
+.lib-product-thumb-placeholder {
+  width: 44px; height: 44px;
+  border-radius: 4px;
+  background: var(--gray-200);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--gray-400);
+  flex-shrink: 0;
+  border: 1px solid var(--gray-300);
+}
+.lib-product-details { min-width: 0; flex: 1; }
+.lib-product-name { font-size: 12px; font-weight: 600; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib-product-size { font-size: 11px; color: var(--gray-500); }
+.lib-drag-icon { color: var(--gray-400); font-size: 16px; flex-shrink: 0; }
+.sidebar-bottom {
+  padding: 12px 16px;
+  border-top: 2px solid var(--gray-200);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.btn-save-pog {
+  width: 100%; padding: 10px;
+  background: var(--success);
+  color: #fff; border: none;
+  border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-save-pog:hover { background: #219a52; }
+.btn-export-png {
+  width: 100%; padding: 10px;
+  background: var(--accent);
+  color: #fff; border: none;
+  border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-export-png:hover { background: #c8860d; }
+.btn-load-pog {
+  width: 100%; padding: 10px;
+  background: var(--gray-600);
+  color: #fff; border: none;
+  border-radius: var(--radius);
+  font-size: 13px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-load-pog:hover { background: var(--gray-700); }
+.autosave-indicator { font-size: 11px; color: var(--gray-500); text-align: center; }
+.autosave-indicator.saving { color: var(--warning); }
+.autosave-indicator.saved { color: var(--success); }
+
+/* POG CANVAS AREA */
+.pog-canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+.pog-toolbar {
+  padding: 12px 20px;
+  background: #fff;
+  border-bottom: 2px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.pog-name-input {
+  padding: 8px 12px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  min-width: 220px;
+  transition: border-color var(--transition);
+}
+.pog-name-input:focus { border-color: var(--primary-light); }
+.zoom-controls { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.btn-zoom {
+  width: 32px; height: 32px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 16px; font-weight: 700;
+  color: var(--gray-700);
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-zoom:hover { border-color: var(--primary); color: var(--primary); }
+.zoom-label { font-size: 13px; color: var(--gray-600); min-width: 40px; text-align: center; }
+.pog-canvas-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  position: relative;
+}
+.pog-canvas-container {
+  position: relative;
+  display: inline-block;
+  min-width: 100%;
+}
+.pog-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: var(--gray-400);
+  gap: 16px;
+}
+.pog-empty-state .empty-icon { font-size: 72px; }
+.pog-empty-state p { font-size: 18px; font-weight: 600; }
+.pog-empty-state span { font-size: 14px; }
+
+/* SHELF SVG */
+.shelf-svg-container { position: relative; display: inline-block; }
+.shelf-svg-container svg { display: block; }
+
+/* PRODUCT SLOTS on canvas */
+.tầng-overlay {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  cursor: crosshair;
+}
+.product-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color var(--transition);
+}
+.product-slot:hover { border-color: rgba(26,60,110,0.4); border-radius: 2px; }
+.product-slot.selected { border-color: var(--primary) !important; border-radius: 2px; background: rgba(26,60,110,0.05); }
+.product-slot .slot-img { width: 100%; object-fit: contain; display: block; }
+.product-slot .slot-controls {
+  display: none;
+  position: absolute;
+  top: 2px; right: 2px;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+}
+.product-slot.selected .slot-controls { display: flex; }
+.slot-btn {
+  width: 22px; height: 22px;
+  border-radius: 4px;
+  border: none;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+  line-height: 1;
+}
+.slot-btn.delete { background: var(--danger); color: #fff; }
+.slot-btn.delete:hover { background: #c0392b; }
+.slot-btn.facing-up { background: var(--success); color: #fff; }
+.slot-btn.facing-up:hover { background: #219a52; }
+.slot-btn.facing-down { background: var(--warning); color: #fff; }
+.slot-btn.facing-down:hover { background: #d48806; }
+.facing-count {
+  position: absolute;
+  bottom: 2px; left: 2px;
+  background: rgba(0,0,0,0.6);
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 1px 4px; border-radius: 3px;
+  pointer-events: none;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(-20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-sm { max-width: 480px; }
+.modal-md { max-width: 620px; }
+.modal-lg { max-width: 820px; }
+.modal-xl { max-width: 960px; }
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-title { font-size: 18px; font-weight: 700; color: var(--primary); }
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--gray-200);
+  font-size: 18px; color: var(--gray-700);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.modal-close:hover { background: var(--gray-300); color: var(--gray-900); }
+.modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex; justify-content: flex-end; gap: 10px;
+  flex-shrink: 0;
+}
+.btn-secondary {
+  padding: 9px 18px;
+  background: var(--gray-200);
+  color: var(--gray-700);
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-secondary:hover { background: var(--gray-300); }
+.btn-danger {
+  padding: 9px 18px;
+  background: var(--danger);
+  color: #fff;
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-danger:hover { background: #c0392b; }
+.btn-success {
+  padding: 9px 18px;
+  background: var(--success);
+  color: #fff;
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition);
+}
+.btn-success:hover { background: #219a52; }
+
+/* SHELF CREATE MODAL */
+.shelf-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.shelf-form .full-width { grid-column: 1 / -1; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; padding: 9px 12px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 14px; outline: none;
+  transition: border-color var(--transition);
+}
+.form-input:focus { border-color: var(--primary-light); }
+.radio-group { display: flex; gap: 16px; }
+.radio-item { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+.radio-item input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
+.shelf-preview-box {
+  grid-column: 1 / -1;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 180px;
+  border: 2px dashed var(--gray-300);
+}
+
+/* PRODUCT EDIT MODAL */
+.product-edit-img-preview {
+  width: 120px; height: 120px;
+  object-fit: contain;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: var(--gray-100);
+  display: block; margin: 0 auto 16px;
+}
+.edit-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+/* SHELF PICKER MODAL */
+.shelf-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.shelf-picker-item {
+  background: var(--gray-100);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition);
+}
+.shelf-picker-item:hover { border-color: var(--primary); background: #e8f0fe; }
+.shelf-picker-item .sp-preview { margin-bottom: 8px; display: flex; justify-content: center; }
+.shelf-picker-item .sp-name { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.shelf-picker-item .sp-specs { font-size: 11px; color: var(--gray-500); }
+
+/* POG LIST MODAL */
+.pog-list-item {
+  display: flex; align-items: center;
+  padding: 12px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all var(--transition);
+  gap: 12px;
+}
+.pog-list-item:hover { background: var(--gray-100); border-color: var(--primary-light); }
+.pog-list-icon { font-size: 28px; }
+.pog-list-details { flex: 1; }
+.pog-list-name { font-size: 15px; font-weight: 700; color: var(--primary); }
+.pog-list-meta { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+.pog-list-arrow { color: var(--gray-400); font-size: 18px; }
+
+/* ============================================================
+   DRAG INDICATOR
+   ============================================================ */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  opacity: 0.85;
+  border: 2px solid var(--primary);
+  border-radius: 4px;
+  background: rgba(26,60,110,0.1);
+  padding: 4px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.drag-ghost.active { display: flex; }
+.drag-ghost img { width: 48px; height: 48px; object-fit: contain; }
+
+/* DROP ZONE HIGHLIGHT */
+.tầng-overlay.drag-over {
+  background: rgba(26,60,110,0.08) !important;
+  outline: 2px dashed var(--primary);
+  outline-offset: -2px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .menu-grid { grid-template-columns: 1fr; max-width: 320px; }
+  .pog-sidebar { width: 240px; min-width: 220px; }
+}
+@media (max-width: 640px) {
+  .pog-layout { flex-direction: column; }
+  .pog-sidebar { width: 100%; height: 260px; border-right: none; border-bottom: 2px solid var(--gray-200); }
+  .menu-grid { grid-template-columns: 1fr; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================================
+   SCROLLBAR STYLES
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* ============================================================
+   MISC UTILITIES
+   ============================================================ */
+.empty-list { text-align: center; padding: 48px 24px; color: var(--gray-400); }
+.empty-list .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-list p { font-size: 15px; }
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  background: var(--gray-200); color: var(--gray-700);
+}
+.tag.admin { background: #fde8e8; color: var(--danger); }
+.tag.user { background: #e8f0fe; color: var(--primary); }
+.divider { height: 1px; background: var(--gray-200); margin: 12px 0; }
+.text-muted { color: var(--gray-500); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOADING OVERLAY
+     ============================================================ -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <p id="loadingText">Đang tải...</p>
+</div>
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div id="toastContainer"></div>
+
+<!-- ============================================================
+     DRAG GHOST
+     ============================================================ -->
+<div class="drag-ghost" id="dragGhost">
+  <img id="dragGhostImg" src="" alt="">
+  <span id="dragGhostName"></span>
+</div>
+
+<!-- ============================================================
+     SCREEN 1: LOGIN
+     ============================================================ -->
+<div id="screenLogin" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">📐</div>
+    <h1 class="login-title">POG Designer</h1>
+    <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
+    <div class="form-group">
+      <label for="loginUsername">Tên đăng nhập</label>
+      <input type="text" id="loginUsername" class="form-control" placeholder="Nhập username..." autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label for="loginPassword">Mật khẩu</label>
+      <input type="password" id="loginPassword" class="form-control" placeholder="Nhập mật khẩu..." autocomplete="current-password">
+    </div>
+    <button class="btn-primary" onclick="handleLogin()">🔑 Đăng nhập</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 2: MAIN MENU
+     ============================================================ -->
+<div id="screenMenu" class="screen">
+  <header class="app-header">
+    <div class="logo">📐 POG Designer</div>
+    <div class="user-info">
+      <span class="username" id="menuUsername"></span>
+      <span id="menuRole" class="tag"></span>
+      <button class="btn-logout" onclick="handleLogout()">← Đăng xuất</button>
+    </div>
+  </header>
+  <div class="menu-content">
+    <div class="menu-grid">
+      <div class="menu-card" onclick="showScreen('screenProducts'); loadProducts();">
+        <div class="card-icon">📦</div>
+        <div class="card-title">Danh mục SP</div>
+        <div class="card-desc">Xem & chỉnh sửa sản phẩm, kích thước, hình ảnh</div>
+      </div>
+      <div class="menu-card" onclick="showScreen('screenShelves'); loadShelves();">
+        <div class="card-icon">🗄️</div>
+        <div class="card-title">Thư viện Kệ</div>
+        <div class="card-desc">Tạo và quản lý kệ hàng, tủ lạnh</div>
+      </div>
+      <div class="menu-card" onclick="showScreen('screenPOG'); initPOGScreen();">
+        <div class="card-icon">📐</div>
+        <div class="card-title">POG Designer</div>
+        <div class="card-desc">Thiết kế planogram kệ hàng 2D</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 3: DANH MỤC SẢN PHẨM
+     ============================================================ -->
+<div id="screenProducts" class="screen">
+  <header class="app-header">
+    <div class="logo">📦 Danh mục Sản phẩm</div>
+    <div class="user-info">
+      <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
+    </div>
+  </header>
+  <div class="screen-body">
+    <div class="filter-bar">
+      <select id="filterDanhMuc" onchange="filterProducts()">
+        <option value="">-- Tất cả Danh mục --</option>
+      </select>
+      <select id="filterMCH3" onchange="filterProducts()">
+        <option value="">-- Tất cả MCH3 --</option>
+      </select>
+      <input type="text" class="search-input" id="searchProduct" placeholder="🔍 Tìm tên SP, mã SP..." oninput="filterProducts()">
+      <span class="results-count" id="resultsCount">0 sản phẩm</span>
+    </div>
+    <div class="product-grid" id="productGrid">
+      <div class="empty-list" style="grid-column:1/-1">
+        <div class="empty-icon">⏳</div>
+        <p>Đang tải dữ liệu...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 4: THƯ VIỆN KỆ
+     ============================================================ -->
+<div id="screenShelves" class="screen">
+  <header class="app-header">
+    <div class="logo">🗄️ Thư viện Kệ</div>
+    <div class="user-info">
+      <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
+    </div>
+  </header>
+  <div class="screen-body">
+    <div class="shelves-toolbar">
+      <button class="btn-create" onclick="openCreateShelfModal()">➕ Tạo kệ mới</button>
+      <span class="text-muted" id="shelvesCount">0 kệ</span>
+    </div>
+    <div class="shelf-grid" id="shelfGrid">
+      <div class="empty-list" style="grid-column:1/-1">
+        <div class="empty-icon">⏳</div>
+        <p>Đang tải...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 5: POG DESIGNER
+     ============================================================ -->
+<div id="screenPOG" class="screen">
+  <header class="app-header">
+    <div class="logo">📐 POG Designer</div>
+    <div class="user-info">
+      <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
+    </div>
+  </header>
+  <div class="pog-layout">
+    <!-- LEFT SIDEBAR -->
+    <div class="pog-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Kệ hàng</div>
+        <button class="btn-choose-shelf" onclick="openShelfPickerModal()">🗄️ Chọn kệ</button>
+        <div style="height:10px"></div>
+        <div id="currentShelfInfo">
+          <div class="no-shelf-msg">Chưa chọn kệ</div>
+        </div>
+      </div>
+      <div class="product-library">
+        <div class="sidebar-section-title" style="padding:12px 16px 4px">Kho sản phẩm</div>
+        <div class="library-filters">
+          <input type="text" class="library-search" id="librarySearch" placeholder="🔍 Tìm sản phẩm..." oninput="filterLibrary()">
+          <select class="library-filter-select" id="libraryDanhMuc" onchange="filterLibrary()">
+            <option value="">-- Tất cả --</option>
+          </select>
+        </div>
+        <div class="library-list" id="libraryList">
+          <div class="empty-list">
+            <div class="empty-icon">📦</div>
+            <p>Chưa có sản phẩm</p>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="autosave-indicator" id="autosaveIndicator">Chưa lưu</div>
+        <button class="btn-load-pog" onclick="openPOGListModal()">📂 Tải POG</button>
+        <button class="btn-save-pog" onclick="savePOG()">💾 Lưu POG</button>
+        <button class="btn-export-png" onclick="exportPNG()">🖼️ Xuất PNG</button>
+      </div>
+    </div>
+    <!-- CANVAS AREA -->
+    <div class="pog-canvas-area">
+      <div class="pog-toolbar">
+        <input type="text" class="pog-name-input" id="pogNameInput" placeholder="Tên POG..." value="POG Mới">
+        <div class="zoom-controls">
+          <button class="btn-zoom" onclick="setZoom(zoom - 0.1)">−</button>
+          <span class="zoom-label" id="zoomLabel">100%</span>
+          <button class="btn-zoom" onclick="setZoom(zoom + 0.1)">+</button>
+          <button class="btn-zoom" onclick="setZoom(1)" title="Reset zoom">↺</button>
+        </div>
+      </div>
+      <div class="pog-canvas-scroll" id="pogCanvasScroll">
+        <div class="pog-canvas-container" id="pogCanvasContainer">
+          <div class="pog-empty-state" id="pogEmptyState">
+            <div class="empty-icon">🗄️</div>
+            <p>Chọn kệ để bắt đầu</p>
+            <span>Nhấn "Chọn kệ" ở sidebar bên trái</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: EDIT PRODUCT
+     ============================================================ -->
+<div class="modal-overlay" id="modalEditProduct">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title">✏️ Chỉnh sửa sản phẩm</span>
+      <button class="modal-close" onclick="closeModal('modalEditProduct')">×</button>
+    </div>
+    <div class="modal-body">
+      <img id="editProductImg" class="product-edit-img-preview" src="" alt="">
+      <div style="text-align:center;margin-bottom:16px">
+        <strong id="editProductName"></strong><br>
+        <span class="text-muted" id="editProductMaSP"></span>
+      </div>
+      <div class="edit-form-row">
+        <div>
+          <label class="form-label">Chiều rộng (cm)</label>
+          <input type="number" class="form-input" id="editRong" placeholder="0" step="0.1" min="0">
+        </div>
+        <div>
+          <label class="form-label">Chiều cao (cm)</label>
+          <input type="number" class="form-input" id="editCao" placeholder="0" step="0.1" min="0">
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Link ảnh Drive / URL hình ảnh</label>
+        <input type="text" class="form-input" id="editLinkAnh" placeholder="https://drive.google.com/..." oninput="previewEditImage()">
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--gray-500)">
+        💡 Sử dụng link Google Drive dạng: https://drive.google.com/uc?id=FILE_ID
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modalEditProduct')">Huỷ</button>
+      <button class="btn-success" onclick="saveProductEdit()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CREATE SHELF
+     ============================================================ -->
+<div class="modal-overlay" id="modalCreateShelf">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="shelfModalTitle">➕ Tạo kệ mới</span>
+      <button class="modal-close" onclick="closeModal('modalCreateShelf')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="shelf-form">
+        <div class="full-width">
+          <label class="form-label">Tên kệ *</label>
+          <input type="text" class="form-input" id="shelfTen" placeholder="VD: Kệ nước giải khát..." oninput="updateShelfPreview()">
+        </div>
+        <div class="full-width">
+          <label class="form-label">Loại kệ</label>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="shelfLoai" value="ke" checked onchange="updateShelfPreview()"> Kệ đứng
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="shelfLoai" value="tu" onchange="updateShelfPreview()"> Tủ lạnh/đông
+            </label>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Số tầng (1-10)</label>
+          <input type="number" class="form-input" id="shelfSoTang" value="4" min="1" max="10" oninput="updateShelfPreview()">
+        </div>
+        <div>
+          <label class="form-label">Chiều rộng tổng (cm)</label>
+          <input type="number" class="form-input" id="shelfRong" value="120" min="10" oninput="updateShelfPreview()">
+        </div>
+        <div class="full-width">
+          <label class="form-label">Chiều cao mỗi tầng (cm)</label>
+          <input type="number" class="form-input" id="shelfCaoTang" value="40" min="5" oninput="updateShelfPreview()">
+        </div>
+        <div class="full-width">
+          <label class="form-label">Xem trước</label>
+          <div class="shelf-preview-box" id="shelfPreviewBox">
+            <svg id="shelfPreviewSVG" width="200" height="180"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modalCreateShelf')">Huỷ</button>
+      <button class="btn-primary" onclick="saveShelf()">💾 Lưu kệ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: SHELF PICKER (in POG Designer)
+     ============================================================ -->
+<div class="modal-overlay" id="modalShelfPicker">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">🗄️ Chọn kệ hàng</span>
+      <button class="modal-close" onclick="closeModal('modalShelfPicker')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="shelf-picker-grid" id="shelfPickerGrid">
+        <div class="empty-list" style="grid-column:1/-1">
+          <div class="empty-icon">⏳</div>
+          <p>Đang tải...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: POG LIST
+     ============================================================ -->
+<div class="modal-overlay" id="modalPOGList">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title">📂 Danh sách POG</span>
+      <button class="modal-close" onclick="closeModal('modalPOGList')">×</button>
+    </div>
+    <div class="modal-body" id="pogListBody">
+      <div class="empty-list">
+        <div class="empty-icon">⏳</div>
+        <p>Đang tải...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CONFIRM DIALOG
+     ============================================================ -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="confirmTitle">Xác nhận</span>
+      <button class="modal-close" onclick="closeModal('modalConfirm')">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="font-size:15px;color:var(--gray-700)"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modalConfirm')">Huỷ</button>
+      <button class="btn-danger" id="confirmOkBtn">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbyOiTWmPrtSqHS5Qb-Y0GqR0NSR862WdpS8xSmc7zPjrq48APSBbmcmaJ2lNoUF7J25Ug/exec';
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let allProducts = [];
+let filteredProducts = [];
+let allShelves = [];
+let currentShelf = null;
+let pogConfig = null;  // {shelfId, shelfConfig, tầng:[{index, products:[]}]}
+let currentPOGId = null;
+let selectedSlot = null;  // {tangIndex, slotIndex}
+let zoom = 1;
+let selectedLibProduct = null;
+let editingShelfId = null;
+let editingProductMaSP = null;
+let autosaveTimer = null;
+let isDirty = false;
+
+const SCALE_BASE = 4; // px per cm base (before zoom)
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Check localStorage for existing session
+  const saved = localStorage.getItem('pogUser');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      afterLogin();
+    } catch(e) {
+      localStorage.removeItem('pogUser');
+    }
+  }
+
+  // Enter key on login
+  document.getElementById('loginPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+  document.getElementById('loginUsername').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+  });
+});
+
+// ============================================================
+// SCREEN NAVIGATION
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ============================================================
+// LOADING & TOAST
+// ============================================================
+function showLoading(msg) {
+  document.getElementById('loadingOverlay').classList.add('active');
+  document.getElementById('loadingText').textContent = msg || 'Đang tải...';
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+function showToast(msg, type='info', duration=3500) {
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+
+// ============================================================
+// API HELPERS
+// ============================================================
+async function apiGet(params) {
+  const url = new URL(API_URL);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ============================================================
+// SCREEN 1: LOGIN
+// ============================================================
+async function handleLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  if (!username || !password) {
+    showToast('Vui lòng nhập đầy đủ thông tin', 'warning');
+    return;
+  }
+  showLoading('Đang đăng nhập...');
+  try {
+    const data = await apiGet({ action: 'login', username, password });
+    if (data.success) {
+      currentUser = { username: data.username, role: data.role };
+      localStorage.setItem('pogUser', JSON.stringify(currentUser));
+      afterLogin();
+    } else {
+      showToast(data.error || 'Sai tên đăng nhập hoặc mật khẩu', 'error');
+    }
+  } catch(e) {
+    showToast('Lỗi kết nối API. Kiểm tra lại URL.', 'error');
+    console.error(e);
+  } finally {
+    hideLoading();
+  }
+}
+
+function afterLogin() {
+  document.getElementById('menuUsername').textContent = currentUser.username;
+  const roleEl = document.getElementById('menuRole');
+  roleEl.textContent = currentUser.role === 'admin' ? 'Admin' : 'User';
+  roleEl.className = `tag ${currentUser.role}`;
+  showScreen('screenMenu');
+  // Preload products in background
+  loadProductsData();
+}
+
+function handleLogout() {
+  currentUser = null;
+  localStorage.removeItem('pogUser');
+  showScreen('screenLogin');
+  showToast('Đã đăng xuất', 'info');
+}
+
+// ============================================================
+// PRODUCT DATA LOADING
+// ============================================================
+async function loadProductsData() {
+  if (allProducts.length > 0) return; // already loaded
+  try {
+    const data = await apiGet({ action: 'getProducts' });
+    if (Array.isArray(data)) {
+      allProducts = data;
+      populateProductFilters();
+      populateLibraryFilters();
+    }
+  } catch(e) {
+    console.error('Failed to load products:', e);
+  }
+}
+
+function loadProducts() {
+  if (allProducts.length > 0) {
+    renderProductGrid(allProducts);
+    return;
+  }
+  showLoading('Đang tải sản phẩm...');
+  apiGet({ action: 'getProducts' })
+    .then(data => {
+      if (Array.isArray(data)) {
+        allProducts = data;
+        populateProductFilters();
+        populateLibraryFilters();
+        filterProducts();
+      }
+    })
+    .catch(e => showToast('Lỗi tải sản phẩm: ' + e.message, 'error'))
+    .finally(() => hideLoading());
+}
+
+function populateProductFilters() {
+  const danhMucs = [...new Set(allProducts.map(p => p.danhMuc).filter(Boolean))].sort();
+  const sel = document.getElementById('filterDanhMuc');
+  sel.innerHTML = '<option value="">-- Tất cả Danh mục --</option>';
+  danhMucs.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    sel.appendChild(o);
+  });
+  filterProducts();
+}
+
+function filterProducts() {
+  const danhMuc = document.getElementById('filterDanhMuc').value;
+  const mch3 = document.getElementById('filterMCH3').value;
+  const search = document.getElementById('searchProduct').value.toLowerCase().trim();
+
+  // Update MCH3 dropdown based on danh mục
+  const mch3Sel = document.getElementById('filterMCH3');
+  const mch3s = [...new Set(allProducts
+    .filter(p => !danhMuc || p.danhMuc === danhMuc)
+    .map(p => p.mch3)
+    .filter(Boolean)
+  )].sort();
+
+  const currentMCH3 = mch3Sel.value;
+  mch3Sel.innerHTML = '<option value="">-- Tất cả MCH3 --</option>';
+  mch3s.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    if (m === currentMCH3) o.selected = true;
+    mch3Sel.appendChild(o);
+  });
+
+  filteredProducts = allProducts.filter(p => {
+    if (danhMuc && p.danhMuc !== danhMuc) return false;
+    if (mch3 && p.mch3 !== mch3) return false;
+    if (search) {
+      const hay = (p.tenSP + ' ' + p.maSP + ' ' + p.mch3).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('resultsCount').textContent = filteredProducts.length + ' sản phẩm';
+  renderProductGrid(filteredProducts);
+}
+
+function renderProductGrid(products) {
+  const grid = document.getElementById('productGrid');
+  if (!products || products.length === 0) {
+    grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1">
+      <div class="empty-icon">🔍</div>
+      <p>Không tìm thấy sản phẩm</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = products.map(p => {
+    const imgHtml = p.linkAnh
+      ? `<img src="${formatImgUrl(p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const noImgStyle = p.linkAnh ? 'display:none' : '';
+    return `<div class="product-card">
+      ${p.hasPhoto ? '<div class="has-photo-badge">📷</div>' : ''}
+      <div class="product-img-wrap">
+        ${imgHtml}
+        <div class="no-img" style="${noImgStyle}">
+          <span class="no-img-icon">📦</span>
+          <span>Chưa có ảnh</span>
+        </div>
+      </div>
+      <div class="product-info">
+        <div class="product-masp">${escHtml(p.maSP)}</div>
+        <div class="product-name" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</div>
+        <div class="product-size">${p.rong > 0 ? p.rong+'cm' : '?'} × ${p.cao > 0 ? p.cao+'cm' : '?'} | ${escHtml(p.dvt||'')}</div>
+        <button class="btn-edit-product" onclick="openEditProduct(${JSON.stringify(p.maSP)})">✏️ Chỉnh sửa</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// EDIT PRODUCT
+// ============================================================
+function openEditProduct(maSP) {
+  const p = allProducts.find(x => x.maSP === maSP);
+  if (!p) return;
+  editingProductMaSP = maSP;
+  document.getElementById('editProductName').textContent = p.tenSP;
+  document.getElementById('editProductMaSP').textContent = p.maSP;
+  document.getElementById('editRong').value = p.rong || '';
+  document.getElementById('editCao').value = p.cao || '';
+  document.getElementById('editLinkAnh').value = p.linkAnh || '';
+  const imgEl = document.getElementById('editProductImg');
+  imgEl.src = p.linkAnh ? formatImgUrl(p.linkAnh) : '';
+  imgEl.style.display = p.linkAnh ? 'block' : 'none';
+  openModal('modalEditProduct');
+}
+
+function previewEditImage() {
+  const url = document.getElementById('editLinkAnh').value.trim();
+  const imgEl = document.getElementById('editProductImg');
+  if (url) {
+    imgEl.src = formatImgUrl(url);
+    imgEl.style.display = 'block';
+  } else {
+    imgEl.style.display = 'none';
+  }
+}
+
+async function saveProductEdit() {
+  const maSP = editingProductMaSP;
+  const rong = parseFloat(document.getElementById('editRong').value) || 0;
+  const cao = parseFloat(document.getElementById('editCao').value) || 0;
+  const linkAnh = document.getElementById('editLinkAnh').value.trim();
+
+  showLoading('Đang lưu...');
+  try {
+    const res = await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh });
+    if (res.success) {
+      // Update local cache
+      const idx = allProducts.findIndex(p => p.maSP === maSP);
+      if (idx >= 0) {
+        allProducts[idx].rong = rong;
+        allProducts[idx].cao = cao;
+        allProducts[idx].linkAnh = linkAnh;
+        allProducts[idx].hasPhoto = !!linkAnh;
+      }
+      closeModal('modalEditProduct');
+      filterProducts();
+      showToast('Đã lưu sản phẩm!', 'success');
+    } else {
+      showToast(res.error || 'Lỗi lưu sản phẩm', 'error');
+    }
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// SCREEN 4: SHELVES
+// ============================================================
+async function loadShelves() {
+  showLoading('Đang tải kệ...');
+  try {
+    const data = await apiGet({ action: 'getShelves', username: currentUser.username });
+    if (Array.isArray(data)) {
+      allShelves = data;
+      renderShelfGrid();
+    }
+  } catch(e) {
+    showToast('Lỗi tải kệ: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderShelfGrid() {
+  const grid = document.getElementById('shelfGrid');
+  document.getElementById('shelvesCount').textContent = allShelves.length + ' kệ';
+
+  if (allShelves.length === 0) {
+    grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1">
+      <div class="empty-icon">🗄️</div>
+      <p>Chưa có kệ nào. Tạo kệ đầu tiên!</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = allShelves.map(s => {
+    const svgHtml = generateShelfSVG(s, 160, 120);
+    return `<div class="shelf-card">
+      <div class="shelf-preview">${svgHtml}</div>
+      <div class="shelf-info">
+        <div class="shelf-name">${escHtml(s.ten)}</div>
+        <div class="shelf-specs">${s.loai === 'tu' ? '🧊 Tủ lạnh/đông' : '🗄️ Kệ đứng'} · ${s.soTang} tầng · ${s.rong}cm × ${s.caoTang}cm/tầng</div>
+        <div class="shelf-specs" style="margin-top:3px;color:var(--gray-400)">Tạo: ${s.nguoiTao}</div>
+      </div>
+      <div class="shelf-actions">
+        <button class="btn-select-shelf" onclick="selectShelfFromLibrary(${JSON.stringify(s.id)})">📐 Dùng</button>
+        <button class="btn-delete-shelf" onclick="deleteShelf(${JSON.stringify(s.id)}, ${JSON.stringify(s.ten)})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectShelfFromLibrary(id) {
+  const s = allShelves.find(x => x.id === id);
+  if (!s) return;
+  showScreen('screenPOG');
+  initPOGScreen();
+  setTimeout(() => selectShelf(s), 100);
+}
+
+function openCreateShelfModal(shelfId) {
+  editingShelfId = shelfId || null;
+  const existing = shelfId ? allShelves.find(s => s.id === shelfId) : null;
+
+  document.getElementById('shelfModalTitle').textContent = shelfId ? '✏️ Sửa kệ' : '➕ Tạo kệ mới';
+  document.getElementById('shelfTen').value = existing ? existing.ten : '';
+  document.getElementById('shelfSoTang').value = existing ? existing.soTang : 4;
+  document.getElementById('shelfRong').value = existing ? existing.rong : 120;
+  document.getElementById('shelfCaoTang').value = existing ? existing.caoTang : 40;
+
+  const loai = existing ? existing.loai : 'ke';
+  document.querySelectorAll('[name="shelfLoai"]').forEach(r => {
+    r.checked = r.value === loai;
+  });
+
+  openModal('modalCreateShelf');
+  updateShelfPreview();
+}
+
+function updateShelfPreview() {
+  const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
+  const rong = parseFloat(document.getElementById('shelfRong').value) || 120;
+  const caoTang = parseFloat(document.getElementById('shelfCaoTang').value) || 40;
+  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+
+  const mockShelf = { soTang, rong, caoTang, loai };
+  const svgHtml = generateShelfSVG(mockShelf, 220, 160);
+  document.getElementById('shelfPreviewBox').innerHTML = svgHtml;
+}
+
+async function saveShelf() {
+  const ten = document.getElementById('shelfTen').value.trim();
+  if (!ten) { showToast('Vui lòng nhập tên kệ', 'warning'); return; }
+
+  const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
+  const rong = parseFloat(document.getElementById('shelfRong').value) || 120;
+  const caoTang = parseFloat(document.getElementById('shelfCaoTang').value) || 40;
+  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+
+  showLoading('Đang lưu kệ...');
+  try {
+    const res = await apiPost({
+      action: 'saveShelf',
+      id: editingShelfId || '',
+      ten, loai, soTang, rong, caoTang,
+      username: currentUser.username
+    });
+    if (res.success) {
+      closeModal('modalCreateShelf');
+      await loadShelves();
+      showToast('Đã lưu kệ!', 'success');
+    } else {
+      showToast(res.error || 'Lỗi lưu kệ', 'error');
+    }
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function deleteShelf(id, name) {
+  openConfirm(`Xoá kệ "${name}"?`, 'Dữ liệu sẽ không thể khôi phục.', async () => {
+    // Remove from local (no backend delete for now, just remove from UI)
+    allShelves = allShelves.filter(s => s.id !== id);
+    renderShelfGrid();
+    showToast('Đã xoá kệ', 'info');
+  });
+}
+
+// ============================================================
+// SVG SHELF GENERATOR
+// ============================================================
+function generateShelfSVG(shelf, svgW, svgH) {
+  const { soTang, rong, caoTang, loai } = shelf;
+  const ratio = rong / (soTang * caoTang);
+  const padding = 8;
+  const innerW = svgW - padding * 2;
+  const innerH = svgH - padding * 2;
+
+  let headerH = 0;
+  const hasHeader = loai === 'tu';
+
+  if (hasHeader) {
+    headerH = Math.round(innerH * 0.22);
+  }
+
+  const bodyH = innerH - headerH;
+  const tangH = bodyH / soTang;
+
+  let svg = `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">`;
+  const x = padding, y = padding;
+  const bw = 2; // border width
+
+  if (hasHeader) {
+    // Header block
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH}" fill="#1a3c6e" rx="4" ry="4"/>`;
+    svg += `<text x="${x + innerW/2}" y="${y + headerH/2 + 5}" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
+    // Body
+    svg += `<rect x="${x}" y="${y + headerH}" width="${innerW}" height="${bodyH}" fill="#e8f4fd" rx="0" ry="0"/>`;
+  } else {
+    // Wood shelf
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="#f5e6c8"/>`;
+  }
+
+  // Tầng dividers
+  for (let i = 1; i < soTang; i++) {
+    const ty = y + headerH + Math.round(i * tangH);
+    svg += `<line x1="${x}" y1="${ty}" x2="${x + innerW}" y2="${ty}" stroke="${hasHeader ? '#a0c8e8' : '#c4a07a'}" stroke-width="1.5"/>`;
+  }
+
+  // Bottom line
+  const bottomY = y + headerH + bodyH;
+  svg += `<line x1="${x}" y1="${bottomY - 3}" x2="${x + innerW}" y2="${bottomY - 3}" stroke="${hasHeader ? '#1a6e9e' : '#5d3a1a'}" stroke-width="3"/>`;
+
+  // Outer border
+  if (hasHeader) {
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${innerH}" fill="none" stroke="#1a3c6e" stroke-width="2" rx="4" ry="4"/>`;
+  } else {
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="none" stroke="#5d3a1a" stroke-width="2"/>`;
+  }
+
+  svg += '</svg>';
+  return svg;
+}
+
+// Full shelf SVG for POG canvas (pixel-precise)
+function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
+  const { soTang, rong, caoTang, loai } = shelf;
+  const hasHeader = loai === 'tu';
+  const headerPxH = hasHeader ? Math.round(pxH * 0.15) : 0;
+  const bodyPxH = pxH - headerPxH;
+  const tangPxH = bodyPxH / soTang;
+  const shelfLineH = 6;
+
+  let svg = `<svg width="${pxW}" height="${pxH + shelfLineH}" xmlns="http://www.w3.org/2000/svg" id="shelfSVGMain">`;
+
+  if (hasHeader) {
+    svg += `<rect x="0" y="0" width="${pxW}" height="${headerPxH}" fill="#1a3c6e"/>`;
+    svg += `<text x="${pxW/2}" y="${headerPxH/2 + 6}" text-anchor="middle" fill="white" font-size="${Math.max(12, headerPxH * 0.4)}" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
+    svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${bodyPxH}" fill="#e8f4fd"/>`;
+  } else {
+    svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="#f5e6c8"/>`;
+  }
+
+  // Tầng dividers
+  for (let i = 1; i < soTang; i++) {
+    const ty = headerPxH + Math.round(i * tangPxH);
+    svg += `<line x1="0" y1="${ty}" x2="${pxW}" y2="${ty}" stroke="${hasHeader ? '#7ab8d8' : '#c4a07a'}" stroke-width="2"/>`;
+  }
+
+  // Bottom thick shelf line
+  const bottomY = headerPxH + bodyPxH;
+  svg += `<rect x="0" y="${bottomY}" width="${pxW}" height="${shelfLineH}" fill="${hasHeader ? '#1a3c6e' : '#5d3a1a'}"/>`;
+
+  // Outer border
+  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH - 1}" fill="none" stroke="${hasHeader ? '#1a3c6e' : '#5d3a1a'}" stroke-width="2"/>`;
+
+  svg += '</svg>';
+  return { svg, headerPxH, bodyPxH, tangPxH, shelfLineH };
+}
+
+// ============================================================
+// SCREEN 5: POG DESIGNER
+// ============================================================
+function initPOGScreen() {
+  if (allProducts.length === 0) {
+    loadProductsData().then(() => {
+      renderLibrary();
+    });
+  } else {
+    renderLibrary();
+  }
+  if (allShelves.length === 0) {
+    apiGet({ action: 'getShelves', username: currentUser.username })
+      .then(data => {
+        if (Array.isArray(data)) allShelves = data;
+      })
+      .catch(e => console.error(e));
+  }
+}
+
+function populateLibraryFilters() {
+  const sel = document.getElementById('libraryDanhMuc');
+  const danhMucs = [...new Set(allProducts.map(p => p.danhMuc).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">-- Tất cả --</option>';
+  danhMucs.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    sel.appendChild(o);
+  });
+}
+
+function filterLibrary() {
+  renderLibrary();
+}
+
+function renderLibrary() {
+  const search = (document.getElementById('librarySearch')?.value || '').toLowerCase().trim();
+  const danhMuc = document.getElementById('libraryDanhMuc')?.value || '';
+
+  const list = document.getElementById('libraryList');
+  if (!allProducts || allProducts.length === 0) {
+    list.innerHTML = `<div class="empty-list"><div class="empty-icon">📦</div><p>Chưa có sản phẩm</p></div>`;
+    return;
+  }
+
+  const filtered = allProducts.filter(p => {
+    if (danhMuc && p.danhMuc !== danhMuc) return false;
+    if (search) {
+      const hay = (p.tenSP + ' ' + p.maSP).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-list"><div class="empty-icon">🔍</div><p>Không tìm thấy</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const isSelected = selectedLibProduct && selectedLibProduct.maSP === p.maSP;
+    const thumbHtml = p.linkAnh
+      ? `<img class="lib-product-thumb" src="${formatImgUrl(p.linkAnh)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const placeholderStyle = p.linkAnh ? 'display:none' : '';
+    return `<div class="lib-product-item${isSelected ? ' selected-product' : ''}"
+      draggable="true"
+      data-masp="${escHtml(p.maSP)}"
+      onclick="selectLibProduct(${JSON.stringify(p.maSP)})"
+      ondragstart="onLibDragStart(event, ${JSON.stringify(p.maSP)})"
+      ondragend="onLibDragEnd(event)">
+      ${thumbHtml}
+      <div class="lib-product-thumb-placeholder" style="${placeholderStyle}">📦</div>
+      <div class="lib-product-details">
+        <div class="lib-product-name" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</div>
+        <div class="lib-product-size">${p.rong||'?'}cm × ${p.cao||'?'}cm</div>
+      </div>
+      <span class="lib-drag-icon">⠿</span>
+    </div>`;
+  }).join('');
+}
+
+function selectLibProduct(maSP) {
+  selectedLibProduct = allProducts.find(p => p.maSP === maSP) || null;
+  renderLibrary();
+}
+
+// ============================================================
+// SHELF SELECTION & CANVAS RENDER
+// ============================================================
+function openShelfPickerModal() {
+  const grid = document.getElementById('shelfPickerGrid');
+  if (allShelves.length === 0) {
+    grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1">
+      <div class="empty-icon">🗄️</div>
+      <p>Chưa có kệ nào. Hãy vào <strong>Thư viện Kệ</strong> để tạo kệ.</p>
+    </div>`;
+  } else {
+    grid.innerHTML = allShelves.map(s => {
+      const svgHtml = generateShelfSVG(s, 140, 110);
+      return `<div class="shelf-picker-item" onclick="selectShelf(${JSON.stringify(s.id)}); closeModal('modalShelfPicker');">
+        <div class="sp-preview">${svgHtml}</div>
+        <div class="sp-name">${escHtml(s.ten)}</div>
+        <div class="sp-specs">${s.loai === 'tu' ? '🧊' : '🗄️'} ${s.soTang} tầng · ${s.rong}cm × ${s.caoTang}cm</div>
+      </div>`;
+    }).join('');
+  }
+  openModal('modalShelfPicker');
+}
+
+function selectShelf(shelfOrId) {
+  let shelf;
+  if (typeof shelfOrId === 'string') {
+    shelf = allShelves.find(s => s.id === shelfOrId);
+  } else {
+    shelf = shelfOrId;
+  }
+  if (!shelf) return;
+
+  currentShelf = shelf;
+  selectedSlot = null;
+
+  // Initialize POG config if new shelf or different shelf
+  if (!pogConfig || pogConfig.shelfId !== shelf.id) {
+    pogConfig = {
+      shelfId: shelf.id,
+      shelfConfig: { ...shelf },
+      tầng: Array.from({ length: shelf.soTang }, (_, i) => ({ index: i, products: [] }))
+    };
+    currentPOGId = null;
+    document.getElementById('pogNameInput').value = 'POG Mới';
+    setAutosave('new');
+  }
+
+  updateShelfInfoPanel(shelf);
+  renderPOGCanvas();
+  markDirty();
+}
+
+function updateShelfInfoPanel(shelf) {
+  const el = document.getElementById('currentShelfInfo');
+  el.innerHTML = `
+    <div class="shelf-name-disp">${escHtml(shelf.ten)}</div>
+    <div class="shelf-info-panel">
+      ${shelf.loai === 'tu' ? '🧊 Tủ lạnh/đông' : '🗄️ Kệ đứng'}<br>
+      ${shelf.soTang} tầng · ${shelf.rong}cm rộng · ${shelf.caoTang}cm/tầng
+    </div>`;
+}
+
+// ============================================================
+// POG CANVAS RENDERING
+// ============================================================
+let SCALE; // px per cm
+
+function computeScale(shelf) {
+  const scrollEl = document.getElementById('pogCanvasScroll');
+  const availW = scrollEl.clientWidth - 48;
+  SCALE = Math.min((availW / shelf.rong) * zoom, 12 * zoom);
+  return SCALE;
+}
+
+function setZoom(z) {
+  zoom = Math.max(0.3, Math.min(3, parseFloat(z.toFixed(1))));
+  document.getElementById('zoomLabel').textContent = Math.round(zoom * 100) + '%';
+  if (currentShelf) renderPOGCanvas();
+}
+
+function renderPOGCanvas() {
+  const container = document.getElementById('pogCanvasContainer');
+  const emptyState = document.getElementById('pogEmptyState');
+
+  if (!currentShelf || !pogConfig) {
+    emptyState.style.display = 'flex';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  const shelf = currentShelf;
+  const sc = computeScale(shelf);
+
+  const pxW = Math.round(shelf.rong * sc);
+  const hasHeader = shelf.loai === 'tu';
+  const headerPxH = hasHeader ? Math.round(shelf.soTang * shelf.caoTang * sc * 0.15) : 0;
+  const bodyPxH = Math.round(shelf.soTang * shelf.caoTang * sc);
+  const tangPxH = Math.round(shelf.caoTang * sc);
+  const shelfLineH = 6;
+  const totalH = headerPxH + bodyPxH + shelfLineH;
+
+  // Clear & render SVG
+  const svgResult = generateCanvasShelfSVG(shelf, pxW, headerPxH + bodyPxH, sc);
+
+  // Remove old shelf container if any
+  const oldShelf = container.querySelector('.shelf-svg-container');
+  if (oldShelf) oldShelf.remove();
+
+  const shelfContainer = document.createElement('div');
+  shelfContainer.className = 'shelf-svg-container';
+  shelfContainer.style.position = 'relative';
+  shelfContainer.style.display = 'inline-block';
+  shelfContainer.innerHTML = svgResult.svg;
+
+  container.insertBefore(shelfContainer, container.firstChild);
+
+  // Render product overlays for each tầng
+  // Remove old overlays
+  container.querySelectorAll('.tầng-overlay').forEach(el => el.remove());
+
+  for (let ti = 0; ti < shelf.soTang; ti++) {
+    const tConfig = pogConfig.tầng[ti] || { index: ti, products: [] };
+    // tầng 0 is TOP shelf, but visually we render top-to-bottom
+    const offsetY = headerPxH + ti * tangPxH;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'tầng-overlay';
+    overlay.dataset.tang = ti;
+    overlay.style.cssText = `
+      position:absolute;
+      left:0; top:${offsetY}px;
+      width:${pxW}px; height:${tangPxH}px;
+      align-items:flex-end;
+      overflow:hidden;
+    `;
+
+    // Drop zone events
+    overlay.addEventListener('dragover', e => { e.preventDefault(); overlay.classList.add('drag-over'); });
+    overlay.addEventListener('dragleave', e => { overlay.classList.remove('drag-over'); });
+    overlay.addEventListener('drop', e => {
+      e.preventDefault();
+      overlay.classList.remove('drag-over');
+      const maSP = e.dataTransfer.getData('text/plain');
+      if (maSP) {
+        addProductToTang(parseInt(overlay.dataset.tang), maSP);
+      }
+    });
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay && selectedLibProduct) {
+        addProductToTang(parseInt(overlay.dataset.tang), selectedLibProduct.maSP);
+      }
+    });
+
+    // Render products
+    let xOffset = 0;
+    (tConfig.products || []).forEach((prod, pi) => {
+      const pxRong = Math.round(prod.rong * sc);
+      const pxCao = Math.min(Math.round(prod.cao * sc), tangPxH - 4);
+      const facing = prod.facing || 1;
+
+      const slot = document.createElement('div');
+      slot.className = 'product-slot';
+      slot.dataset.tang = ti;
+      slot.dataset.slot = pi;
+      slot.style.cssText = `
+        width:${pxRong}px;
+        height:${tangPxH}px;
+        position:absolute;
+        left:${xOffset}px;
+        bottom:0;
+      `;
+
+      const isSelected = selectedSlot && selectedSlot.tangIndex === ti && selectedSlot.slotIndex === pi;
+      if (isSelected) slot.classList.add('selected');
+
+      slot.addEventListener('click', e => {
+        e.stopPropagation();
+        selectedSlot = { tangIndex: ti, slotIndex: pi };
+        renderPOGCanvas();
+      });
+
+      // Build stacked facing images
+      const imgContainer = document.createElement('div');
+      imgContainer.style.cssText = `
+        position:absolute; bottom:0; left:0; right:0;
+        display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+      `;
+
+      for (let f = 0; f < facing; f++) {
+        if (prod.linkAnh) {
+          const img = document.createElement('img');
+          img.src = formatImgUrl(prod.linkAnh);
+          img.alt = prod.tenSP || '';
+          img.style.cssText = `width:${pxRong}px; height:${pxCao}px; object-fit:contain; display:block;`;
+          img.onerror = () => {
+            img.style.display = 'none';
+          };
+          imgContainer.appendChild(img);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.style.cssText = `
+            width:${pxRong}px; height:${pxCao}px;
+            background:var(--gray-200);
+            display:flex; align-items:center; justify-content:center;
+            font-size:${Math.max(10, Math.min(20, pxRong * 0.4))}px;
+            color:var(--gray-500);
+            border:1px solid var(--gray-300);
+          `;
+          placeholder.textContent = '📦';
+          imgContainer.appendChild(placeholder);
+        }
+      }
+      slot.appendChild(imgContainer);
+
+      // Facing count badge
+      if (facing > 1) {
+        const badge = document.createElement('div');
+        badge.className = 'facing-count';
+        badge.textContent = `×${facing}`;
+        slot.appendChild(badge);
+      }
+
+      // Controls (shown when selected)
+      const controls = document.createElement('div');
+      controls.className = 'slot-controls';
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'slot-btn delete';
+      delBtn.textContent = '×';
+      delBtn.title = 'Xoá';
+      delBtn.onclick = (e) => { e.stopPropagation(); removeProductFromTang(ti, pi); };
+
+      const faceUpBtn = document.createElement('button');
+      faceUpBtn.className = 'slot-btn facing-up';
+      faceUpBtn.textContent = '+';
+      faceUpBtn.title = 'Thêm facing';
+      faceUpBtn.onclick = (e) => { e.stopPropagation(); changeFacing(ti, pi, 1); };
+
+      const faceDownBtn = document.createElement('button');
+      faceDownBtn.className = 'slot-btn facing-down';
+      faceDownBtn.textContent = '−';
+      faceDownBtn.title = 'Giảm facing';
+      faceDownBtn.onclick = (e) => { e.stopPropagation(); changeFacing(ti, pi, -1); };
+
+      controls.appendChild(delBtn);
+      controls.appendChild(faceUpBtn);
+      controls.appendChild(faceDownBtn);
+      slot.appendChild(controls);
+
+      // Product name tooltip
+      const nameEl = document.createElement('div');
+      nameEl.style.cssText = `
+        position:absolute; bottom:0; left:0; right:0;
+        background:rgba(0,0,0,0.55); color:#fff;
+        font-size:${Math.max(8, Math.min(11, pxRong * 0.12))}px;
+        padding:1px 2px; text-align:center;
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        pointer-events:none;
+      `;
+      nameEl.textContent = prod.maSP || prod.tenSP || '';
+      slot.appendChild(nameEl);
+
+      overlay.appendChild(slot);
+      xOffset += pxRong;
+    });
+
+    shelfContainer.appendChild(overlay);
+  }
+
+  shelfContainer.style.width = pxW + 'px';
+  shelfContainer.style.height = totalH + 'px';
+}
+
+// ============================================================
+// PRODUCT PLACEMENT
+// ============================================================
+function addProductToTang(tangIndex, maSP) {
+  const prod = allProducts.find(p => p.maSP === maSP);
+  if (!prod) return;
+
+  if (!pogConfig.tầng[tangIndex]) {
+    pogConfig.tầng[tangIndex] = { index: tangIndex, products: [] };
+  }
+
+  const shelf = currentShelf;
+  const totalWidth = pogConfig.tầng[tangIndex].products.reduce((sum, p) => sum + (p.rong || 10), 0);
+  if (totalWidth + (prod.rong || 10) > shelf.rong + 1) {
+    showToast('Tầng đã đầy!', 'warning');
+    return;
+  }
+
+  pogConfig.tầng[tangIndex].products.push({
+    maSP: prod.maSP,
+    tenSP: prod.tenSP,
+    linkAnh: prod.linkAnh || '',
+    rong: prod.rong || 10,
+    cao: prod.cao || 20,
+    facing: 1
+  });
+
+  selectedSlot = { tangIndex, slotIndex: pogConfig.tầng[tangIndex].products.length - 1 };
+  renderPOGCanvas();
+  markDirty();
+}
+
+function removeProductFromTang(tangIndex, slotIndex) {
+  if (pogConfig.tầng[tangIndex]) {
+    pogConfig.tầng[tangIndex].products.splice(slotIndex, 1);
+    selectedSlot = null;
+    renderPOGCanvas();
+    markDirty();
+  }
+}
+
+function changeFacing(tangIndex, slotIndex, delta) {
+  const prod = pogConfig.tầng[tangIndex]?.products[slotIndex];
+  if (!prod) return;
+  prod.facing = Math.max(1, Math.min(10, (prod.facing || 1) + delta));
+  renderPOGCanvas();
+  markDirty();
+}
+
+// ============================================================
+// DRAG & DROP (Library → Canvas)
+// ============================================================
+function onLibDragStart(event, maSP) {
+  const prod = allProducts.find(p => p.maSP === maSP);
+  event.dataTransfer.setData('text/plain', maSP);
+  event.dataTransfer.effectAllowed = 'copy';
+
+  const ghost = document.getElementById('dragGhost');
+  const ghostImg = document.getElementById('dragGhostImg');
+  const ghostName = document.getElementById('dragGhostName');
+
+  if (prod?.linkAnh) {
+    ghostImg.src = formatImgUrl(prod.linkAnh);
+    ghostImg.style.display = 'block';
+  } else {
+    ghostImg.style.display = 'none';
+  }
+  ghostName.textContent = prod?.tenSP || maSP;
+  ghost.classList.add('active');
+
+  document.addEventListener('mousemove', moveDragGhost);
+}
+
+function onLibDragEnd(event) {
+  document.getElementById('dragGhost').classList.remove('active');
+  document.removeEventListener('mousemove', moveDragGhost);
+  document.querySelectorAll('.tầng-overlay').forEach(el => el.classList.remove('drag-over'));
+}
+
+function moveDragGhost(e) {
+  const ghost = document.getElementById('dragGhost');
+  ghost.style.left = (e.clientX + 12) + 'px';
+  ghost.style.top = (e.clientY - 20) + 'px';
+}
+
+// ============================================================
+// SAVE / LOAD POG
+// ============================================================
+function markDirty() {
+  isDirty = true;
+  setAutosave('unsaved');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    if (isDirty && currentPOGId) autoSavePOG();
+  }, 5000);
+}
+
+function setAutosave(state) {
+  const el = document.getElementById('autosaveIndicator');
+  if (state === 'saving') {
+    el.textContent = '⏳ Đang lưu...';
+    el.className = 'autosave-indicator saving';
+  } else if (state === 'saved') {
+    el.textContent = '✅ Đã lưu';
+    el.className = 'autosave-indicator saved';
+  } else if (state === 'unsaved') {
+    el.textContent = '● Chưa lưu';
+    el.className = 'autosave-indicator';
+  } else {
+    el.textContent = 'POG mới';
+    el.className = 'autosave-indicator';
+  }
+}
+
+async function autoSavePOG() {
+  if (!currentPOGId || !pogConfig) return;
+  try {
+    await apiPost({
+      action: 'savePOG',
+      id: currentPOGId,
+      ten: document.getElementById('pogNameInput').value.trim() || 'POG',
+      username: currentUser.username,
+      shelfId: currentShelf?.id || '',
+      jsonConfig: pogConfig
+    });
+    isDirty = false;
+    setAutosave('saved');
+  } catch(e) {
+    console.error('Autosave failed:', e);
+  }
+}
+
+async function savePOG() {
+  if (!pogConfig) { showToast('Chưa có kệ nào được chọn', 'warning'); return; }
+  let name = document.getElementById('pogNameInput').value.trim();
+  if (!name) {
+    name = prompt('Nhập tên POG:') || 'POG';
+    document.getElementById('pogNameInput').value = name;
+  }
+
+  showLoading('Đang lưu POG...');
+  try {
+    const res = await apiPost({
+      action: 'savePOG',
+      id: currentPOGId || '',
+      ten: name,
+      username: currentUser.username,
+      shelfId: currentShelf?.id || '',
+      jsonConfig: pogConfig
+    });
+    if (res.success) {
+      currentPOGId = res.id || currentPOGId;
+      isDirty = false;
+      setAutosave('saved');
+      showToast('Đã lưu POG!', 'success');
+    } else {
+      showToast(res.error || 'Lỗi lưu POG', 'error');
+    }
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function openPOGListModal() {
+  openModal('modalPOGList');
+  const body = document.getElementById('pogListBody');
+  body.innerHTML = `<div class="empty-list"><div class="empty-icon">⏳</div><p>Đang tải...</p></div>`;
+
+  try {
+    const data = await apiGet({ action: 'getPOGs', username: currentUser.username });
+    if (!Array.isArray(data) || data.length === 0) {
+      body.innerHTML = `<div class="empty-list"><div class="empty-icon">📂</div><p>Chưa có POG nào</p></div>`;
+      return;
+    }
+    body.innerHTML = data.map(p => `
+      <div class="pog-list-item" onclick="loadPOG(${JSON.stringify(p.id)})">
+        <span class="pog-list-icon">📐</span>
+        <div class="pog-list-details">
+          <div class="pog-list-name">${escHtml(p.ten)}</div>
+          <div class="pog-list-meta">Tạo: ${formatDate(p.ngayTao)} · Sửa: ${formatDate(p.ngaySua)} · Người tạo: ${escHtml(p.nguoiTao)}</div>
+        </div>
+        <span class="pog-list-arrow">›</span>
+      </div>
+    `).join('');
+  } catch(e) {
+    body.innerHTML = `<div class="empty-list"><div class="empty-icon">❌</div><p>Lỗi tải: ${e.message}</p></div>`;
+  }
+}
+
+async function loadPOG(id) {
+  closeModal('modalPOGList');
+  showLoading('Đang tải POG...');
+  try {
+    const data = await apiGet({ action: 'getPOGDetail', id });
+    if (!data.success) { showToast(data.error || 'Không tìm thấy POG', 'error'); return; }
+
+    currentPOGId = data.id;
+    document.getElementById('pogNameInput').value = data.ten || 'POG';
+    pogConfig = data.jsonConfig || {};
+
+    // Load shelf
+    const shelfId = data.shelfId || pogConfig.shelfId;
+    let shelf = allShelves.find(s => s.id === shelfId);
+    if (!shelf && pogConfig.shelfConfig) {
+      shelf = pogConfig.shelfConfig;
+    }
+    if (shelf) {
+      currentShelf = shelf;
+      // Ensure tầng config matches shelf
+      const existingTangs = pogConfig.tầng || [];
+      pogConfig.tầng = Array.from({ length: shelf.soTang }, (_, i) => {
+        return existingTangs.find(t => t.index === i) || { index: i, products: [] };
+      });
+      updateShelfInfoPanel(shelf);
+    }
+
+    renderPOGCanvas();
+    setAutosave('saved');
+    isDirty = false;
+    showToast('Đã tải POG!', 'success');
+  } catch(e) {
+    showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// EXPORT PNG
+// ============================================================
+async function exportPNG() {
+  if (!currentShelf || !pogConfig) {
+    showToast('Chưa có kệ để xuất', 'warning');
+    return;
+  }
+
+  showLoading('Đang xuất PNG...');
+
+  try {
+    // Use canvas-based export for reliability
+    const A4_W = 2480;
+    const shelf = currentShelf;
+    const hasHeader = shelf.loai === 'tu';
+
+    // Calculate scale to fit A4 landscape
+    const margin = 80;
+    const exportScale = (A4_W - margin * 2) / shelf.rong;
+
+    const pxW = Math.round(shelf.rong * exportScale);
+    const headerPxH = hasHeader ? Math.round(shelf.soTang * shelf.caoTang * exportScale * 0.15) : 0;
+    const bodyPxH = Math.round(shelf.soTang * shelf.caoTang * exportScale);
+    const tangPxH = Math.round(shelf.caoTang * exportScale);
+    const shelfLineH = 12;
+    const totalH = headerPxH + bodyPxH + shelfLineH + margin * 2;
+    const totalW = A4_W;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = totalW;
+    canvas.height = totalH;
+    const ctx = canvas.getContext('2d');
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    const startX = margin;
+    const startY = margin;
+
+    // Draw header if fridge
+    if (hasHeader) {
+      ctx.fillStyle = '#1a3c6e';
+      ctx.fillRect(startX, startY, pxW, headerPxH);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${Math.max(16, headerPxH * 0.4)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('TỦ LẠNH/ĐÔNG', startX + pxW / 2, startY + headerPxH / 2 + 8);
+    }
+
+    // Draw shelf body
+    ctx.fillStyle = hasHeader ? '#e8f4fd' : '#f5e6c8';
+    ctx.fillRect(startX, startY + headerPxH, pxW, bodyPxH);
+
+    // Draw tầng dividers
+    ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
+    ctx.lineWidth = 2;
+    for (let i = 1; i < shelf.soTang; i++) {
+      const ty = startY + headerPxH + Math.round(i * tangPxH);
+      ctx.beginPath();
+      ctx.moveTo(startX, ty);
+      ctx.lineTo(startX + pxW, ty);
+      ctx.stroke();
+    }
+
+    // Bottom shelf line
+    ctx.fillStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
+    ctx.fillRect(startX, startY + headerPxH + bodyPxH, pxW, shelfLineH);
+
+    // Outer border
+    ctx.strokeStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
+
+    // Draw products (load images async)
+    const imagePromises = [];
+
+    for (let ti = 0; ti < shelf.soTang; ti++) {
+      const tConfig = pogConfig.tầng[ti] || { products: [] };
+      const tangStartY = startY + headerPxH + ti * tangPxH;
+
+      let xOff = 0;
+      for (const prod of tConfig.products) {
+        const pxRong = Math.round(prod.rong * exportScale);
+        const pxCao = Math.min(Math.round(prod.cao * exportScale), tangPxH - 4);
+        const facing = prod.facing || 1;
+
+        for (let f = 0; f < facing; f++) {
+          const imgY = tangStartY + tangPxH - (f + 1) * pxCao;
+          const imgX = startX + xOff;
+
+          if (prod.linkAnh) {
+            const p = new Promise(resolve => {
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => {
+                ctx.drawImage(img, imgX, imgY, pxRong, pxCao);
+                resolve();
+              };
+              img.onerror = () => {
+                // Placeholder
+                ctx.fillStyle = '#e0e0e0';
+                ctx.fillRect(imgX, imgY, pxRong, pxCao);
+                ctx.fillStyle = '#999';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('📦', imgX + pxRong/2, imgY + pxCao/2 + 5);
+                resolve();
+              };
+              img.src = formatImgUrl(prod.linkAnh);
+            });
+            imagePromises.push(p);
+          } else {
+            ctx.fillStyle = '#e9ecef';
+            ctx.fillRect(imgX, imgY, pxRong, pxCao);
+            ctx.fillStyle = '#adb5bd';
+            ctx.font = `${Math.max(12, pxRong * 0.3)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.fillText('📦', imgX + pxRong/2, imgY + pxCao/2 + 5);
+          }
+        }
+
+        // Product label
+        const labelY = tangStartY + tangPxH - 2;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(startX + xOff, tangStartY + tangPxH - 18, pxRong, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `${Math.max(9, Math.min(13, pxRong * 0.12))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(prod.maSP || prod.tenSP || '', startX + xOff + pxRong/2, labelY - 4);
+
+        xOff += pxRong;
+      }
+    }
+
+    // Title
+    const pogName = document.getElementById('pogNameInput').value.trim() || 'POG';
+    ctx.fillStyle = '#1a3c6e';
+    ctx.font = `bold 36px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`📐 ${pogName}`, margin, margin - 20);
+    ctx.font = '22px sans-serif';
+    ctx.fillStyle = '#6c757d';
+    ctx.textAlign = 'right';
+    ctx.fillText(new Date().toLocaleDateString('vi-VN'), totalW - margin, margin - 20);
+
+    // Wait for all images
+    await Promise.all(imagePromises);
+
+    // Re-draw borders on top of images
+    ctx.strokeStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
+
+    // Tầng dividers on top
+    ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
+    ctx.lineWidth = 2;
+    for (let i = 1; i < shelf.soTang; i++) {
+      const ty = startY + headerPxH + Math.round(i * tangPxH);
+      ctx.beginPath();
+      ctx.moveTo(startX, ty);
+      ctx.lineTo(startX + pxW, ty);
+      ctx.stroke();
+    }
+
+    // Download
+    const dateStr = new Date().toISOString().slice(0,10);
+    const filename = `POG_${pogName.replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, '_')}_${dateStr}.png`;
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    // Log export
+    if (currentPOGId) {
+      apiPost({ action: 'exportLog', pogId: currentPOGId, username: currentUser.username }).catch(() => {});
+    }
+
+    showToast('Đã xuất PNG!', 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('Lỗi xuất PNG: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+function openConfirm(title, message, onOk) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  const btn = document.getElementById('confirmOkBtn');
+  btn.onclick = () => { closeModal('modalConfirm'); onOk(); };
+  openModal('modalConfirm');
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatImgUrl(url) {
+  if (!url) return '';
+  // Convert Google Drive share links to direct view links
+  if (url.includes('drive.google.com/file/d/')) {
+    const m = url.match(/\/file\/d\/([^\/\?]+)/);
+    if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  }
+  if (url.includes('drive.google.com/open?id=')) {
+    const m = url.match(/[?&]id=([^&]+)/);
+    if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  }
+  return url;
+}
+
+function formatDate(isoStr) {
+  if (!isoStr) return '—';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('vi-VN');
+  } catch(e) {
+    return isoStr.slice(0, 10);
+  }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+    selectedSlot = null;
+    if (currentShelf) renderPOGCanvas();
+  }
+  if (e.key === 'Delete' && selectedSlot && document.getElementById('screenPOG').classList.contains('active')) {
+    removeProductFromTang(selectedSlot.tangIndex, selectedSlot.slotIndex);
+  }
+});
+</script>
+</body>
+</html>
