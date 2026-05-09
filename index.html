@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.4</title>
+<title>POG DESIGN by HaoDT v28.5</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.4</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.5</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.4</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.5</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.4</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.5</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3345,13 +3345,22 @@ function renderMultiDeviceCanvas() {
           if(prod.linkAnh){
             const img=document.createElement('img');img.src=formatImgUrl(prod.linkAnh);
             if(prod.rotated){
-              // Xoay ảnh 90° trong slot
-              const w=_sc, h=pxR;
-              img.style.cssText='width:'+h+'px;height:'+w+'px;object-fit:contain;display:block;flex-shrink:0;transform:rotate(-90deg);transform-origin:center;position:relative;left:'+Math.round((pxR-h)/2)+'px;top:'+Math.round((w-pxR)/2)+'px;';
+              // Xoay 90°: wrap trong div để clip và căn đúng
+              const wrapDiv = document.createElement('div');
+              wrapDiv.style.cssText='width:'+pxR+'px;height:'+perItemH+'px;overflow:hidden;position:relative;flex-shrink:0;';
+              // Ảnh fill wrapper: khi xoay 90°, width→height swap
+              // Scale để cạnh dài nhất fill slot
+              const scaleF = Math.max(pxR/perItemH, perItemH/pxR);
+              const imgW = Math.round(perItemH * scaleF);
+              const imgH = Math.round(pxR * scaleF);
+              img.style.cssText='width:'+imgW+'px;height:'+imgH+'px;object-fit:cover;position:absolute;transform:rotate(-90deg);transform-origin:center;left:'+Math.round((pxR-imgW)/2)+'px;top:'+Math.round((perItemH-imgH)/2)+'px;';
+              wrapDiv.appendChild(img);
+              ic.appendChild(wrapDiv);
             } else {
               img.style.cssText='width:'+pxR+'px;height:'+perItemH+'px;object-fit:contain;display:block;flex-shrink:0;';
+              ic.appendChild(img);
             }
-            img.onerror=()=>{img.style.display='none';};ic.appendChild(img);}
+            img.onerror=()=>{img.style.display='none';};}
           else{const ph=document.createElement('div');ph.style.cssText='width:'+pxR+'px;height:'+perItemH+'px;flex-shrink:0;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;';ph.textContent='📦';ic.appendChild(ph);}
         }
         slot.appendChild(ic);
