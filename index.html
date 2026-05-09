@@ -580,6 +580,7 @@ img { max-width: 100%; }
   align-items: flex-end;
   overflow: hidden;
   cursor: crosshair;
+  z-index: 10; /* nằm trên SVG kệ */
 }
 .product-slot {
   position: relative;
@@ -3189,6 +3190,9 @@ function renderPOGCanvas() {
   shelfContainer.style.position = 'relative';
   shelfContainer.style.display = 'inline-block';
   shelfContainer.innerHTML = svgResult.svg;
+  // SVG không block pointer events — overlay phía trên sẽ nhận drag/drop
+  const svgEl = shelfContainer.querySelector('svg');
+  if (svgEl) svgEl.style.pointerEvents = 'none';
 
   container.insertBefore(shelfContainer, container.firstChild);
 
