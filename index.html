@@ -1666,7 +1666,7 @@ function searchProductOnline() {
   const rong = document.getElementById('editRong').value.trim();
   const cao = document.getElementById('editCao').value.trim();
   const sizeStr = (rong && cao) ? `${rong}x${cao}cm` : (rong ? `${rong}cm` : '');
-  const query = [barcode, tenSP, sizeStr].filter(Boolean).join(' ');
+  const query = [barcode, tenSP, sizeStr, 'kích thước'].filter(Boolean).join(' ');
   if (!query) { showToast('Nhập barcode hoặc tên SP để tìm kiếm', 'warning'); return; }
   window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
 }
