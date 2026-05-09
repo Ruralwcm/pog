@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v26.9</title>
+<title>POG DESIGN by HaoDT v27.0</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v26.9</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v27.0</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.0</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.0</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -2932,7 +2932,13 @@ async function saveShelf() {
 }
 
 function deleteShelf(id, name) {
-  openConfirm(`Xoá kệ "${name}"?`, 'Dữ liệu sẽ không thể khôi phục.', async () => {
+  // Tạo inline confirm thay vì openConfirm (tránh bị block)
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#c53030;color:#fff;padding:12px 20px;border-radius:8px;z-index:99999;display:flex;gap:10px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+  toast.innerHTML = '<span>Xoá kệ "' + escHtml(name) + '"?</span><button id="_delYes" style="padding:4px 12px;background:#fff;color:#c53030;border:none;border-radius:4px;font-weight:700;cursor:pointer">Xoá</button><button id="_delNo" style="padding:4px 12px;background:rgba(255,255,255,0.3);color:#fff;border:none;border-radius:4px;cursor:pointer">Huỷ</button>';
+  document.body.appendChild(toast);
+  toast.querySelector('#_delYes').onclick = async () => {
+    toast.remove();
     showLoading('Đang xoá...');
     try {
       const res = await apiPost({ action: 'deleteShelf', id });
@@ -2941,14 +2947,11 @@ function deleteShelf(id, name) {
         allShelves = allShelves.filter(s => s.id !== id);
         renderShelfGrid();
         showToast('✅ Đã xoá kệ', 'success');
-      } else {
-        showToast('❌ ' + (res.error || 'Lỗi xoá kệ'), 'error');
-      }
-    } catch(e) {
-      hideLoading();
-      showToast('❌ Lỗi: ' + e.message, 'error');
-    }
-  });
+      } else showToast('❌ ' + (res.error||'Lỗi'), 'error');
+    } catch(e) { hideLoading(); showToast('❌ ' + e.message, 'error'); }
+  };
+  toast.querySelector('#_delNo').onclick = () => toast.remove();
+  setTimeout(() => { if(document.body.contains(toast)) toast.remove(); }, 5000);
 }
 
 // ============================================================
@@ -3431,7 +3434,8 @@ function _updateInfoPanelMulti() {
 }
 
 function cancelPOG() {
-  openConfirm('Hủy POG hiện tại?', 'Toàn bộ TTB và SP sẽ bị xóa.', function(){
+  // Xóa trực tiếp không qua confirm
+  (function(){
     pogDevices = [];
     currentDeviceIdx = 0;
     currentPOGId = null;
