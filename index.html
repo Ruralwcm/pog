@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.1</title>
+<title>POG DESIGN by HaoDT v28.2</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.1</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.2</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.2</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.2</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3611,8 +3611,12 @@ function _startPointerDrag(e, maSP, sourceEl) {
   _ptrDragMaSP = maSP;
   _draggingMaSP = maSP;
   
+  // Cleanup any existing ghosts first
+  document.querySelectorAll('._ptr-ghost-el').forEach(el => el.remove());
+  if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
   // Create ghost
   _ptrGhost = sourceEl.cloneNode(true);
+  _ptrGhost.classList.add('_ptr-ghost-el');
   _ptrGhost.style.cssText = `position:fixed;z-index:99999;pointer-events:none;opacity:0.8;
     width:${sourceEl.offsetWidth}px;background:#fff;border:2px solid #1a3c6e;
     border-radius:8px;padding:4px;box-shadow:0 4px 12px rgba(0,0,0,0.3)`;
@@ -3655,11 +3659,11 @@ function _startPointerDrag(e, maSP, sourceEl) {
     if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
+    // Thorough cleanup
+    document.querySelectorAll('._ptr-ghost-el').forEach(el => el.remove());
     if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
     document.getElementById('dragGhost').classList.remove('active');
     document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
-    // Find drop target
-    _ptrGhost = null;
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const ov = el?.closest('.tầng-overlay');
     if (ov && _ptrDragMaSP) {
@@ -4355,6 +4359,7 @@ function onLibDragEnd(event) {
 }
 
 function _cleanupDragGhost() {
+  document.querySelectorAll('._ptr-ghost-el').forEach(el => el.remove());
   if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
   if (typeof _rafId !== 'undefined' && _rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
   const ghost = document.getElementById('dragGhost');
