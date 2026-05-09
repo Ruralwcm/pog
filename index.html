@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.7</title>
+<title>POG DESIGN by HaoDT v24.8</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -901,7 +901,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.7</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v24.8</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -920,7 +920,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.8</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.8</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3473,7 +3473,7 @@ function renderPOGCanvas() {
       left:${dropOffsetX}px; top:${offsetY}px;
       width:${dropW}px; height:${tangH}px;
       align-items:flex-end;
-      overflow:visible;
+      overflow:hidden;
       ${isDumpinType ? 'background:rgba(26,60,110,0.03);border:1px dashed rgba(26,60,110,0.15);' : ''}
     `;
 
@@ -3512,7 +3512,9 @@ function renderPOGCanvas() {
     const _ratio = _totalRaw > tangW ? (tangW / _totalRaw) : 1; // co fit nếu vượt
     const _fitW = _rawW.map(w => Math.max(6, Math.round(w * _ratio)));
     const _totalFit = _fitW.reduce((s,w)=>s+w, 0);
-    let xOffset = Math.max(0, Math.round((tangW - _totalFit) / 2));
+    // Đảm bảo tổng không vượt tangW (double-check sau khi round)
+    const _safeTotal = Math.min(_totalFit, tangW);
+    let xOffset = Math.max(0, Math.round((tangW - _safeTotal) / 2));
     (tConfig.products || []).forEach((prod, pi) => {
       // Auto-stack: tính max facing có thể chồng trong khoang (biên độ 120%)
       const _singleCao = prod.rotated ? (prod.rong||10) : (prod.cao||20);
@@ -3531,11 +3533,12 @@ function renderPOGCanvas() {
       slot.className = 'product-slot';
       slot.dataset.tang = ti;
       slot.dataset.slot = pi;
+      const slotLeft = Math.min(xOffset, Math.max(0, tangW - pxRong));
       slot.style.cssText = `
         width:${pxRong}px;
         height:${pxCao}px;
         position:absolute;
-        left:${xOffset}px;
+        left:${slotLeft}px;
         bottom:0;
       `;
 
