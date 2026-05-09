@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.8</title>
+<title>POG DESIGN by HaoDT v28.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3373,7 +3373,30 @@ function renderMultiDeviceCanvas() {
         const fd=document.createElement('button');fd.className='slot-btn facing-down';fd.textContent='−';fd.onclick=(e)=>{e.stopPropagation();const p=pogDevices[parseInt(slot.dataset.capDeviceIdx)]?.tầng[parseInt(slot.dataset.capTi)]?.products[parseInt(slot.dataset.capPi)];if(p){p.facing=Math.max(1,Math.min(10,(p.facing||1)-1));renderMultiDeviceCanvas();markDirty();}};ctrl.appendChild(fd);
         const rb=document.createElement('button');rb.className='slot-btn rotate';rb.textContent='↻';rb.onclick=(e)=>{e.stopPropagation();const p=pogDevices[parseInt(slot.dataset.capDeviceIdx)]?.tầng[parseInt(slot.dataset.capTi)]?.products[parseInt(slot.dataset.capPi)];if(p){p.rotated=!p.rotated;renderMultiDeviceCanvas();markDirty();}};ctrl.appendChild(rb);
         slot.appendChild(ctrl);
-        slot.addEventListener('pointerdown',(e)=>{if(e.target.closest('.slot-controls'))return;e.preventDefault();e.stopPropagation();selectedSlot={deviceIdx:parseInt(slot.dataset.capDeviceIdx),tangIndex:parseInt(slot.dataset.capTi),slotIndex:parseInt(slot.dataset.capPi)};renderMultiDeviceCanvas();});
+        slot.addEventListener('pointerdown',(e)=>{
+        if(e.target.closest('.slot-controls')||e.target.closest('.slot-btn'))return;
+        e.preventDefault();e.stopPropagation();
+        const _cdi=parseInt(slot.dataset.capDeviceIdx), _cti=parseInt(slot.dataset.capTi), _cpi=parseInt(slot.dataset.capPi);
+        const startX=e.clientX, startY=e.clientY;
+        let dragging=false;
+        const onMove=(ev)=>{
+          if(!dragging&&(Math.abs(ev.clientX-startX)>5||Math.abs(ev.clientY-startY)>5)){
+            dragging=true;
+            document.removeEventListener('pointermove',onMove);
+            // Drag slot để di chuyển SP
+            _startMultiSlotDrag(ev,_cdi,_cti,_cpi);
+          }
+        };
+        const onUp=()=>{
+          document.removeEventListener('pointermove',onMove);
+          if(!dragging){
+            selectedSlot={deviceIdx:_cdi,tangIndex:_cti,slotIndex:_cpi};
+            renderMultiDeviceCanvas();
+          }
+        };
+        document.addEventListener('pointermove',onMove,{passive:false});
+        document.addEventListener('pointerup',onUp,{once:true});
+      });
         ov.appendChild(slot);
         xOff+=pxR;
       });
@@ -3411,6 +3434,48 @@ function addProductToTangMulti(deviceIdx, tangIdx, maSP) {
     body.innerHTML = variants.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:8px" onclick="_doAddMultiByIdx(${deviceIdx},${tangIdx},${allProducts.indexOf(v)});closeModal('modalDvtPicker')"><div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div><div><div style="font-weight:700;color:#1a3c6e">${escHtml(v.dvt||'N/A')}</div><div style="font-size:12px;color:#6c757d">${v.rong||'?'}×${v.cao||'?'}cm</div></div></div>`).join('');
     openModal('modalDvtPicker');
   }
+}
+
+function _startMultiSlotDrag(e, deviceIdx, tangIdx, slotIdx) {
+  const prod = pogDevices[deviceIdx]?.tầng[tangIdx]?.products[slotIdx];
+  if (!prod) return;
+  // Hiện ghost
+  const ghost = document.getElementById('dragGhost');
+  if (prod.linkAnh) { document.getElementById('dragGhostImg').src=formatImgUrl(prod.linkAnh); document.getElementById('dragGhostImg').style.display='block'; }
+  document.getElementById('dragGhostName').textContent = prod.maSP||prod.tenSP||'SP';
+  ghost.classList.add('active');
+  ghost.style.left=(e.clientX+12)+'px'; ghost.style.top=(e.clientY-20)+'px';
+  let _raf2=null;
+  const onMove=(ev)=>{
+    ev.preventDefault();
+    if(_raf2)return;
+    _raf2=requestAnimationFrame(()=>{_raf2=null;ghost.style.left=(ev.clientX+12)+'px';ghost.style.top=(ev.clientY-20)+'px';
+      document.querySelectorAll('.tầng-overlay').forEach(o=>o.classList.remove('drag-over'));
+      ghost.style.visibility='hidden';const el=document.elementFromPoint(ev.clientX,ev.clientY);ghost.style.visibility='';
+      const ov=el?.closest('.tầng-overlay');if(ov)ov.classList.add('drag-over');
+    });
+  };
+  const onUp=(ev)=>{
+    document.removeEventListener('pointermove',onMove);
+    ghost.classList.remove('active');
+    document.querySelectorAll('.tầng-overlay').forEach(o=>o.classList.remove('drag-over'));
+    ghost.style.visibility='hidden';const el=document.elementFromPoint(ev.clientX,ev.clientY);ghost.style.visibility='';
+    const targetOv=el?.closest('.tầng-overlay');
+    if(targetOv){
+      const tDev=parseInt(targetOv.getAttribute('data-device-idx')||targetOv.dataset.deviceIdx||'0');
+      const tTang=parseInt(targetOv.getAttribute('data-tang')||targetOv.dataset.tang||'0');
+      // Di chuyển SP
+      const p=pogDevices[deviceIdx]?.tầng[tangIdx]?.products.splice(slotIdx,1)[0];
+      if(p){
+        if(!pogDevices[tDev]) return;
+        if(!pogDevices[tDev].tầng[tTang]) pogDevices[tDev].tầng[tTang]={index:tTang,products:[]};
+        pogDevices[tDev].tầng[tTang].products.push(p);
+        selectedSlot=null; renderMultiDeviceCanvas(); markDirty();
+      }
+    }
+  };
+  document.addEventListener('pointermove',onMove,{passive:false});
+  document.addEventListener('pointerup',onUp,{once:true});
 }
 
 function _doAddMultiByIdx(deviceIdx, tangIdx, idx) {
