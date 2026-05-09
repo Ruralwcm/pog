@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v29.6</title>
+<title>POG DESIGN by HaoDT v29.7</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v29.6</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v29.7</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.7</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.7</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3241,8 +3241,9 @@ function createNewPOG() {
   isDirty = false;
   closeModal('modalCreatePOG');
   renderMultiDeviceCanvas();
-  showToast('✅ Tạo POG "' + ten + '" với ' + count + ' TTB', 'success');
-  markDirty();
+  showToast('✅ Tạo POG "' + ten + '" với ' + count + ' TTB — đang lưu...', 'success');
+  // Auto-save ngay sau khi tạo
+  setTimeout(() => savePOG(), 500);
 }
 
 function renderMultiDeviceCanvas() {
@@ -4560,7 +4561,8 @@ async function openPOGListModal() {
     const item = document.createElement('div');
     item.className = 'pog-list-item';
     item.style.cursor = 'pointer';
-    item.innerHTML = '<span class="pog-list-icon">📐</span><div class="pog-list-details"><div class="pog-list-name">' + escHtml(p.ten) + '</div><div class="pog-list-meta">Tạo: ' + formatDate(p.ngayTao) + ' · ' + escHtml(p.nguoiTao) + '</div></div><span class="pog-list-arrow">›</span>';
+    const isCurrent = currentPOGId === p.id;
+    item.innerHTML = '<span class="pog-list-icon">📐</span><div class="pog-list-details"><div class="pog-list-name">' + escHtml(p.ten) + (isCurrent ? ' <span style="background:#1a3c6e;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px">Hiện tại</span>' : '') + '</div><div class="pog-list-meta">Tạo: ' + formatDate(p.ngayTao) + ' · ' + escHtml(p.nguoiTao) + '</div></div><span class="pog-list-arrow">›</span>';
     item.addEventListener('click', (function(pid) { return function() { console.log('[POG] Loading:', pid); loadPOG(pid); }; })(p.id));
     body.appendChild(item);
   });
