@@ -3546,11 +3546,26 @@ function renderPOGCanvas() {
       });
 
       slot.addEventListener('pointerdown', (e) => {
-        // Only if clicking on the slot itself (not controls)
         if (e.target.closest('.slot-controls') || e.target.closest('.slot-btn')) return;
-        e.preventDefault();
-        e.stopPropagation();
-        _startSlotReorder(e, ti, pi);
+        e.preventDefault(); e.stopPropagation();
+        const startX = e.clientX, startY = e.clientY;
+        let dragging = false;
+        const onMove = (ev) => {
+          if (!dragging && (Math.abs(ev.clientX-startX)>5 || Math.abs(ev.clientY-startY)>5)) {
+            dragging = true;
+            document.removeEventListener('pointermove', onMove);
+            _startSlotReorder(e, ti, pi);
+          }
+        };
+        const onUp = () => {
+          document.removeEventListener('pointermove', onMove);
+          if (!dragging) {
+            selectedSlot = {tangIndex: ti, slotIndex: pi};
+            renderPOGCanvas();
+          }
+        };
+        document.addEventListener('pointermove', onMove, {passive:false});
+        document.addEventListener('pointerup', onUp, {once:true});
       });
 
       // Build stacked facing images
