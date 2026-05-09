@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.2</title>
+<title>POG DESIGN by HaoDT v28.3</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.2</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.3</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.2</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.3</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.2</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.3</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3340,7 +3340,16 @@ function renderMultiDeviceCanvas() {
         const ic=document.createElement('div');
         ic.style.cssText='position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
         for(let f=0;f<fac;f++){
-          if(prod.linkAnh){const img=document.createElement('img');img.src=formatImgUrl(prod.linkAnh);img.style.cssText='width:'+pxR+'px;height:'+_sc+'px;object-fit:contain;display:block;flex-shrink:0;';img.onerror=()=>{img.style.display='none';};ic.appendChild(img);}
+          if(prod.linkAnh){
+            const img=document.createElement('img');img.src=formatImgUrl(prod.linkAnh);
+            if(prod.rotated){
+              // Xoay ảnh 90° trong slot
+              const w=_sc, h=pxR;
+              img.style.cssText='width:'+h+'px;height:'+w+'px;object-fit:contain;display:block;flex-shrink:0;transform:rotate(-90deg);transform-origin:center;position:relative;left:'+Math.round((pxR-h)/2)+'px;top:'+Math.round((w-pxR)/2)+'px;';
+            } else {
+              img.style.cssText='width:'+pxR+'px;height:'+_sc+'px;object-fit:contain;display:block;flex-shrink:0;';
+            }
+            img.onerror=()=>{img.style.display='none';};ic.appendChild(img);}
           else{const ph=document.createElement('div');ph.style.cssText='width:'+pxR+'px;height:'+_sc+'px;flex-shrink:0;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;';ph.textContent='📦';ic.appendChild(ph);}
         }
         slot.appendChild(ic);
