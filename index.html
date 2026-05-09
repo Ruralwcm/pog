@@ -1546,7 +1546,7 @@ function renderProductGrid(products) {
 
   grid.innerHTML = products.map(p => {
     const imgHtml = p.linkAnh
-      ? `<img src="${formatImgUrl(p.linkThumb || p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const noImgStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="product-card">
@@ -3007,7 +3007,7 @@ function renderLibrary() {
   list.innerHTML = filtered.map(p => {
     const isSelected = selectedLibProduct && selectedLibProduct.maSP === p.maSP;
     const thumbHtml = p.linkAnh
-      ? `<img class="lib-product-thumb" src="${formatImgUrl(p.linkThumb || p.linkAnh)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="lib-product-thumb" src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const placeholderStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="lib-product-item${isSelected ? ' selected-product' : ''}"
@@ -3887,17 +3887,26 @@ function escHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+function _extractDriveId(url) {
+  if (!url) return null;
+  let m;
+  if ((m = url.match(/\/file\/d\/([^\/\?]+)/))) return m[1];
+  if ((m = url.match(/[?&]id=([^&]+)/)))         return m[1];
+  return null;
+}
+
 function formatImgUrl(url) {
   if (!url) return '';
-  // Convert Google Drive share links to direct view links
-  if (url.includes('drive.google.com/file/d/')) {
-    const m = url.match(/\/file\/d\/([^\/\?]+)/);
-    if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
-  }
-  if (url.includes('drive.google.com/open?id=')) {
-    const m = url.match(/[?&]id=([^&]+)/);
-    if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
-  }
+  const id = _extractDriveId(url);
+  if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+  return url;
+}
+
+// Thumbnail URL — dùng Drive thumbnail endpoint (hỗ trợ resize chuẩn)
+function formatThumbUrl(url) {
+  if (!url) return '';
+  const id = _extractDriveId(url);
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w80-h80`;
   return url;
 }
 
