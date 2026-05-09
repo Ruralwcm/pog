@@ -1100,9 +1100,9 @@ img { max-width: 100%; }
         <!-- Step CROP: Manual crop -->
         <div id="imgStep_crop" style="display:none">
           <p style="font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:600">✂️ Kéo để chọn vùng crop:</p>
-          <canvas id="cropCanvas" style="border:1px solid #e2e8f0;border-radius:6px;max-width:100%;cursor:crosshair;touch-action:none"
-            onmousedown="onCropMouseDown(event)" onmousemove="onCropMouseMove(event)" onmouseup="onCropMouseUp()"
-            ontouchstart="onCropMouseDown(event)" ontouchmove="onCropMouseMove(event)" ontouchend="onCropMouseUp()">
+          <canvas id="cropCanvas" style="border:1px solid #e2e8f0;border-radius:6px;max-width:100%;cursor:crosshair;touch-action:none;user-select:none"
+            onmousedown="onCropMouseDown(event)"
+            ontouchstart="onCropMouseDown(event)">
           </canvas>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button onclick="goImgStep('perspective')" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">← Quay lại</button>
@@ -2016,12 +2016,20 @@ async function confirmProcessedImage() {
         allProducts[idx].rong = rong;
         allProducts[idx].cao  = cao;
       }
-      // Tự động lưu link + kích thước vào GSheet luôn (không cần bấm Lưu thêm)
+      // Tự động lưu link + kích thước vào GSheet luôn
       try {
-        await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh: res.driveUrl });
-        showToast('✅ Upload & lưu sheet thành công!', 'success');
+        showLoading('Đang cập nhật Google Sheet...');
+        const updateRes = await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh: res.driveUrl });
+        hideLoading();
+        console.log('[POG] updateProduct response:', updateRes);
+        if (updateRes.success) {
+          showToast('✅ Upload Drive + lưu Sheet thành công!', 'success');
+        } else {
+          showToast('⚠️ Upload Drive OK nhưng lưu Sheet lỗi: ' + (updateRes.error || 'unknown'), 'warning');
+        }
       } catch(e2) {
-        showToast('✅ Upload Drive OK nhưng lưu sheet lỗi: ' + e2.message, 'warning');
+        hideLoading();
+        showToast('⚠️ Upload Drive OK nhưng lưu Sheet lỗi: ' + e2.message, 'warning');
       }
     } else {
       // Fallback: store dataURL locally
@@ -2127,17 +2135,26 @@ function enableCropMode() {
   ['select','perspective','removebg'].forEach(s => document.getElementById('imgStep_'+s).style.display='none');
 }
 
+let _cropDragging = false;
+
 function onCropMouseDown(e) {
+  e.preventDefault();
   const canvas = document.getElementById('cropCanvas');
   const rect = canvas.getBoundingClientRect();
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  _cropStart = { x: clientX - rect.left, y: clientY - rect.top };
+  _cropStart = {
+    x: Math.max(0, Math.min(canvas.width,  clientX - rect.left)),
+    y: Math.max(0, Math.min(canvas.height, clientY - rect.top))
+  };
   _cropEnd = { ..._cropStart };
+  _cropDragging = true;
   drawCropOverlay();
 }
+
 function onCropMouseMove(e) {
-  if (!_cropStart) return;
+  if (!_cropDragging || !_cropStart) return;
+  e.preventDefault();
   const canvas = document.getElementById('cropCanvas');
   const rect = canvas.getBoundingClientRect();
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -2148,9 +2165,11 @@ function onCropMouseMove(e) {
   };
   drawCropOverlay();
 }
-function onCropMouseUp() {
-  if (!_cropStart || !_cropEnd) return;
-  drawCropOverlay();
+
+function onCropMouseUp(e) {
+  if (!_cropDragging) return;
+  _cropDragging = false;
+  if (_cropStart && _cropEnd) drawCropOverlay();
 }
 
 function drawCropOverlay() {
@@ -2976,17 +2995,8 @@ function selectLibProduct(maSP) {
 // ============================================================
 // SHELF SELECTION & CANVAS RENDER
 // ============================================================
-async function openShelfPickerModal() {
+function _renderShelfPickerGrid() {
   const grid = document.getElementById('shelfPickerGrid');
-  // Nếu chưa load shelves → load trước
-  if (allShelves.length === 0) {
-    grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Đang tải...</p></div>`;
-    openModal('modalShelfPicker');
-    try {
-      const data = await apiGet({ action: 'getShelves', username: currentUser.username });
-      if (Array.isArray(data)) allShelves = data;
-    } catch(e) {}
-  }
   if (allShelves.length === 0) {
     grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1">
       <div class="empty-icon">🗄️</div>
@@ -2994,24 +3004,45 @@ async function openShelfPickerModal() {
     </div>`;
     return;
   }
-  if (allShelves.length > 0) {
-    grid.innerHTML = allShelves.map(s => {
-      const svgHtml = generateShelfSVG(s, 140, 110);
-      const loaiIcon = getShelfIcon(s.loai);
-      const rongTong = s.rongTong || s.rong || 100;
-      const tangList = getShelfTangList(s);
-      const isDumpinType = s.loai === 'dumpin' || s.loai === 'uDao';
-      const specsLine = isDumpinType
-        ? `${loaiIcon} ${s.soTang} mâm · ${rongTong}cm`
-        : `${loaiIcon} ${s.soTang} tầng · ${rongTong}cm × ${tangList[0]?.cao || s.caoTang || 40}cm`;
-      return `<div class="shelf-picker-item" onclick="selectShelf(${JSON.stringify(s.id)}); closeModal('modalShelfPicker');">
-        <div class="sp-preview">${svgHtml}</div>
-        <div class="sp-name">${escHtml(s.ten)}</div>
-        <div class="sp-specs">${specsLine}</div>
-      </div>`;
-    }).join('');
-  }
+  grid.innerHTML = allShelves.map(s => {
+    const svgHtml = generateShelfSVG(s, 140, 110);
+    const loaiIcon = getShelfIcon(s.loai);
+    const rongTong = s.rongTong || s.rong || 100;
+    const tangList = getShelfTangList(s);
+    const isDumpinType = s.loai === 'dumpin' || s.loai === 'uDao';
+    const specsLine = isDumpinType
+      ? `${loaiIcon} ${s.soTang} mâm · ${rongTong}cm`
+      : `${loaiIcon} ${s.soTang} tầng · ${rongTong}cm × ${tangList[0]?.cao || s.caoTang || 40}cm`;
+    // Dùng data-id thay vì JSON trong onclick để tránh lỗi ký tự đặc biệt
+    return `<div class="shelf-picker-item" data-shelf-id="${escHtml(s.id)}" onclick="_onPickShelf(this)">
+      <div class="sp-preview">${svgHtml}</div>
+      <div class="sp-name">${escHtml(s.ten)}</div>
+      <div class="sp-specs">${specsLine}</div>
+    </div>`;
+  }).join('');
+}
+
+function _onPickShelf(el) {
+  const id = el.getAttribute('data-shelf-id');
+  closeModal('modalShelfPicker');
+  selectShelf(id);
+}
+
+async function openShelfPickerModal() {
+  const grid = document.getElementById('shelfPickerGrid');
   openModal('modalShelfPicker');
+
+  if (allShelves.length === 0) {
+    grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Đang tải...</p></div>`;
+    try {
+      const data = await apiGet({ action: 'getShelves', username: currentUser.username });
+      if (Array.isArray(data)) allShelves = data;
+    } catch(e) {
+      grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1"><div class="empty-icon">❌</div><p>Lỗi tải kệ</p></div>`;
+      return;
+    }
+  }
+  _renderShelfPickerGrid();
 }
 
 function selectShelf(shelfOrId) {
@@ -3839,6 +3870,12 @@ function formatDate(isoStr) {
     return isoStr.slice(0, 10);
   }
 }
+
+// Crop global listeners
+document.addEventListener('mousemove', e => { if (_cropDragging) onCropMouseMove(e); });
+document.addEventListener('mouseup',   e => { if (_cropDragging) onCropMouseUp(e); });
+document.addEventListener('touchmove', e => { if (_cropDragging) onCropMouseMove(e); }, { passive: false });
+document.addEventListener('touchend',  e => { if (_cropDragging) onCropMouseUp(e); });
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
