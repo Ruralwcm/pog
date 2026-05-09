@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.8</title>
+<title>POG DESIGN by HaoDT v24.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -901,7 +901,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v24.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -920,7 +920,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3516,10 +3516,11 @@ function renderPOGCanvas() {
     const _safeTotal = Math.min(_totalFit, tangW);
     let xOffset = Math.max(0, Math.round((tangW - _safeTotal) / 2));
     (tConfig.products || []).forEach((prod, pi) => {
-      // Auto-stack: tính max facing có thể chồng trong khoang (biên độ 120%)
       const _singleCao = prod.rotated ? (prod.rong||10) : (prod.cao||20);
-      const _maxFacing = Math.max(1, Math.floor(tangH / Math.max(1, Math.round(_singleCao * sc)) * 1.2));
-      const facing = prod.facing || _maxFacing; // nếu user chưa set → auto stack tối đa
+      const _pxSingleH = Math.max(6, Math.round(_singleCao * sc));
+      // Auto-stack: số lớp vừa khoang (biên 120%)
+      const _maxFacing = Math.max(1, Math.floor(tangH * 1.2 / _pxSingleH));
+      const facing = prod.facing || _maxFacing;
       // Support rotation: swap rong/cao when rotated
       const pxRong = prod.rotated
         ? Math.min(Math.max(10, Math.round((prod.cao||20)*sc)), tangW)
@@ -3527,7 +3528,8 @@ function renderPOGCanvas() {
       const pxCaoSingle = prod.rotated
         ? Math.max(8, Math.round((prod.rong||10)*sc))
         : Math.max(8, Math.round((prod.cao || 20) * sc));
-      const pxCao = Math.min(pxCaoSingle * facing, tangH - 4); // tổng cao = facing × đơn vị
+      // Tổng cao = facing × đơn vị, clip theo tangH
+      const pxCao = Math.min(pxCaoSingle * facing, tangH); // tổng cao = facing × đơn vị
 
       const slot = document.createElement('div');
       slot.className = 'product-slot';
@@ -3687,30 +3689,36 @@ function renderPOGCanvas() {
 
 function _updateInfoPanel() {
   if (!pogConfig || !currentShelf) return;
-  const content = document.getElementById('pogInfoContent');
-  if (!content) return;
+  const el = document.getElementById('pogInfoContent');
+  if (!el) return;
   let html = '';
   for (let ti = 0; ti < currentShelf.soTang; ti++) {
     const tConfig = pogConfig.tầng[ti] || { products: [] };
     const prods = tConfig.products || [];
     html += `<div style="margin-bottom:12px">
-      <div style="font-weight:700;color:#1a3c6e;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e2e8f0">
-        Tầng ${ti + 1}
-      </div>`;
+      <div style="font-weight:700;color:#1a3c6e;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e2e8f0">Tầng ${ti+1}</div>`;
     if (prods.length === 0) {
       html += `<div style="color:#adb5bd;font-style:italic">Chưa có SP</div>`;
     } else {
-      prods.forEach(p => {
+      // Gộp SP liên tiếp cùng mã (facing ngang)
+      const groups = [];
+      for (const p of prods) {
+        const last = groups[groups.length-1];
+        if (last && last.maSP === p.maSP) { last.count++; }
+        else { groups.push({maSP: p.maSP, tenSP: p.tenSP, count: 1}); }
+      }
+      groups.forEach(g => {
+        const facingStr = g.count > 1 ? ` ×${g.count}` : '';
         html += `<div style="display:flex;gap:6px;align-items:baseline;margin-bottom:3px;padding:3px 0;border-bottom:1px dotted #f0f0f0">
-          <span style="color:#495057;font-weight:600;flex-shrink:0">${escHtml(p.maSP)}</span>
-          <span style="color:#6c757d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</span>
-          <span style="color:#1a3c6e;font-weight:700;flex-shrink:0">×${p.facing||1}</span>
+          <span style="color:#495057;font-weight:600;flex-shrink:0">${escHtml(g.maSP)}</span>
+          <span style="color:#6c757d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${escHtml(g.tenSP)}</span>
+          ${facingStr ? `<span style="color:#1a3c6e;font-weight:700;flex-shrink:0">${facingStr}</span>` : ''}
         </div>`;
       });
     }
     html += '</div>';
   }
-  content.innerHTML = html || '<div style="color:#adb5bd">Chọn kệ để bắt đầu</div>';
+  el.innerHTML = html || '<div style="color:#adb5bd">Chọn kệ để bắt đầu</div>';
 }
 
 // ============================================================
@@ -4240,10 +4248,11 @@ async function exportPNG() {
       for (const prod of tConfig.products) {
         const pxRong = Math.round(prod.rong * exportScale);
         const pxCao = Math.min(Math.round(prod.cao * exportScale), tangH - 4);
-        // Auto-stack: tính max facing có thể chồng trong khoang (biên độ 120%)
-      const _singleCao = prod.rotated ? (prod.rong||10) : (prod.cao||20);
-      const _maxFacing = Math.max(1, Math.floor(tangH / Math.max(1, Math.round(_singleCao * sc)) * 1.2));
-      const facing = prod.facing || _maxFacing; // nếu user chưa set → auto stack tối đa
+        const _singleCao = prod.rotated ? (prod.rong||10) : (prod.cao||20);
+      const _pxSingleH = Math.max(6, Math.round(_singleCao * sc));
+      // Auto-stack: số lớp vừa khoang (biên 120%)
+      const _maxFacing = Math.max(1, Math.floor(tangH * 1.2 / _pxSingleH));
+      const facing = prod.facing || _maxFacing;
 
         for (let f = 0; f < facing; f++) {
           const imgY = tangStartY + tangH - (f + 1) * pxCao;
