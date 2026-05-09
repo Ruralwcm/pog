@@ -3344,8 +3344,8 @@ function renderMultiDeviceCanvas() {
         const totalStackH = Math.min(perItemH * fac, Math.round(tangH * 1.2));
         ic.style.cssText='position:absolute;left:0;right:0;overflow:hidden;width:'+pxR+'px;height:'+totalStackH+'px;bottom:0;';
         for(let f=0;f<fac;f++){
-          // f=0: layer trên cùng (chạm trần), f=1: layer thứ 2...
-          const layerTop = f * perItemH; // từ trần xuống
+          // f=0: layer đầu (chạm sàn), f=1: layer 2 chồng lên...
+          const layerTop = totalStackH - (f + 1) * perItemH; // từ sàn lên
           if(prod.linkAnh){
             const img=document.createElement('img');img.src=formatImgUrl(prod.linkAnh);
             if(prod.rotated){
