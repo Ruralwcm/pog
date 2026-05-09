@@ -4342,6 +4342,15 @@ function onLibDragEnd(event) {
   document.getElementById('dragGhost').classList.remove('active');
   document.removeEventListener('mousemove', moveDragGhost);
   document.querySelectorAll('.tầng-overlay').forEach(el => el.classList.remove('drag-over'));
+  if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
+}
+
+function _cleanupDragGhost() {
+  if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
+  if (typeof _rafId !== 'undefined' && _rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+  const ghost = document.getElementById('dragGhost');
+  if (ghost) ghost.classList.remove('active');
+  document.querySelectorAll('.tầng-overlay').forEach(el => el.classList.remove('drag-over'));
 }
 
 function moveDragGhost(e) {
