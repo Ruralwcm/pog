@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v29.5</title>
+<title>POG DESIGN by HaoDT v29.6</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v29.5</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v29.6</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v29.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -4554,20 +4554,16 @@ async function openPOGListModal() {
     }
     // bind after render
   const _bindPOG = () => _bindPOGListClicks();
-  body.innerHTML = data.map(p => `
-      <div class="pog-list-item" data-pogid="${escHtml(p.id)}">
-        <span class="pog-list-icon">📐</span>
-        <div class="pog-list-details">
-          <div class="pog-list-name">${escHtml(p.ten)}</div>
-          <div class="pog-list-meta">Tạo: ${formatDate(p.ngayTao)} · Sửa: ${formatDate(p.ngaySua)} · Người tạo: ${escHtml(p.nguoiTao)}</div>
-        </div>
-        <span class="pog-list-arrow">›</span>
-      </div>
-    `).join('');
-    // Bind click events sau khi render
-    body.querySelectorAll('.pog-list-item[data-pogid]').forEach(el => {
-      el.addEventListener('click', () => loadPOG(el.getAttribute('data-pogid')));
-    });
+  // Tạo elements trực tiếp thay vì innerHTML để tránh CSP
+  body.innerHTML = '';
+  data.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'pog-list-item';
+    item.style.cursor = 'pointer';
+    item.innerHTML = '<span class="pog-list-icon">📐</span><div class="pog-list-details"><div class="pog-list-name">' + escHtml(p.ten) + '</div><div class="pog-list-meta">Tạo: ' + formatDate(p.ngayTao) + ' · ' + escHtml(p.nguoiTao) + '</div></div><span class="pog-list-arrow">›</span>';
+    item.addEventListener('click', (function(pid) { return function() { console.log('[POG] Loading:', pid); loadPOG(pid); }; })(p.id));
+    body.appendChild(item);
+  });
   } catch(e) {
     body.innerHTML = `<div class="empty-list"><div class="empty-icon">❌</div><p>Lỗi tải: ${e.message}</p></div>`;
   }
