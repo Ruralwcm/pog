@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v23.8</title>
+<title>POG DESIGN by HaoDT v23.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v23.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v23.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1005,7 +1005,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -2983,13 +2983,16 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   const shelfLineH = 6;
 
   // Pixel height per level (proportional)
-  const tangPxHList = tangList.map(tl => Math.round((tl.cao / totalCao) * bodyPxH));
+  // Đảm bảo đủ soTang phần tử (fallback nếu tangList thiếu)
+  const tangListFull = Array.from({length: soTang}, (_, i) => tangList[i] || {cao: (totalCao/soTang)||40, rong: rongTong});
+  const totalCaoFull = tangListFull.reduce((a, tl) => a + tl.cao, 0) || 1;
+  const tangPxHList = tangListFull.map(tl => Math.round((tl.cao / totalCaoFull) * bodyPxH));
   // Fix rounding
   const sumH = tangPxHList.reduce((a, b) => a + b, 0);
   if (sumH !== bodyPxH && tangPxHList.length > 0) tangPxHList[tangPxHList.length - 1] += bodyPxH - sumH;
 
   // Pixel width per level
-  const tangPxWList = tangList.map(tl => {
+  const tangPxWList = tangListFull.map(tl => {
     if (loai === 'ke' || loai === 'tu') return pxW;
     return Math.max(10, Math.round((tl.rong / rongTong) * pxW));
   });
@@ -3191,7 +3194,7 @@ function renderLibrary() {
 
 function _bindLibraryEvents() {
   const items = document.querySelectorAll('.lib-product-item');
-  console.log('[BIND] pointer-based drag to', items.length, 'items');
+  console.log('[BIND] pointer-based drag to', items.length, 'items. First item draggable:', items[0]?.getAttribute('draggable'));
   items.forEach(el => {
     const maSP = el.getAttribute('data-masp');
     el.onclick = (e) => { e.stopPropagation(); selectLibProduct(maSP); };
@@ -3208,6 +3211,7 @@ let _ptrDragMaSP = null;
 let _ptrGhost = null;
 
 function _startPointerDrag(e, maSP, sourceEl) {
+  console.log('[POINTER START]', maSP);
   _ptrDragMaSP = maSP;
   _draggingMaSP = maSP;
   
@@ -3442,7 +3446,7 @@ function renderPOGCanvas() {
   console.log('[POG] shelf.soTang=', shelf.soTang, 'tangList=', getShelfTangList(shelf), 'tangPxHList=', svgResult.tangPxHList, 'tangPxWList=', svgResult.tangPxWList);
 
   // Dùng tangPxHList.length thay vì shelf.soTang để tránh mismatch
-  const actualTangCount = svgResult.tangPxHList.length;
+  const actualTangCount = Math.max(svgResult.tangPxHList.length, shelf.soTang);
   console.log('[POG] actualTangCount=', actualTangCount, 'shelf.soTang=', shelf.soTang);
 
   for (let ti = 0; ti < actualTangCount; ti++) {
