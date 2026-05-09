@@ -3347,7 +3347,11 @@ function renderPOGCanvas() {
 
   console.log('[POG] shelf.soTang=', shelf.soTang, 'tangList=', getShelfTangList(shelf), 'tangPxHList=', svgResult.tangPxHList, 'tangPxWList=', svgResult.tangPxWList);
 
-  for (let ti = 0; ti < shelf.soTang; ti++) {
+  // Dùng tangPxHList.length thay vì shelf.soTang để tránh mismatch
+  const actualTangCount = svgResult.tangPxHList.length;
+  console.log('[POG] actualTangCount=', actualTangCount, 'shelf.soTang=', shelf.soTang);
+
+  for (let ti = 0; ti < actualTangCount; ti++) {
     const tConfig = pogConfig.tầng[ti] || { index: ti, products: [] };
     const tangH = svgResult.tangPxHList[ti] || 40;
     const tangW = svgResult.tangPxWList[ti] || pxW;
@@ -4150,4 +4154,3 @@ document.addEventListener('keydown', e => {
 </script>
 </body>
 </html>
-<!-- POG DESIGN by HaoDT v23.0 -->
