@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.3</title>
+<title>POG DESIGN by HaoDT v28.4</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.3</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.4</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.4</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.4</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3329,16 +3329,18 @@ function renderMultiDeviceCanvas() {
       (tConfig.products||[]).forEach((prod,pi)=>{
         const pxR=_fw[pi]||Math.max(6,Math.round((prod.rong||10)*sc*_rat));
         const _sc=Math.max(8,Math.round((prod.rotated?(prod.rong||10):(prod.cao||20))*sc));
-        const _mf=Math.max(1,Math.floor(tangH*1.5/Math.max(1,_sc)));
+        const _mf=Math.max(1,Math.floor(tangH*1.2/Math.max(1,_sc)));
         const fac=prod.facing||_mf;
-        const pxC=Math.min(_sc*fac,Math.round(tangH*1.5));
+        const pxC=Math.min(_sc*fac,Math.round(tangH*1.2)); // totalStackH for slot
         const slot=document.createElement('div');
         slot.className='product-slot';
         slot.style.cssText='width:'+pxR+'px;height:'+pxC+'px;position:absolute;left:'+Math.min(xOff,Math.max(0,tangW-pxR))+'px;bottom:0;';
         slot.dataset.capDeviceIdx=di;slot.dataset.capTi=ti;slot.dataset.capPi=pi;
         if(selectedSlot&&selectedSlot.deviceIdx===di&&selectedSlot.tangIndex===ti&&selectedSlot.slotIndex===pi)slot.classList.add('selected');
         const ic=document.createElement('div');
-        ic.style.cssText='position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+        const totalStackH = Math.min(_sc*fac, Math.round(tangH*1.2));
+        const perItemH = Math.round(totalStackH / fac);
+        ic.style.cssText='position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column-reverse;align-items:center;justify-content:flex-start;gap:0;';
         for(let f=0;f<fac;f++){
           if(prod.linkAnh){
             const img=document.createElement('img');img.src=formatImgUrl(prod.linkAnh);
@@ -3347,10 +3349,10 @@ function renderMultiDeviceCanvas() {
               const w=_sc, h=pxR;
               img.style.cssText='width:'+h+'px;height:'+w+'px;object-fit:contain;display:block;flex-shrink:0;transform:rotate(-90deg);transform-origin:center;position:relative;left:'+Math.round((pxR-h)/2)+'px;top:'+Math.round((w-pxR)/2)+'px;';
             } else {
-              img.style.cssText='width:'+pxR+'px;height:'+_sc+'px;object-fit:contain;display:block;flex-shrink:0;';
+              img.style.cssText='width:'+pxR+'px;height:'+perItemH+'px;object-fit:contain;display:block;flex-shrink:0;';
             }
             img.onerror=()=>{img.style.display='none';};ic.appendChild(img);}
-          else{const ph=document.createElement('div');ph.style.cssText='width:'+pxR+'px;height:'+_sc+'px;flex-shrink:0;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;';ph.textContent='📦';ic.appendChild(ph);}
+          else{const ph=document.createElement('div');ph.style.cssText='width:'+pxR+'px;height:'+perItemH+'px;flex-shrink:0;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;';ph.textContent='📦';ic.appendChild(ph);}
         }
         slot.appendChild(ic);
         const ctrl=document.createElement('div');ctrl.className='slot-controls';
