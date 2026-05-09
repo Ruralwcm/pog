@@ -1099,7 +1099,7 @@ img { max-width: 100%; }
       <div style="margin-bottom:12px">
         <label class="form-label">Link Drive</label>
         <input type="text" class="form-input" id="editLinkAnh" placeholder="https://drive.google.com/..." oninput="previewEditImage()">
-        <img id="editProductImg" style="max-width:100%;max-height:120px;object-fit:contain;margin-top:8px;display:none;border-radius:6px;border:1px solid #e2e8f0;background:#f8f9fa" src="" alt="">
+        <img id="editProductImg" style="max-width:100%;max-height:120px;object-fit:contain;margin-top:8px;display:none;border-radius:6px;border:1px solid #e2e8f0;background:#f8f9fa" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
       </div>
 
       <!-- Upload ảnh mới — luôn hiển thị -->
@@ -2089,12 +2089,24 @@ async function confirmProcessedImage() {
   pogCtx.drawImage(croppedCanvas, 0, 0, pogCanvas.width, pogCanvas.height);
   const base64Pog = pogCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
 
-  const sizeKB = Math.round(base64Pog.length * 3 / 4 / 1024);
-  showLoading(`Đang upload ảnh (~${sizeKB}KB) lên Drive...`);
+  // Tạo ảnh Thumbnail thật sự ~50px (file riêng, size nhỏ hơn)
+  const thumbCanvas = document.createElement('canvas');
+  const thumbMax = 50;
+  const thumbScale = Math.min(thumbMax / croppedCanvas.width, thumbMax / croppedCanvas.height, 1);
+  thumbCanvas.width  = Math.round(croppedCanvas.width  * thumbScale);
+  thumbCanvas.height = Math.round(croppedCanvas.height * thumbScale);
+  const thumbCtx = thumbCanvas.getContext('2d');
+  thumbCtx.fillStyle = '#ffffff';
+  thumbCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+  thumbCtx.drawImage(croppedCanvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
+  const base64Thumb = thumbCanvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+
+  const sizeKB = Math.round((base64Pog.length + base64Thumb.length) * 3 / 4 / 1024);
+  showLoading(`Đang upload 2 ảnh (~${sizeKB}KB) lên Drive...`);
   try {
     const res = await apiPost({
       action: 'uploadProductImage',
-      maSP, base64: base64Pog,
+      maSP, base64: base64Pog, base64Thumb,
       tenSP: p.tenSP || '', danhMuc: p.danhMuc || '',
       mch3: p.mch3 || '', mch4: p.mch4 || '',
       dvt: dvt || p.dvt || '',
