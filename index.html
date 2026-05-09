@@ -4581,7 +4581,7 @@ async function loadPOG(id) {
   showLoading('Đang tải POG...');
   try {
     const data = await apiGet({ action: 'getPOGDetail', id });
-    if (!data.success) { showToast(data.error || 'Không tìm thấy POG', 'error'); return; }
+    if (!data.success) { showToast('❌ ' + (data.error||'Không tìm thấy POG') + '. Hãy Save POG trước khi Open!', 'error'); hideLoading(); return; }
 
     currentPOGId = data.id;
     document.getElementById('pogNameInput').value = data.ten || 'POG';
