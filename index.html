@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.5</title>
+<title>POG DESIGN by HaoDT v24.6</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -901,7 +901,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.5</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v24.6</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -920,7 +920,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3581,11 +3581,16 @@ function renderPOGCanvas() {
           img.src = formatImgUrl(prod.linkAnh);
           img.alt = prod.tenSP || '';
           if (prod.rotated) {
-            // Xoay 90° — ảnh căn lề dưới trái trong slot
-            img.style.cssText = `width:${pxCaoSingle}px; height:${pxRong}px; object-fit:contain; display:block; flex-shrink:0; transform:rotate(90deg); transform-origin:bottom left; position:relative; left:0; top:${-(pxRong - pxCaoSingle)}px;`;
+            // Xoay 90°: ảnh nằm ngang trong slot đứng
+            // Tạo wrapper để clip overflow
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; overflow:hidden; position:relative; flex-shrink:0;`;
+            // Ảnh: xoay -90° (nằm ngang), căn giữa wrapper
+            img.style.cssText = `width:${pxCaoSingle}px; height:${pxRong}px; object-fit:contain; position:absolute; transform:rotate(-90deg); transform-origin:center center; left:${Math.round((pxRong - pxCaoSingle)/2)}px; top:${Math.round((pxCaoSingle - pxRong)/2)}px;`;
+            wrapper.appendChild(img);
+            imgContainer.appendChild(wrapper);
           } else {
             img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;`;
-          }
           img.onerror = () => { img.style.display = 'none'; };
           imgContainer.appendChild(img);
         } else {
