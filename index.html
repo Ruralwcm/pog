@@ -3362,12 +3362,15 @@ function _doAddMulti(deviceIdx, tangIdx, prod) {
 }
 
 function deleteDevice(deviceIdx) {
-  if(pogDevices.length<=1){showToast('Cần ít nhất 1 TTB','warning');return;}
-  if(!confirm('Xoá TTB #'+(deviceIdx+1)+'?'))return;
-  pogDevices.splice(deviceIdx,1);
-  pogDevices.forEach((d,i)=>d.id=i+1);
-  if(currentDeviceIdx>=pogDevices.length)currentDeviceIdx=pogDevices.length-1;
-  renderMultiDeviceCanvas();markDirty();
+  if(pogDevices.length<=1){showToast('⚠️ Cần ít nhất 1 TTB','warning');return;}
+  // Dùng openConfirm thay vì window.confirm (tránh browser block)
+  openConfirm('Xoá TTB #'+(deviceIdx+1)+'?', 'SP trong TTB này sẽ mất.', function(){
+    pogDevices.splice(deviceIdx,1);
+    pogDevices.forEach((d,i)=>d.id=i+1);
+    if(currentDeviceIdx>=pogDevices.length)currentDeviceIdx=pogDevices.length-1;
+    renderMultiDeviceCanvas();markDirty();
+    showToast('✅ Đã xoá TTB #'+(deviceIdx+1), 'success');
+  });
 }
 
 function _updateInfoPanelMulti() {
