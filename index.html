@@ -3591,6 +3591,8 @@ function renderPOGCanvas() {
             imgContainer.appendChild(wrapper);
           } else {
             img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;`;
+            imgContainer.appendChild(img);
+          }
           img.onerror = () => { img.style.display = 'none'; };
           imgContainer.appendChild(img);
         } else {
