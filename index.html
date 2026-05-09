@@ -3377,20 +3377,28 @@ function renderPOGCanvas() {
     `;
 
     // Drop zone events
+    overlay.addEventListener('dragenter', e => { e.preventDefault(); });
     overlay.addEventListener('dragover', e => {
       e.preventDefault();
+      e.stopPropagation();
       e.dataTransfer.dropEffect = 'copy';
       overlay.classList.add('drag-over');
     });
-    overlay.addEventListener('dragleave', () => { overlay.classList.remove('drag-over'); });
+    overlay.addEventListener('dragleave', e => {
+      if (!overlay.contains(e.relatedTarget)) overlay.classList.remove('drag-over');
+    });
     overlay.addEventListener('drop', e => {
       e.preventDefault();
+      e.stopPropagation();
       overlay.classList.remove('drag-over');
-      const maSP = e.dataTransfer.getData('text/plain');
+      const maSP = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('Text');
+      console.log('[DROP] tang=', overlay.dataset.tang, 'maSP=', maSP);
       if (maSP) addProductToTang(parseInt(overlay.dataset.tang), maSP);
+      else if (selectedLibProduct) addProductToTang(parseInt(overlay.dataset.tang), selectedLibProduct.maSP);
     });
+    // Click để thêm SP đã chọn
     overlay.addEventListener('click', e => {
-      if (e.target === overlay && selectedLibProduct) {
+      if (selectedLibProduct) {
         addProductToTang(parseInt(overlay.dataset.tang), selectedLibProduct.maSP);
       }
     });
