@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.1</title>
+<title>POG DESIGN by HaoDT v24.2</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.1</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v24.2</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.2</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1005,7 +1005,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.2</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3501,8 +3501,11 @@ function renderPOGCanvas() {
       }
     });
 
-    // Render products
-    let xOffset = 0;
+    // Render products — căn giữa trong tầng
+    const totalProductWidth = (tConfig.products || []).reduce((sum, p) => {
+      return sum + Math.min(Math.max(10, Math.round((p.rong || 10) * sc)), tangW);
+    }, 0);
+    let xOffset = Math.max(0, Math.round((tangW - totalProductWidth) / 2)); // căn giữa
     (tConfig.products || []).forEach((prod, pi) => {
       const facing = prod.facing || 1;
       const pxRong = Math.min(Math.max(10, Math.round((prod.rong || 10) * sc)), tangW); // clamp trong mâm
