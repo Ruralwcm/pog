@@ -1619,7 +1619,10 @@ function toggleFilter(name) {
 function searchProductOnline() {
   const barcode = document.getElementById('editBarcode').value.trim();
   const tenSP = document.getElementById('editProductName').textContent.trim();
-  const query = [barcode, tenSP].filter(Boolean).join(' ');
+  const rong = document.getElementById('editRong').value.trim();
+  const cao = document.getElementById('editCao').value.trim();
+  const sizeStr = (rong && cao) ? `${rong}x${cao}cm` : (rong ? `${rong}cm` : '');
+  const query = [barcode, tenSP, sizeStr].filter(Boolean).join(' ');
   if (!query) { showToast('Nhập barcode hoặc tên SP để tìm kiếm', 'warning'); return; }
   window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
 }
