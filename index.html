@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v23.5</title>
+<title>POG DESIGN by HaoDT v23.6</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -890,7 +890,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v23.5</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v23.6</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -909,7 +909,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -996,7 +996,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3175,19 +3175,81 @@ function renderLibrary() {
 
 function _bindLibraryEvents() {
   const items = document.querySelectorAll('.lib-product-item');
-  console.log('[BIND] binding events to', items.length, 'items');
+  console.log('[BIND] pointer-based drag to', items.length, 'items');
   items.forEach(el => {
     const maSP = el.getAttribute('data-masp');
-    // Remove old listeners by cloning
-    const newEl = el.cloneNode(true);
-    el.parentNode.replaceChild(newEl, el);
-    newEl.onclick = (e) => { e.stopPropagation(); selectLibProduct(maSP); };
-    newEl.addEventListener('dragstart', (e) => {
-      console.log('[DRAGSTART via bind]', maSP);
-      onLibDragStart(e, maSP);
+    el.onclick = (e) => { e.stopPropagation(); selectLibProduct(maSP); };
+    // Pointer-based drag (works on all devices, no HTML5 drag issues)
+    el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      _startPointerDrag(e, maSP, el);
     });
-    newEl.addEventListener('dragend', (e) => onLibDragEnd(e));
   });
+}
+
+let _ptrDragMaSP = null;
+let _ptrGhost = null;
+
+function _startPointerDrag(e, maSP, sourceEl) {
+  _ptrDragMaSP = maSP;
+  _draggingMaSP = maSP;
+  
+  // Create ghost
+  _ptrGhost = sourceEl.cloneNode(true);
+  _ptrGhost.style.cssText = `position:fixed;z-index:99999;pointer-events:none;opacity:0.8;
+    width:${sourceEl.offsetWidth}px;background:#fff;border:2px solid #1a3c6e;
+    border-radius:8px;padding:4px;box-shadow:0 4px 12px rgba(0,0,0,0.3)`;
+  _ptrGhost.style.left = (e.clientX - 20) + 'px';
+  _ptrGhost.style.top  = (e.clientY - 20) + 'px';
+  document.body.appendChild(_ptrGhost);
+
+  // Show ghost drag icon
+  const ghost = document.getElementById('dragGhost');
+  const ghostImg = document.getElementById('dragGhostImg');
+  const prod = allProducts.find(p => p.maSP === maSP);
+  if (prod?.linkAnh) { ghostImg.src = formatImgUrl(prod.linkAnh); ghostImg.style.display='block'; }
+  document.getElementById('dragGhostName').textContent = prod?.tenSP || maSP;
+  ghost.classList.add('active');
+
+  const onMove = (e) => {
+    e.preventDefault();
+    const cx = e.clientX, cy = e.clientY;
+    _ptrGhost.style.left = (cx - 20) + 'px';
+    _ptrGhost.style.top  = (cy - 20) + 'px';
+    ghost.style.left = (cx + 12) + 'px';
+    ghost.style.top  = (cy - 20) + 'px';
+    // Highlight overlay under cursor
+    document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
+    _ptrGhost.style.display = 'none';
+    const el = document.elementFromPoint(cx, cy);
+    _ptrGhost.style.display = '';
+    const ov = el?.closest('.tầng-overlay');
+    if (ov) ov.classList.add('drag-over');
+  };
+
+  const onUp = (e) => {
+    e.preventDefault();
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    // Cleanup
+    if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
+    document.getElementById('dragGhost').classList.remove('active');
+    document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
+    // Find drop target
+    _ptrGhost = null;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const ov = el?.closest('.tầng-overlay');
+    if (ov && _ptrDragMaSP) {
+      console.log('[POINTER DROP] tang=', ov.dataset.tang, 'maSP=', _ptrDragMaSP);
+      addProductToTang(parseInt(ov.dataset.tang), _ptrDragMaSP);
+    }
+    _ptrDragMaSP = null;
+    _draggingMaSP = null;
+  };
+
+  document.addEventListener('pointermove', onMove, {passive:false});
+  document.addEventListener('pointerup', onUp, {once:true});
 }
 
 function selectLibProduct(maSP) {
