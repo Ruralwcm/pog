@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v26.7</title>
+<title>POG DESIGN by HaoDT v26.8</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v26.7</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v26.8</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.8</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.8</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3241,7 +3241,12 @@ function renderMultiDeviceCanvas() {
   // Clear toàn bộ canvas
   while (container.firstChild) container.removeChild(container.firstChild);
   container.style.cssText = 'display:flex;flex-direction:row;gap:16px;align-items:flex-start;padding:8px;min-height:200px;';
-  const sc = Math.min(((document.getElementById('pogCanvasScroll').clientWidth - 80) / (pogDevices[0]?.rongTong || 100)) * zoom * 0.5, 8 * zoom);
+  // Scroll container lên đầu
+  const scrollEl = document.getElementById('pogCanvasScroll');
+  if (scrollEl) scrollEl.scrollTop = 0;
+  // Scale dùng zoom variable (zoom = 0.5 mặc định = 50%)
+  const baseScale = Math.min((document.getElementById('pogCanvasScroll').clientWidth - 80) / ((pogDevices[0]?.rongTong || 100) * pogDevices.length + 80), 6);
+  const sc = Math.max(0.5, baseScale) * zoom;
   window.SCALE = sc;
   pogDevices.forEach((dev, di) => {
     const shelf = {loai:dev.loai, soTang:dev.soTang, rongTong:dev.rongTong, rong:dev.rongTong, tangList:dev.tangList, caoTang:dev.tangList[0]?.cao||40};
@@ -3263,7 +3268,12 @@ function renderMultiDeviceCanvas() {
     const hdr = document.createElement('div');
     hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:5px 8px;background:' + (di===currentDeviceIdx?'var(--primary)':'var(--gray-600)') + ';color:#fff;border-radius:6px 6px 0 0;font-size:12px;font-weight:700;cursor:pointer;user-select:none;';
     const devLabel = dev.series ? dev.series : ('TTB #' + (di+1));
-    hdr.innerHTML = '<span style="flex:1">📦 ' + escHtml(devLabel) + '</span><button onclick="event.stopPropagation();deleteDevice(' + di + ')" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
+    hdr.innerHTML = '<span style="flex:1">📦 ' + escHtml(devLabel) + '</span><button class="dev-del-btn" data-didx="' + di + '" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
+    hdr.querySelector('.dev-del-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(e.target.getAttribute('data-didx'));
+      deleteDevice(idx);
+    });
     hdr.addEventListener('click', () => { currentDeviceIdx = di; renderMultiDeviceCanvas(); });
     col.appendChild(hdr);
 
@@ -3335,7 +3345,13 @@ function renderMultiDeviceCanvas() {
   });
   _updateInfoPanelMulti();
   // Rebind library drag events sau render
-  setTimeout(_bindLibraryEvents, 50);
+  setTimeout(() => {
+    _bindLibraryEvents();
+    // Cũng rebind _ptrDragMaSP cho multi-TTB drop zones
+    document.querySelectorAll('.tầng-overlay').forEach(ov => {
+      ov.addEventListener('dragenter', e => e.preventDefault(), {once:false});
+    });
+  }, 100);
 }
 
 function addProductToTangMulti(deviceIdx, tangIdx, maSP) {
