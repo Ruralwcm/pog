@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.9</title>
+<title>POG DESIGN by HaoDT v25.0</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -901,7 +901,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.9</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v25.0</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -920,7 +920,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.0</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.0</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3234,27 +3234,33 @@ function _startPointerDrag(e, maSP, sourceEl) {
   document.getElementById('dragGhostName').textContent = prod?.tenSP || maSP;
   ghost.classList.add('active');
 
+  let _rafId = null;
   const onMove = (e) => {
     e.preventDefault();
     const cx = e.clientX, cy = e.clientY;
-    _ptrGhost.style.left = (cx - 20) + 'px';
-    _ptrGhost.style.top  = (cy - 20) + 'px';
-    ghost.style.left = (cx + 12) + 'px';
-    ghost.style.top  = (cy - 20) + 'px';
-    // Highlight overlay under cursor
-    document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
-    _ptrGhost.style.display = 'none';
-    const el = document.elementFromPoint(cx, cy);
-    _ptrGhost.style.display = '';
-    const ov = el?.closest('.tầng-overlay');
-    if (ov) ov.classList.add('drag-over');
+    // Throttle với rAF để giảm lag
+    if (_rafId) return;
+    _rafId = requestAnimationFrame(() => {
+      _rafId = null;
+      if (!_ptrGhost) return;
+      _ptrGhost.style.left = (cx - 20) + 'px';
+      _ptrGhost.style.top  = (cy - 20) + 'px';
+      ghost.style.left = (cx + 12) + 'px';
+      ghost.style.top  = (cy - 20) + 'px';
+      document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
+      _ptrGhost.style.visibility = 'hidden';
+      const el = document.elementFromPoint(cx, cy);
+      _ptrGhost.style.visibility = '';
+      const ov = el?.closest('.tầng-overlay');
+      if (ov) ov.classList.add('drag-over');
+    });
   };
 
   const onUp = (e) => {
     e.preventDefault();
+    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
-    // Cleanup
     if (_ptrGhost) { _ptrGhost.remove(); _ptrGhost = null; }
     document.getElementById('dragGhost').classList.remove('active');
     document.querySelectorAll('.tầng-overlay').forEach(ov => ov.classList.remove('drag-over'));
