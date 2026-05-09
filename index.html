@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v26.3</title>
+<title>POG DESIGN by HaoDT v26.4</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v26.3</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v26.4</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.4</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.4</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1186,8 +1186,8 @@ img { max-width: 100%; }
           </div>
         </div>
 
-        <!-- Step C: Remove background + preview -->
-        <div id="imgStep_removebg" style="display:none">
+        <!-- Step C: Remove background + preview - DISABLED -->
+        <div id="imgStep_removebg" style="display:none;visibility:hidden;height:0;overflow:hidden">
           <p style="font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:600">🎨 Xoá nền & căn chỉnh — preview kết quả:</p>
           <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
             <div style="text-align:center;flex:1">
@@ -2049,9 +2049,10 @@ function applyPerspective() {
   afterCanvas.height = Math.round(outH * scale3);
   afterCanvas.getContext('2d').drawImage(outCanvas, 0, 0, afterCanvas.width, afterCanvas.height);
 
-  document.getElementById('removebgStatus').textContent = 'Sẵn sàng xoá nền. Bấm Xoá nền hoặc Bỏ qua để tiếp tục.';
-  document.getElementById('btnApplyRemoveBg').textContent = '🎨 Xoá nền & xác nhận';
-  goImgStep('removebg');
+  // Skip removebg → build finalCanvas ngay và confirm
+  _finalCanvas = buildFinalCanvas(outCanvas);
+  updateAfterPreview(_finalCanvas);
+  confirmProcessedImage();
 }
 
 // ── Homography helpers ─────────────────────────────────────────
@@ -2507,15 +2508,10 @@ function applyCrop() {
   const s2 = Math.min(220/cw, 220/ch, 1);
   beforeCanvas.width = Math.round(cw*s2); beforeCanvas.height = Math.round(ch*s2);
   beforeCanvas.getContext('2d').drawImage(out, 0, 0, beforeCanvas.width, beforeCanvas.height);
-  document.getElementById('removebgStatus').textContent = 'Đã crop. Bấm Xoá nền hoặc Bỏ qua.';
-  document.getElementById('btnApplyRemoveBg').textContent = '🎨 Xoá nền & xác nhận';
+  // Skip removebg → build finalCanvas ngay và confirm
   document.getElementById('imgStep_crop').style.display = 'none';
-  goImgStep('removebg');
-  // Update after preview with cropped
-  const afterEl = document.getElementById('previewAfter');
-  const s3 = Math.min(220/cw, 220/ch, 1);
-  afterEl.width = Math.round(cw*s3); afterEl.height = Math.round(ch*s3);
-  afterEl.getContext('2d').drawImage(out, 0, 0, afterEl.width, afterEl.height);
+  _finalCanvas = buildFinalCanvas(out);
+  confirmProcessedImage();
 }
 
 function loadScript(src) {
