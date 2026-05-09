@@ -3345,6 +3345,8 @@ function renderPOGCanvas() {
   // Render product overlays for each level
   container.querySelectorAll('.tầng-overlay').forEach(el => el.remove());
 
+  console.log('[POG] shelf.soTang=', shelf.soTang, 'tangList=', getShelfTangList(shelf), 'tangPxHList=', svgResult.tangPxHList, 'tangPxWList=', svgResult.tangPxWList);
+
   for (let ti = 0; ti < shelf.soTang; ti++) {
     const tConfig = pogConfig.tầng[ti] || { index: ti, products: [] };
     const tangH = svgResult.tangPxHList[ti] || 40;
