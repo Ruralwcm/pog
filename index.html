@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v27.8</title>
+<title>POG DESIGN by HaoDT v27.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v27.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v27.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3397,14 +3397,13 @@ function _doAddMulti(deviceIdx, tangIdx, prod) {
   const _di = parseInt(deviceIdx);
   if (!pogDevices || _di < 0 || _di >= pogDevices.length) {
     showToast('⚠️ TTB không hợp lệ, thử lại!', 'warning');
-    renderMultiDeviceCanvas(); // re-render để sync
+    renderMultiDeviceCanvas();
     return;
   }
   const dev = pogDevices[_di];
   if (!dev) { showToast('⚠️ TTB không tồn tại!', 'warning'); return; }
   if (!dev.tầng) dev.tầng = Array.from({length:dev.soTang||1}, (_,j)=>({index:j,products:[]}));
   if (!dev.tầng[tangIdx]) dev.tầng[tangIdx]={index:tangIdx,products:[]};
-  const deviceIdx = _di; // use validated idx
   const tangW=(getShelfTangList({loai:dev.loai,soTang:dev.soTang,rongTong:dev.rongTong,tangList:dev.tangList})[tangIdx]?.rong)||dev.rongTong||100;
   const total=dev.tầng[tangIdx].products.reduce((s,p)=>s+(p.rong||10),0);
   if(total+(prod.rong||10)>tangW*1.2+1){showToast('Tầng/mâm đã đầy!','warning');return;}
