@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📐 POG Designer 2D</title>
+<title>HaoDT POG Design</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -471,38 +471,38 @@ img { max-width: 100%; }
 .lib-product-size { font-size: 11px; color: var(--gray-500); }
 .lib-drag-icon { color: var(--gray-400); font-size: 16px; flex-shrink: 0; }
 .sidebar-bottom {
-  padding: 12px 16px;
-  border-top: 2px solid var(--gray-200);
-  display: flex; flex-direction: column; gap: 8px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--gray-200);
+  display: flex; flex-direction: column; gap: 4px;
 }
 .btn-save-pog {
-  width: 100%; padding: 10px;
+  width: 100%; padding: 6px 10px;
   background: var(--success);
   color: #fff; border: none;
   border-radius: var(--radius);
-  font-size: 14px; font-weight: 600;
+  font-size: 12px; font-weight: 600;
   transition: background var(--transition);
 }
 .btn-save-pog:hover { background: #219a52; }
 .btn-export-png {
-  width: 100%; padding: 10px;
+  width: 100%; padding: 6px 10px;
   background: var(--accent);
   color: #fff; border: none;
   border-radius: var(--radius);
-  font-size: 14px; font-weight: 600;
+  font-size: 12px; font-weight: 600;
   transition: background var(--transition);
 }
 .btn-export-png:hover { background: #c8860d; }
 .btn-load-pog {
-  width: 100%; padding: 10px;
+  width: 100%; padding: 6px 10px;
   background: var(--gray-600);
   color: #fff; border: none;
   border-radius: var(--radius);
-  font-size: 13px; font-weight: 600;
+  font-size: 12px; font-weight: 600;
   transition: background var(--transition);
 }
 .btn-load-pog:hover { background: var(--gray-700); }
-.autosave-indicator { font-size: 11px; color: var(--gray-500); text-align: center; }
+.autosave-indicator { font-size: 10px; color: var(--gray-500); text-align: center; }
 .autosave-indicator.saving { color: var(--warning); }
 .autosave-indicator.saved { color: var(--success); }
 
@@ -890,7 +890,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG Designer</h1>
+    <h1 class="login-title">HaoDT POG Design</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -909,7 +909,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG Designer</div>
+    <div class="logo">HaoDT POG Design</div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -930,7 +930,7 @@ img { max-width: 100%; }
       </div>
       <div class="menu-card" onclick="showScreen('screenPOG'); initPOGScreen();">
         <div class="card-icon">📐</div>
-        <div class="card-title">POG Designer</div>
+        <div class="card-title">HaoDT POG Design</div>
         <div class="card-desc">Thiết kế planogram kệ hàng 2D</div>
       </div>
     </div>
@@ -996,7 +996,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG Designer</div>
+    <div class="logo">HaoDT POG Design</div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1012,9 +1012,17 @@ img { max-width: 100%; }
           <div class="no-shelf-msg">Chưa chọn kệ</div>
         </div>
       </div>
+      <div class="sidebar-section" style="padding:8px 12px;border-bottom:1px solid var(--gray-200)">
+        <div class="autosave-indicator" id="autosaveIndicator" style="margin-bottom:4px">Chưa lưu</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn-load-pog" onclick="openPOGListModal()" style="flex:1">📂 Tải</button>
+          <button class="btn-save-pog" onclick="savePOG()" style="flex:1">💾 Lưu</button>
+          <button class="btn-export-png" onclick="exportPNG()" style="flex:1">🖼️ PNG</button>
+        </div>
+      </div>
       <div class="product-library">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px">
-          <div class="sidebar-section-title" style="padding:0">Kho sản phẩm</div>
+          <div class="sidebar-section-title" style="padding:0">Danh mục</div>
           <button onclick="reloadProducts()" title="Làm mới danh sách SP" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray-500)" title="Làm mới">🔄</button>
         </div>
         <div class="library-filters">
@@ -1032,12 +1040,6 @@ img { max-width: 100%; }
             <p>Chưa có sản phẩm</p>
           </div>
         </div>
-      </div>
-      <div class="sidebar-bottom">
-        <div class="autosave-indicator" id="autosaveIndicator">Chưa lưu</div>
-        <button class="btn-load-pog" onclick="openPOGListModal()">📂 Tải POG</button>
-        <button class="btn-save-pog" onclick="savePOG()">💾 Lưu POG</button>
-        <button class="btn-export-png" onclick="exportPNG()">🖼️ Xuất PNG</button>
       </div>
     </div>
     <!-- CANVAS AREA -->
@@ -1074,9 +1076,14 @@ img { max-width: 100%; }
       <button class="modal-close" onclick="closeEditProductModal()">×</button>
     </div>
     <div class="modal-body">
-      <div style="text-align:center;margin-bottom:12px">
-        <strong id="editProductName"></strong><br>
-        <span class="text-muted" id="editProductMaSP"></span>
+      <!-- Header: thumbnail bên trái, tên SP bên phải -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <img id="editProductImgHeader" style="width:64px;height:64px;object-fit:contain;border-radius:8px;border:1px solid #e2e8f0;background:#f8f9fa;flex-shrink:0;display:none" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+        <div id="editProductImgHeaderPlaceholder" style="width:64px;height:64px;background:#e9ecef;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">📦</div>
+        <div>
+          <strong id="editProductName" style="font-size:15px;color:#1a3c6e"></strong><br>
+          <span class="text-muted" id="editProductMaSP"></span>
+        </div>
       </div>
       <!-- ĐVT Selector -->
       <div style="margin-bottom:12px">
@@ -1099,14 +1106,17 @@ img { max-width: 100%; }
       <div style="margin-bottom:12px">
         <label class="form-label">Link Drive</label>
         <input type="text" class="form-input" id="editLinkAnh" placeholder="https://drive.google.com/..." oninput="previewEditImage()">
-        <img id="editProductImg" style="max-width:100%;max-height:120px;object-fit:contain;margin-top:8px;display:none;border-radius:6px;border:1px solid #e2e8f0;background:#f8f9fa" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+        <!-- ảnh preview nhỏ dưới link — ẩn, dùng header thumbnail thay thế -->
+        <img id="editProductImg" style="display:none" src="" alt="">
       </div>
 
-      <!-- Upload ảnh mới — luôn hiển thị -->
+      <!-- Upload ảnh mới — ẩn, chỉ mở khi bấm nút -->
       <div style="margin-bottom:8px">
-        <label class="form-label">📷 Chụp / Upload ảnh mới</label>
+        <button id="btnToggleUpload" onclick="toggleUploadSection()" style="width:100%;padding:9px;background:#f7fafc;border:1px solid #cbd5e0;border-radius:6px;font-size:13px;font-weight:600;color:#4a5568;cursor:pointer;text-align:left">
+          📷 Cập nhật ảnh mới ▼
+        </button>
       </div>
-      <div id="tabUploadContent">
+      <div id="tabUploadContent" style="display:none">
         <!-- Step A: Chọn ảnh -->
         <div id="imgStep_select" style="border:2px dashed #cbd5e0;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#f7fafc" onclick="document.getElementById('editPhotoInput').click()">
           <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="onEditPhotoSelected(event)">
@@ -1659,9 +1669,17 @@ function openEditProduct(btnEl) {
   document.getElementById('editRong').value = defaultVariant.rong || '';
   document.getElementById('editCao').value = defaultVariant.cao || '';
   document.getElementById('editLinkAnh').value = defaultVariant.linkAnh || '';
-  const imgEl = document.getElementById('editProductImg');
-  imgEl.src = defaultVariant.linkAnh ? formatImgUrl(defaultVariant.linkAnh) : '';
-  imgEl.style.display = defaultVariant.linkAnh ? 'block' : 'none';
+  // Update header thumbnail
+  const headerImg = document.getElementById('editProductImgHeader');
+  const headerPlaceholder = document.getElementById('editProductImgHeaderPlaceholder');
+  if (defaultVariant.linkAnh) {
+    headerImg.src = formatImgUrl(defaultVariant.linkAnh);
+    headerImg.style.display = 'block';
+    headerPlaceholder.style.display = 'none';
+  } else {
+    headerImg.style.display = 'none';
+    headerPlaceholder.style.display = 'flex';
+  }
   openModal('modalEditProduct');
 }
 
@@ -1683,6 +1701,12 @@ function closeEditProductModal() {
   document.getElementById('editLinkAnh').value = '';
   document.getElementById('editProductImg').style.display = 'none';
   document.getElementById('editProductImg').src = '';
+  document.getElementById('editProductImgHeader').style.display = 'none';
+  document.getElementById('editProductImgHeader').src = '';
+  document.getElementById('editProductImgHeaderPlaceholder').style.display = 'flex';
+  // Reset upload section về ẩn
+  document.getElementById('tabUploadContent').style.display = 'none';
+  document.getElementById('btnToggleUpload').textContent = '📷 Cập nhật ảnh mới ▼';
   document.getElementById('editRong').value = '';
   document.getElementById('editCao').value = '';
   document.getElementById('removebgStatus').textContent = '';
@@ -1704,8 +1728,16 @@ function closeEditProductModal() {
 
 // ── Image tab switch ─────────────────────────────────────────
 function switchImgTab(tab) {
-  // Link Drive luôn hiện — chỉ toggle upload steps
-  // Không cần làm gì với tab nữa, hàm giữ lại để không break các lời gọi cũ
+  // Link Drive luôn hiện — hàm giữ lại để không break các lời gọi cũ
+}
+
+function toggleUploadSection() {
+  const content = document.getElementById('tabUploadContent');
+  const btn = document.getElementById('btnToggleUpload');
+  const isHidden = content.style.display === 'none';
+  content.style.display = isHidden ? 'block' : 'none';
+  btn.textContent = isHidden ? '📷 Cập nhật ảnh mới ▲' : '📷 Cập nhật ảnh mới ▼';
+  if (isHidden) goImgStep('select'); // reset về step chọn ảnh khi mở
 }
 
 function goImgStep(step) {
@@ -2363,12 +2395,16 @@ function loadScript(src) {
 
 function previewEditImage() {
   const url = document.getElementById('editLinkAnh').value.trim();
-  const imgEl = document.getElementById('editProductImg');
+  // Update header thumbnail
+  const headerImg = document.getElementById('editProductImgHeader');
+  const headerPlaceholder = document.getElementById('editProductImgHeaderPlaceholder');
   if (url) {
-    imgEl.src = formatImgUrl(url);
-    imgEl.style.display = 'block';
+    headerImg.src = formatImgUrl(url);
+    headerImg.style.display = 'block';
+    headerPlaceholder.style.display = 'none';
   } else {
-    imgEl.style.display = 'none';
+    headerImg.style.display = 'none';
+    headerPlaceholder.style.display = 'flex';
   }
 }
 
@@ -3323,7 +3359,11 @@ function renderPOGCanvas() {
     `;
 
     // Drop zone events
-    overlay.addEventListener('dragover', e => { e.preventDefault(); overlay.classList.add('drag-over'); });
+    overlay.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      overlay.classList.add('drag-over');
+    });
     overlay.addEventListener('dragleave', () => { overlay.classList.remove('drag-over'); });
     overlay.addEventListener('drop', e => {
       e.preventDefault();
