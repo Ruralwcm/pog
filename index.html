@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v25.6</title>
+<title>POG DESIGN by HaoDT v26.0</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v25.6</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v26.0</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.0</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.0</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1059,6 +1059,7 @@ img { max-width: 100%; }
     <!-- CANVAS AREA -->
     <div class="pog-canvas-area">
       <div class="pog-toolbar">
+        <button onclick="openCreatePOGModal()" style="padding:8px 14px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;margin-right:8px;flex-shrink:0">➕ Tạo POG</button>
         <input type="text" class="pog-name-input" id="pogNameInput" placeholder="Tên POG..." value="POG Mới">
         <div class="zoom-controls">
           <button class="btn-zoom" onclick="setZoom(zoom - 0.1)">−</button>
@@ -1329,6 +1330,47 @@ img { max-width: 100%; }
 </div>
 
 <!-- ============================================================
+     MODAL: CREATE POG
+     ============================================================ -->
+<div class="modal-overlay" id="modalCreatePOG">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">📐 Tạo POG mới</span>
+      <button class="modal-close" onclick="closeModal('modalCreatePOG')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px">
+        <label class="form-label">Tên POG *</label>
+        <input type="text" class="form-input" id="newPogName" placeholder="VD: POG Bia T6...">
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Loại thiết bị</label>
+        <div class="radio-group" style="flex-wrap:wrap;gap:10px">
+          <label class="radio-item"><input type="radio" name="newPogLoai" value="ke" checked> 🗄️ Kệ đứng</label>
+          <label class="radio-item"><input type="radio" name="newPogLoai" value="tu"> 🧊 Tủ lạnh</label>
+          <label class="radio-item"><input type="radio" name="newPogLoai" value="dumpin"> 📦 Dumpin</label>
+          <label class="radio-item"><input type="radio" name="newPogLoai" value="uDao"> 🔄 Ụ đảo</label>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Mẫu kệ (tùy chọn)</label>
+        <select class="form-input" id="newPogTemplate">
+          <option value="">-- Không dùng mẫu --</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Số lượng TTB</label>
+        <input type="number" class="form-input" id="newPogCount" value="1" min="1" max="20">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modalCreatePOG')">Huỷ</button>
+      <button class="btn-primary" onclick="createNewPOG()">📐 Tạo POG</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      MODAL: CONFIRM DIALOG
      ============================================================ -->
 <div class="modal-overlay" id="modalConfirm">
@@ -1364,6 +1406,9 @@ let allShelves = [];
 let currentShelf = null;
 let pogConfig = null;  // {shelfId, shelfConfig, tầng:[{index, products:[]}]}
 let currentPOGId = null;
+let pogDevices = [];
+let currentDeviceIdx = 0;
+let pogLoai = 'dumpin';
 let selectedSlot = null;  // {tangIndex, slotIndex}
 let zoom = 0.5;
 let selectedLibProduct = null;
@@ -3138,6 +3183,204 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 // ============================================================
 // SCREEN 5: POG DESIGNER
 // ============================================================
+function openCreatePOGModal() {
+  const sel = document.getElementById('newPogTemplate');
+  sel.innerHTML = '<option value="">-- Không dùng mẫu --</option>';
+  allShelves.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = getShelfIcon(s.loai) + ' ' + escHtml(s.ten);
+    sel.appendChild(o);
+  });
+  openModal('modalCreatePOG');
+}
+
+function createNewPOG() {
+  const ten = document.getElementById('newPogName').value.trim();
+  if (!ten) { showToast('Vui lòng nhập tên POG', 'warning'); return; }
+  const loai = document.querySelector('[name="newPogLoai"]:checked')?.value || 'ke';
+  const count = Math.max(1, Math.min(20, parseInt(document.getElementById('newPogCount').value) || 1));
+  const templateId = document.getElementById('newPogTemplate').value;
+  const tmpl = templateId ? allShelves.find(s => s.id === templateId) : null;
+  const defTangList = tmpl ? getShelfTangList(tmpl) : [{cao:40, rong:loai==='dumpin'||loai==='uDao'?80:100}];
+  const defSoTang = tmpl ? tmpl.soTang : defTangList.length;
+  const defRong = tmpl ? (tmpl.rongTong||tmpl.rong||100) : 100;
+  pogLoai = loai;
+  pogDevices = Array.from({length: count}, (_, i) => ({
+    id: i + 1,
+    soTang: defSoTang,
+    rongTong: defRong,
+    loai: loai,
+    tangList: JSON.parse(JSON.stringify(defTangList)),
+    tầng: Array.from({length: defSoTang}, (_, j) => ({index: j, products: []}))
+  }));
+  currentDeviceIdx = 0;
+  currentPOGId = null;
+  document.getElementById('pogNameInput').value = ten;
+  setAutosave('new');
+  isDirty = false;
+  closeModal('modalCreatePOG');
+  renderMultiDeviceCanvas();
+  showToast('✅ Tạo POG "' + ten + '" với ' + count + ' TTB', 'success');
+  markDirty();
+}
+
+function renderMultiDeviceCanvas() {
+  if (!pogDevices || pogDevices.length === 0) { renderPOGCanvas(); return; }
+  const container = document.getElementById('pogCanvasContainer');
+  const emptyState = document.getElementById('pogEmptyState');
+  emptyState.style.display = 'none';
+  container.innerHTML = '';
+  container.style.cssText = 'display:flex;flex-direction:row;gap:16px;align-items:flex-start;padding:8px';
+  const sc = Math.min(((document.getElementById('pogCanvasScroll').clientWidth - 80) / (pogDevices[0]?.rongTong || 100)) * zoom * 0.5, 8 * zoom);
+  window.SCALE = sc;
+  pogDevices.forEach((dev, di) => {
+    const shelf = {loai:dev.loai, soTang:dev.soTang, rongTong:dev.rongTong, rong:dev.rongTong, tangList:dev.tangList, caoTang:dev.tangList[0]?.cao||40};
+    const tangList = getShelfTangList(shelf);
+    const totalCao = tangList.reduce((a,tl)=>a+tl.cao,0)||1;
+    const pxW = Math.round((dev.rongTong||100)*sc);
+    const bodyPxH = Math.round(totalCao*sc);
+    const hasHeader = dev.loai==='tu';
+    const headerPxH = hasHeader?Math.round(bodyPxH*0.15):0;
+    const shelfLineH = 6;
+    const svgResult = generateCanvasShelfSVG(shelf, pxW, headerPxH+bodyPxH, sc);
+    const isDumpin = dev.loai==='dumpin'||dev.loai==='uDao';
+
+    const col = document.createElement('div');
+    col.className = 'device-col';
+    col.dataset.deviceIdx = di;
+    col.style.cssText = 'flex-shrink:0;position:relative;';
+
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:5px 8px;background:' + (di===currentDeviceIdx?'var(--primary)':'var(--gray-600)') + ';color:#fff;border-radius:6px 6px 0 0;font-size:12px;font-weight:700;cursor:pointer;user-select:none;';
+    hdr.innerHTML = '<span style="flex:1">📦 TTB #' + (di+1) + '</span><button onclick="event.stopPropagation();deleteDevice(' + di + ')" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
+    hdr.addEventListener('click', () => { currentDeviceIdx = di; renderMultiDeviceCanvas(); });
+    col.appendChild(hdr);
+
+    const shelfCont = document.createElement('div');
+    shelfCont.style.position = 'relative';
+    shelfCont.innerHTML = svgResult.svg;
+    const svgEl = shelfCont.querySelector('svg');
+    if (svgEl) svgEl.style.pointerEvents = 'none';
+
+    let cumH = svgResult.headerPxH||0;
+    svgResult.tangPxHList.forEach((tangH, ti) => {
+      const tangW = svgResult.tangPxWList[ti]||pxW;
+      const offX = isDumpin?Math.round((pxW-tangW)/2):0;
+      const ov = document.createElement('div');
+      ov.className = 'tầng-overlay';
+      ov.dataset.deviceIdx = di;
+      ov.dataset.tang = ti;
+      ov.style.cssText = 'position:absolute;left:' + offX + 'px;top:' + cumH + 'px;width:' + tangW + 'px;height:' + tangH + 'px;overflow:hidden;z-index:10;cursor:crosshair;';
+      ov.addEventListener('dragenter', e=>e.preventDefault());
+      ov.addEventListener('dragover', e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';ov.classList.add('drag-over');});
+      ov.addEventListener('dragleave', e=>{if(!ov.contains(e.relatedTarget))ov.classList.remove('drag-over');});
+      ov.addEventListener('drop', e=>{
+        e.preventDefault();e.stopPropagation();ov.classList.remove('drag-over');
+        const maSP=e.dataTransfer.getData('text/plain')||_draggingMaSP||(selectedLibProduct&&selectedLibProduct.maSP);
+        if(maSP)addProductToTangMulti(parseInt(ov.dataset.deviceIdx),parseInt(ov.dataset.tang),maSP);
+      });
+      ov.addEventListener('click', ()=>{if(selectedLibProduct)addProductToTangMulti(di,ti,selectedLibProduct.maSP);});
+
+      const tConfig = dev.tầng[ti]||{products:[]};
+      const _rawW=(tConfig.products||[]).map(p=>{const cmW=p.rotated?(p.cao||20):(p.rong||10);return Math.max(8,Math.round(cmW*sc));});
+      const _tot=_rawW.reduce((s,w)=>s+w,0);
+      const _rat=_tot>tangW?(tangW/_tot):1;
+      const _fw=_rawW.map(w=>Math.max(6,Math.round(w*_rat)));
+      const _tfit=_fw.reduce((s,w)=>s+w,0);
+      let xOff=Math.max(0,Math.round((tangW-_tfit)/2));
+      (tConfig.products||[]).forEach((prod,pi)=>{
+        const pxR=_fw[pi]||Math.max(6,Math.round((prod.rong||10)*sc*_rat));
+        const _sc=Math.max(8,Math.round((prod.rotated?(prod.rong||10):(prod.cao||20))*sc));
+        const _mf=Math.max(1,Math.floor(tangH*1.2/Math.max(1,_sc)));
+        const fac=prod.facing||_mf;
+        const pxC=Math.min(_sc*fac,tangH);
+        const slot=document.createElement('div');
+        slot.className='product-slot';
+        slot.style.cssText='width:'+pxR+'px;height:'+pxC+'px;position:absolute;left:'+Math.min(xOff,Math.max(0,tangW-pxR))+'px;bottom:0;';
+        slot.dataset.capDeviceIdx=di;slot.dataset.capTi=ti;slot.dataset.capPi=pi;
+        if(selectedSlot&&selectedSlot.deviceIdx===di&&selectedSlot.tangIndex===ti&&selectedSlot.slotIndex===pi)slot.classList.add('selected');
+        const ic=document.createElement('div');
+        ic.style.cssText='position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;';
+        for(let f=0;f<fac;f++){
+          if(prod.linkAnh){const img=document.createElement('img');img.src=formatImgUrl(prod.linkAnh);img.style.cssText='width:'+pxR+'px;height:'+_sc+'px;object-fit:contain;display:block;flex-shrink:0;';img.onerror=()=>{img.style.display='none';};ic.appendChild(img);}
+          else{const ph=document.createElement('div');ph.style.cssText='width:'+pxR+'px;height:'+_sc+'px;flex-shrink:0;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;';ph.textContent='📦';ic.appendChild(ph);}
+        }
+        slot.appendChild(ic);
+        const ctrl=document.createElement('div');ctrl.className='slot-controls';
+        const db=document.createElement('button');db.className='slot-btn delete';db.textContent='×';db.title='Xoá';db.onclick=(e)=>{e.stopPropagation();const ci=parseInt(slot.dataset.capDeviceIdx),ct=parseInt(slot.dataset.capTi),cp=parseInt(slot.dataset.capPi);pogDevices[ci]?.tầng[ct]?.products.splice(cp,1);selectedSlot=null;renderMultiDeviceCanvas();markDirty();};ctrl.appendChild(db);
+        const fu=document.createElement('button');fu.className='slot-btn facing-up';fu.textContent='+';fu.onclick=(e)=>{e.stopPropagation();const p=pogDevices[parseInt(slot.dataset.capDeviceIdx)]?.tầng[parseInt(slot.dataset.capTi)]?.products[parseInt(slot.dataset.capPi)];if(p){p.facing=Math.max(1,Math.min(10,(p.facing||1)+1));renderMultiDeviceCanvas();markDirty();}};ctrl.appendChild(fu);
+        const fd=document.createElement('button');fd.className='slot-btn facing-down';fd.textContent='−';fd.onclick=(e)=>{e.stopPropagation();const p=pogDevices[parseInt(slot.dataset.capDeviceIdx)]?.tầng[parseInt(slot.dataset.capTi)]?.products[parseInt(slot.dataset.capPi)];if(p){p.facing=Math.max(1,Math.min(10,(p.facing||1)-1));renderMultiDeviceCanvas();markDirty();}};ctrl.appendChild(fd);
+        const rb=document.createElement('button');rb.className='slot-btn rotate';rb.textContent='↻';rb.onclick=(e)=>{e.stopPropagation();const p=pogDevices[parseInt(slot.dataset.capDeviceIdx)]?.tầng[parseInt(slot.dataset.capTi)]?.products[parseInt(slot.dataset.capPi)];if(p){p.rotated=!p.rotated;renderMultiDeviceCanvas();markDirty();}};ctrl.appendChild(rb);
+        slot.appendChild(ctrl);
+        slot.addEventListener('pointerdown',(e)=>{if(e.target.closest('.slot-controls'))return;e.preventDefault();e.stopPropagation();selectedSlot={deviceIdx:parseInt(slot.dataset.capDeviceIdx),tangIndex:parseInt(slot.dataset.capTi),slotIndex:parseInt(slot.dataset.capPi)};renderMultiDeviceCanvas();});
+        ov.appendChild(slot);
+        xOff+=pxR;
+      });
+      shelfCont.appendChild(ov);
+      cumH+=tangH;
+    });
+    col.appendChild(shelfCont);
+    container.appendChild(col);
+  });
+  _updateInfoPanelMulti();
+}
+
+function addProductToTangMulti(deviceIdx, tangIdx, maSP) {
+  const variants = getProductVariants(maSP);
+  if (!variants.length) return;
+  if (variants.length === 1) { _doAddMulti(deviceIdx, tangIdx, variants[0]); }
+  else {
+    const body = document.getElementById('dvtPickerBody');
+    body.innerHTML = variants.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:8px" onclick="_doAddMultiByIdx(${deviceIdx},${tangIdx},${allProducts.indexOf(v)});closeModal('modalDvtPicker')"><div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div><div><div style="font-weight:700;color:#1a3c6e">${escHtml(v.dvt||'N/A')}</div><div style="font-size:12px;color:#6c757d">${v.rong||'?'}×${v.cao||'?'}cm</div></div></div>`).join('');
+    openModal('modalDvtPicker');
+  }
+}
+
+function _doAddMultiByIdx(deviceIdx, tangIdx, idx) {
+  if (idx>=0&&idx<allProducts.length) _doAddMulti(deviceIdx, tangIdx, allProducts[idx]);
+}
+
+function _doAddMulti(deviceIdx, tangIdx, prod) {
+  const dev = pogDevices[deviceIdx];
+  if (!dev) return;
+  if (!dev.tầng[tangIdx]) dev.tầng[tangIdx]={index:tangIdx,products:[]};
+  const tangW=(getShelfTangList({loai:dev.loai,soTang:dev.soTang,rongTong:dev.rongTong,tangList:dev.tangList})[tangIdx]?.rong)||dev.rongTong||100;
+  const total=dev.tầng[tangIdx].products.reduce((s,p)=>s+(p.rong||10),0);
+  if(total+(prod.rong||10)>tangW*1.2+1){showToast('Tầng/mâm đã đầy!','warning');return;}
+  dev.tầng[tangIdx].products.push({maSP:prod.maSP,tenSP:prod.tenSP,dvt:prod.dvt||'',linkAnh:prod.linkAnh||'',rong:prod.rong||10,cao:prod.cao||20,facing:1,rotated:false});
+  selectedSlot={deviceIdx,tangIndex:tangIdx,slotIndex:dev.tầng[tangIdx].products.length-1};
+  renderMultiDeviceCanvas();markDirty();
+}
+
+function deleteDevice(deviceIdx) {
+  if(pogDevices.length<=1){showToast('Cần ít nhất 1 TTB','warning');return;}
+  if(!confirm('Xoá TTB #'+(deviceIdx+1)+'?'))return;
+  pogDevices.splice(deviceIdx,1);
+  pogDevices.forEach((d,i)=>d.id=i+1);
+  if(currentDeviceIdx>=pogDevices.length)currentDeviceIdx=pogDevices.length-1;
+  renderMultiDeviceCanvas();markDirty();
+}
+
+function _updateInfoPanelMulti() {
+  const el=document.getElementById('pogInfoContent');
+  if(!el||!pogDevices)return;
+  let html='';
+  pogDevices.forEach((dev,di)=>{
+    html+='<div style="margin-bottom:12px"><div style="font-weight:700;color:'+(di===currentDeviceIdx?'var(--primary)':'var(--gray-700)')+';margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e2e8f0">📦 TTB #'+(di+1)+'</div>';
+    dev.tầng.forEach((tc,ti)=>{
+      const prods=tc.products||[];
+      if(!prods.length)return;
+      html+='<div style="font-size:11px;color:var(--gray-500);margin-top:3px">Tầng '+(ti+1)+':</div>';
+      const groups=[];
+      for(const p of prods){const last=groups[groups.length-1];if(last&&last.maSP===p.maSP)last.count++;else groups.push({maSP:p.maSP,tenSP:p.tenSP,count:1});}
+      groups.forEach(g=>{html+='<div style="display:flex;gap:4px;font-size:11px;margin-bottom:2px"><span style="color:#495057;font-weight:600;flex-shrink:0">'+escHtml(g.maSP)+'</span><span style="color:#6c757d;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(g.tenSP)+'</span>'+(g.count>1?'<span style="color:var(--primary);font-weight:700">×'+g.count+'</span>':'')+'</div>';});
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html||'<div style="color:#adb5bd">Chưa có SP</div>';
+}
+
 function initPOGScreen() {
   if (allProducts.length === 0) {
     loadProductsData().then(() => {
@@ -4060,7 +4303,7 @@ async function autoSavePOG() {
       ten: document.getElementById('pogNameInput').value.trim() || 'POG',
       username: currentUser.username,
       shelfId: currentShelf?.id || '',
-      jsonConfig: pogConfig
+      jsonConfig: (pogDevices && pogDevices.length > 0) ? {devices: pogDevices, loai: pogLoai} : pogConfig
     });
     isDirty = false;
     setAutosave('saved');
@@ -4085,7 +4328,7 @@ async function savePOG() {
       ten: name,
       username: currentUser.username,
       shelfId: currentShelf?.id || '',
-      jsonConfig: pogConfig
+      jsonConfig: (pogDevices && pogDevices.length > 0) ? {devices: pogDevices, loai: pogLoai} : pogConfig
     });
     if (res.success) {
       currentPOGId = res.id || currentPOGId;
