@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v26.8</title>
+<title>POG DESIGN by HaoDT v26.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v26.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v26.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v26.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -2656,12 +2656,22 @@ function renderShelfGrid() {
         <div class="shelf-specs" style="margin-top:3px;color:var(--gray-400)">Tạo: ${escHtml(s.nguoiTao)}</div>
       </div>
       <div class="shelf-actions">
-        <button class="btn-select-shelf" onclick="selectShelfFromLibrary(${JSON.stringify(s.id)})">📐 Dùng</button>
-        <button class="btn-select-shelf" style="background:#f0ad4e;color:white;border-color:#f0ad4e" onclick="openCreateShelfModal(${JSON.stringify(s.id)})">✏️ Sửa</button>
-        <button class="btn-delete-shelf" onclick="deleteShelf(${JSON.stringify(s.id)}, ${JSON.stringify(s.ten)})">🗑</button>
+        <button class="btn-select-shelf shelf-use-btn" data-sid="${s.id}">📐 Dùng</button>
+        <button class="btn-select-shelf shelf-edit-btn" style="background:#f0ad4e;color:white;border-color:#f0ad4e" data-sid="${s.id}">✏️ Sửa</button>
+        <button class="btn-delete-shelf shelf-del-btn" data-sid="${s.id}" data-sname="${escHtml(s.ten)}">🗑</button>
       </div>
     </div>`;
-  }).join('');
+    }).join('');
+  // Bind events cho nút Dùng/Sửa/Xóa (tránh JSON.stringify trong onclick)
+  grid.querySelectorAll('.shelf-use-btn').forEach(btn => {
+    btn.addEventListener('click', () => selectShelfFromLibrary(btn.getAttribute('data-sid')));
+  });
+  grid.querySelectorAll('.shelf-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => openCreateShelfModal(btn.getAttribute('data-sid')));
+  });
+  grid.querySelectorAll('.shelf-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteShelf(btn.getAttribute('data-sid'), btn.getAttribute('data-sname')));
+  });
 }
 
 function getShelfIcon(loai) {
