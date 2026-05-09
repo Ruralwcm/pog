@@ -3504,9 +3504,10 @@ function renderPOGCanvas() {
     // Render products
     let xOffset = 0;
     (tConfig.products || []).forEach((prod, pi) => {
-      const pxRong = Math.max(10, Math.round((prod.rong || 10) * sc));
-      const pxCao  = Math.min(Math.max(30, Math.round((prod.cao  || 20) * sc)), tangH - 4);
       const facing = prod.facing || 1;
+      const pxRong = Math.min(Math.max(10, Math.round((prod.rong || 10) * sc)), tangW); // clamp trong mâm
+      const pxCaoSingle = Math.max(8, Math.round((prod.cao || 20) * sc));
+      const pxCao = Math.min(pxCaoSingle * facing, tangH - 4); // tổng cao = facing × đơn vị
 
       const slot = document.createElement('div');
       slot.className = 'product-slot';
@@ -3514,7 +3515,7 @@ function renderPOGCanvas() {
       slot.dataset.slot = pi;
       slot.style.cssText = `
         width:${pxRong}px;
-        height:${tangH}px;
+        height:${pxCao}px;
         position:absolute;
         left:${xOffset}px;
         bottom:0;
@@ -3533,7 +3534,7 @@ function renderPOGCanvas() {
       const imgContainer = document.createElement('div');
       imgContainer.style.cssText = `
         position:absolute; bottom:0; left:0; right:0;
-        display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+        display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:0;
       `;
 
       for (let f = 0; f < facing; f++) {
@@ -3541,7 +3542,7 @@ function renderPOGCanvas() {
           const img = document.createElement('img');
           img.src = formatImgUrl(prod.linkAnh);
           img.alt = prod.tenSP || '';
-          img.style.cssText = `width:${pxRong}px; height:${pxCao}px; object-fit:contain; display:block;`;
+          img.style.cssText = `width:${pxRong}px; height:${pxCaoSingle}px; object-fit:contain; display:block; flex-shrink:0;`;
           img.onerror = () => { img.style.display = 'none'; };
           imgContainer.appendChild(img);
         } else {
