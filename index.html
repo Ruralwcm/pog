@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v25.5</title>
+<title>POG DESIGN by HaoDT v25.6</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v25.5</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v25.6</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -2219,24 +2219,13 @@ async function confirmProcessedImage() {
   pogCtx.drawImage(croppedCanvas, 0, 0, pogCanvas.width, pogCanvas.height);
   const base64Pog = pogCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
 
-  // Tạo ảnh Thumbnail thật sự ~50px (file riêng, size nhỏ hơn)
-  const thumbCanvas = document.createElement('canvas');
-  const thumbMax = 50;
-  const thumbScale = Math.min(thumbMax / croppedCanvas.width, thumbMax / croppedCanvas.height, 1);
-  thumbCanvas.width  = Math.round(croppedCanvas.width  * thumbScale);
-  thumbCanvas.height = Math.round(croppedCanvas.height * thumbScale);
-  const thumbCtx = thumbCanvas.getContext('2d');
-  thumbCtx.fillStyle = '#ffffff';
-  thumbCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
-  thumbCtx.drawImage(croppedCanvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
-  const base64Thumb = thumbCanvas.toDataURL('image/jpeg', 0.75).split(',')[1];
-
-  const sizeKB = Math.round((base64Pog.length + base64Thumb.length) * 3 / 4 / 1024);
-  showLoading(`Đang upload 2 ảnh (~${sizeKB}KB) lên Drive...`);
+  // Chỉ dùng 1 ảnh POG (không tạo thumbnail riêng)
+  const sizeKB = Math.round(base64Pog.length * 3 / 4 / 1024);
+  showLoading(`Đang upload ảnh (~${sizeKB}KB) lên Drive...`);
   try {
     const res = await apiPost({
       action: 'uploadProductImage',
-      maSP, base64: base64Pog, base64Thumb,
+      maSP, base64: base64Pog,
       tenSP: p.tenSP || '', danhMuc: p.danhMuc || '',
       mch3: p.mch3 || '', mch4: p.mch4 || '',
       dvt: dvt || p.dvt || '',
