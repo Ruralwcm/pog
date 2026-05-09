@@ -1095,13 +1095,17 @@ img { max-width: 100%; }
         </div>
       </div>
 
-      <!-- Tabs: Upload ảnh mới / Dùng link -->
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button id="tabUpload" onclick="switchImgTab('upload')" style="flex:1;padding:8px;border:2px solid var(--primary);background:var(--primary);color:white;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">📷 Upload ảnh mới</button>
-        <button id="tabLink" onclick="switchImgTab('link')" style="flex:1;padding:8px;border:2px solid var(--primary);background:white;color:var(--primary);border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">🔗 Dùng link Drive</button>
+      <!-- Link Drive + ảnh hiện tại — luôn hiển thị -->
+      <div style="margin-bottom:12px">
+        <label class="form-label">Link Drive</label>
+        <input type="text" class="form-input" id="editLinkAnh" placeholder="https://drive.google.com/..." oninput="previewEditImage()">
+        <img id="editProductImg" style="max-width:100%;max-height:120px;object-fit:contain;margin-top:8px;display:none;border-radius:6px;border:1px solid #e2e8f0;background:#f8f9fa" src="" alt="">
       </div>
 
-      <!-- Tab Upload -->
+      <!-- Upload ảnh mới — luôn hiển thị -->
+      <div style="margin-bottom:8px">
+        <label class="form-label">📷 Chụp / Upload ảnh mới</label>
+      </div>
       <div id="tabUploadContent">
         <!-- Step A: Chọn ảnh -->
         <div id="imgStep_select" style="border:2px dashed #cbd5e0;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#f7fafc" onclick="document.getElementById('editPhotoInput').click()">
@@ -1159,13 +1163,8 @@ img { max-width: 100%; }
         </div>
       </div>
 
-      <!-- Tab Link -->
-      <div id="tabLinkContent" style="display:none">
-        <label class="form-label">Link ảnh Drive / URL hình ảnh</label>
-        <input type="text" class="form-input" id="editLinkAnh" placeholder="https://drive.google.com/..." oninput="previewEditImage()">
-        <div style="margin-top:8px;font-size:12px;color:var(--gray-500)">💡 Link dạng: https://drive.google.com/uc?id=FILE_ID</div>
-        <img id="editProductImg" style="max-width:100%;max-height:200px;object-fit:contain;margin-top:10px;display:none;border-radius:6px;border:1px solid #e2e8f0" src="" alt="">
-      </div>
+      <!-- tabLinkContent hidden — link hiển thị phía trên luôn -->
+      <div id="tabLinkContent" style="display:none"></div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeEditProductModal()">Huỷ</button>
@@ -1705,13 +1704,8 @@ function closeEditProductModal() {
 
 // ── Image tab switch ─────────────────────────────────────────
 function switchImgTab(tab) {
-  const isUpload = tab === 'upload';
-  document.getElementById('tabUploadContent').style.display = isUpload ? 'block' : 'none';
-  document.getElementById('tabLinkContent').style.display   = isUpload ? 'none'  : 'block';
-  document.getElementById('tabUpload').style.background = isUpload ? 'var(--primary)' : 'white';
-  document.getElementById('tabUpload').style.color      = isUpload ? 'white' : 'var(--primary)';
-  document.getElementById('tabLink').style.background   = isUpload ? 'white' : 'var(--primary)';
-  document.getElementById('tabLink').style.color        = isUpload ? 'var(--primary)' : 'white';
+  // Link Drive luôn hiện — chỉ toggle upload steps
+  // Không cần làm gì với tab nữa, hàm giữ lại để không break các lời gọi cũ
 }
 
 function goImgStep(step) {
