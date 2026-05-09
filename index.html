@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v25.3</title>
+<title>POG DESIGN by HaoDT v25.5</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v25.3</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v25.5</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.5</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.5</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1147,10 +1147,16 @@ img { max-width: 100%; }
       </div>
       <div id="tabUploadContent" style="display:none">
         <!-- Step A: Chọn ảnh -->
-        <div id="imgStep_select" style="border:2px dashed #cbd5e0;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#f7fafc" onclick="document.getElementById('editPhotoInput').click()">
-          <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="onEditPhotoSelected(event)">
-          <div style="font-size:32px">📸</div>
-          <p style="color:#718096;font-size:13px;margin-top:6px">Bấm để chọn ảnh / Chụp ảnh sản phẩm</p>
+        <div id="imgStep_select">
+          <div style="border:2px dashed #cbd5e0;border-radius:8px;padding:16px;text-align:center;cursor:pointer;background:#f7fafc" onclick="document.getElementById('editPhotoInput').click()">
+            <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="onEditPhotoSelected(event)">
+            <div style="font-size:28px">📸</div>
+            <p style="color:#718096;font-size:12px;margin-top:4px">Bấm để chọn ảnh / Chụp ảnh</p>
+          </div>
+          <div id="pasteZone" style="border:2px dashed #a0aec0;border-radius:8px;padding:12px;text-align:center;background:#f0fff4;margin-top:8px;cursor:pointer" onclick="document.getElementById('pasteZone').focus()" tabindex="0">
+            <div style="font-size:20px">📋</div>
+            <p style="color:#276749;font-size:12px;margin-top:2px">Ctrl+V để dán ảnh từ clipboard</p>
+          </div>
         </div>
 
         <!-- Step CROP: Manual crop -->
@@ -1810,6 +1816,38 @@ let _perspDispW = 0, _perspDispH = 0; // canvas display size
 let _perspScaleX = 1, _perspScaleY = 1;
 
 // ── Step A: photo selected ────────────────────────────────────
+// ── Paste ảnh từ clipboard ──────────────────────────────────
+function _handlePasteImage(e) {
+  // Chỉ xử lý khi modal đang mở
+  if (!document.getElementById('modalEditProduct').classList.contains('active')) return;
+  const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (!file) continue;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        _origImg = new Image();
+        _origImg.onload = () => {
+          goImgStep('perspective');
+          initPerspectiveCanvas(_origImg);
+          // Mở upload section nếu đang đóng
+          const uploadContent = document.getElementById('tabUploadContent');
+          if (uploadContent && uploadContent.style.display === 'none') toggleUploadSection();
+        };
+        _origImg.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+      break;
+    }
+  }
+}
+
+// Lắng nghe paste toàn cục
+document.addEventListener('paste', _handlePasteImage);
+
 function onEditPhotoSelected(e) {
   const file = e.target.files[0];
   if (!file) return;
