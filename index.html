@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v27.9</title>
+<title>POG DESIGN by HaoDT v28.0</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v27.9</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.0</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.0</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.0</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3661,8 +3661,14 @@ function _startPointerDrag(e, maSP, sourceEl) {
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const ov = el?.closest('.tầng-overlay');
     if (ov && _ptrDragMaSP) {
-      console.log('[POINTER DROP] tang=', ov.dataset.tang, 'maSP=', _ptrDragMaSP);
-      addProductToTang(parseInt(ov.dataset.tang), _ptrDragMaSP);
+      const _dIdx = parseInt(ov.dataset.deviceIdx ?? ov.closest('.device-col')?.dataset.deviceIdx ?? '0');
+      const _tIdx = parseInt(ov.dataset.tang);
+      console.log('[POINTER DROP] device=', _dIdx, 'tang=', _tIdx, 'maSP=', _ptrDragMaSP);
+      if (pogDevices && pogDevices.length > 0) {
+        addProductToTangMulti(_dIdx, _tIdx, _ptrDragMaSP);
+      } else {
+        addProductToTang(_tIdx, _ptrDragMaSP);
+      }
     }
     _ptrDragMaSP = null;
     _draggingMaSP = null;
