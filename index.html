@@ -1012,8 +1012,11 @@ img { max-width: 100%; }
         <div class="sidebar-section-title" style="padding:12px 16px 4px">Kho sản phẩm</div>
         <div class="library-filters">
           <input type="text" class="library-search" id="librarySearch" placeholder="🔍 Tìm sản phẩm..." oninput="filterLibrary()">
-          <select class="library-filter-select" id="libraryDanhMuc" onchange="filterLibrary()">
-            <option value="">-- Tất cả --</option>
+          <select class="library-filter-select" id="libraryDanhMuc" onchange="onLibraryDanhMucChange()">
+            <option value="">-- Tất cả danh mục --</option>
+          </select>
+          <select class="library-filter-select" id="libraryMCH3" onchange="filterLibrary()" style="margin-top:4px">
+            <option value="">-- Tất cả MCH3 --</option>
           </select>
         </div>
         <div class="library-list" id="libraryList">
@@ -1058,33 +1061,83 @@ img { max-width: 100%; }
      MODAL: EDIT PRODUCT
      ============================================================ -->
 <div class="modal-overlay" id="modalEditProduct">
-  <div class="modal modal-md">
+  <div class="modal" style="max-width:680px;width:95vw">
     <div class="modal-header">
       <span class="modal-title">✏️ Chỉnh sửa sản phẩm</span>
       <button class="modal-close" onclick="closeModal('modalEditProduct')">×</button>
     </div>
     <div class="modal-body">
-      <img id="editProductImg" class="product-edit-img-preview" src="" alt="">
-      <div style="text-align:center;margin-bottom:16px">
+      <div style="text-align:center;margin-bottom:12px">
         <strong id="editProductName"></strong><br>
         <span class="text-muted" id="editProductMaSP"></span>
       </div>
-      <div class="edit-form-row">
+      <div class="edit-form-row" style="margin-bottom:12px">
         <div>
-          <label class="form-label">Chiều rộng (cm)</label>
+          <label class="form-label">Chiều rộng (cm) *</label>
           <input type="number" class="form-input" id="editRong" placeholder="0" step="0.1" min="0">
         </div>
         <div>
-          <label class="form-label">Chiều cao (cm)</label>
+          <label class="form-label">Chiều cao (cm) *</label>
           <input type="number" class="form-input" id="editCao" placeholder="0" step="0.1" min="0">
         </div>
       </div>
-      <div>
+
+      <!-- Tabs: Upload ảnh mới / Dùng link -->
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button id="tabUpload" onclick="switchImgTab('upload')" style="flex:1;padding:8px;border:2px solid var(--primary);background:var(--primary);color:white;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">📷 Upload ảnh mới</button>
+        <button id="tabLink" onclick="switchImgTab('link')" style="flex:1;padding:8px;border:2px solid var(--primary);background:white;color:var(--primary);border-radius:6px;font-weight:600;cursor:pointer;font-size:13px">🔗 Dùng link Drive</button>
+      </div>
+
+      <!-- Tab Upload -->
+      <div id="tabUploadContent">
+        <!-- Step A: Chọn ảnh -->
+        <div id="imgStep_select" style="border:2px dashed #cbd5e0;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#f7fafc" onclick="document.getElementById('editPhotoInput').click()">
+          <input type="file" id="editPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="onEditPhotoSelected(event)">
+          <div style="font-size:32px">📸</div>
+          <p style="color:#718096;font-size:13px;margin-top:6px">Bấm để chọn ảnh / Chụp ảnh sản phẩm</p>
+        </div>
+
+        <!-- Step B: Perspective correction -->
+        <div id="imgStep_perspective" style="display:none">
+          <p style="font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:600">📐 Kéo 4 góc để chỉnh perspective, sau đó bấm Áp dụng:</p>
+          <div style="position:relative;display:inline-block;max-width:100%">
+            <canvas id="perspCanvas" style="border:1px solid #e2e8f0;border-radius:6px;max-width:100%;touch-action:none"></canvas>
+            <svg id="perspSVG" style="position:absolute;top:0;left:0;pointer-events:all" width="100%" height="100%"></svg>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="resetPerspective()" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">↺ Reset</button>
+            <button onclick="applyPerspective()" style="flex:1;padding:8px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✅ Áp dụng</button>
+          </div>
+        </div>
+
+        <!-- Step C: Remove background + preview -->
+        <div id="imgStep_removebg" style="display:none">
+          <p style="font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:600">🎨 Xoá nền & căn chỉnh — preview kết quả:</p>
+          <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+            <div style="text-align:center;flex:1">
+              <div style="font-size:11px;color:#718096;margin-bottom:4px">Trước</div>
+              <canvas id="previewBefore" style="border:1px solid #e2e8f0;border-radius:6px;max-width:100%"></canvas>
+            </div>
+            <div style="text-align:center;flex:1">
+              <div style="font-size:11px;color:#718096;margin-bottom:4px">Sau (nền trắng)</div>
+              <canvas id="previewAfter" style="border:1px solid #e2e8f0;border-radius:6px;max-width:100%;background:#fff"></canvas>
+            </div>
+          </div>
+          <div id="removebgStatus" style="margin-top:8px;font-size:12px;color:#718096;text-align:center"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="goImgStep('perspective')" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">← Quay lại</button>
+            <button onclick="skipRemoveBg()" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">Bỏ qua xoá nền</button>
+            <button id="btnApplyRemoveBg" onclick="applyRemoveBg()" style="flex:1;padding:8px;background:#276749;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✅ Xác nhận</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Link -->
+      <div id="tabLinkContent" style="display:none">
         <label class="form-label">Link ảnh Drive / URL hình ảnh</label>
         <input type="text" class="form-input" id="editLinkAnh" placeholder="https://drive.google.com/..." oninput="previewEditImage()">
-      </div>
-      <div style="margin-top:8px;font-size:12px;color:var(--gray-500)">
-        💡 Sử dụng link Google Drive dạng: https://drive.google.com/uc?id=FILE_ID
+        <div style="margin-top:8px;font-size:12px;color:var(--gray-500)">💡 Link dạng: https://drive.google.com/uc?id=FILE_ID</div>
+        <img id="editProductImg" style="max-width:100%;max-height:200px;object-fit:contain;margin-top:10px;display:none;border-radius:6px;border:1px solid #e2e8f0" src="" alt="">
       </div>
     </div>
     <div class="modal-footer">
@@ -1111,26 +1164,32 @@ img { max-width: 100%; }
         </div>
         <div class="full-width">
           <label class="form-label">Loại kệ</label>
-          <div class="radio-group">
+          <div class="radio-group" style="flex-wrap:wrap;gap:12px">
             <label class="radio-item">
-              <input type="radio" name="shelfLoai" value="ke" checked onchange="updateShelfPreview()"> Kệ đứng
+              <input type="radio" name="shelfLoai" value="ke" checked onchange="onShelfLoaiChange()"> 🗄️ Kệ đứng
             </label>
             <label class="radio-item">
-              <input type="radio" name="shelfLoai" value="tu" onchange="updateShelfPreview()"> Tủ lạnh/đông
+              <input type="radio" name="shelfLoai" value="tu" onchange="onShelfLoaiChange()"> 🧊 Tủ lạnh/đông
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="shelfLoai" value="dumpin" onchange="onShelfLoaiChange()"> 📦 Dumpin
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="shelfLoai" value="uDao" onchange="onShelfLoaiChange()"> 🔄 Ụ đảo
             </label>
           </div>
         </div>
         <div>
-          <label class="form-label">Số tầng (1-10)</label>
-          <input type="number" class="form-input" id="shelfSoTang" value="4" min="1" max="10" oninput="updateShelfPreview()">
+          <label class="form-label" id="labelSoTang">Số tầng (1-10)</label>
+          <input type="number" class="form-input" id="shelfSoTang" value="4" min="1" max="10" oninput="rebuildCaoTangInputs()">
         </div>
         <div>
           <label class="form-label">Chiều rộng tổng (cm)</label>
-          <input type="number" class="form-input" id="shelfRong" value="120" min="10" oninput="updateShelfPreview()">
+          <input type="number" class="form-input" id="shelfRong" value="120" min="10" oninput="onShelfRongChange()">
         </div>
         <div class="full-width">
-          <label class="form-label">Chiều cao mỗi tầng (cm)</label>
-          <input type="number" class="form-input" id="shelfCaoTang" value="40" min="5" oninput="updateShelfPreview()">
+          <label class="form-label" id="labelCaoTangList">Chiều cao từng tầng (cm) — từ trên xuống dưới</label>
+          <div id="shelfCaoTangList" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
         <div class="full-width">
           <label class="form-label">Xem trước</label>
@@ -1489,6 +1548,360 @@ function openEditProduct(btnEl) {
   openModal('modalEditProduct');
 }
 
+// ── Image tab switch ─────────────────────────────────────────
+function switchImgTab(tab) {
+  const isUpload = tab === 'upload';
+  document.getElementById('tabUploadContent').style.display = isUpload ? 'block' : 'none';
+  document.getElementById('tabLinkContent').style.display   = isUpload ? 'none'  : 'block';
+  document.getElementById('tabUpload').style.background = isUpload ? 'var(--primary)' : 'white';
+  document.getElementById('tabUpload').style.color      = isUpload ? 'white' : 'var(--primary)';
+  document.getElementById('tabLink').style.background   = isUpload ? 'white' : 'var(--primary)';
+  document.getElementById('tabLink').style.color        = isUpload ? 'var(--primary)' : 'white';
+}
+
+function goImgStep(step) {
+  ['select','perspective','removebg'].forEach(s =>
+    document.getElementById('imgStep_' + s).style.display = s === step ? 'block' : 'none'
+  );
+}
+
+// ── State for image processing ────────────────────────────────
+let _origImg = null;       // original Image object
+let _correctedCanvas = null; // after perspective
+let _finalCanvas = null;   // after remove bg + center
+let _perspPoints = [];     // 4 corner points [{x,y}]
+let _perspDispW = 0, _perspDispH = 0; // canvas display size
+let _perspScaleX = 1, _perspScaleY = 1;
+
+// ── Step A: photo selected ────────────────────────────────────
+function onEditPhotoSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    _origImg = new Image();
+    _origImg.onload = () => {
+      goImgStep('perspective');
+      initPerspectiveCanvas(_origImg);
+    };
+    _origImg.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Step B: Perspective ───────────────────────────────────────
+function initPerspectiveCanvas(img) {
+  const canvas = document.getElementById('perspCanvas');
+  const maxW = Math.min(560, window.innerWidth - 80);
+  const scale = Math.min(maxW / img.width, 400 / img.height, 1);
+  _perspDispW = Math.round(img.width * scale);
+  _perspDispH = Math.round(img.height * scale);
+  _perspScaleX = img.width / _perspDispW;
+  _perspScaleY = img.height / _perspDispH;
+  canvas.width  = _perspDispW;
+  canvas.height = _perspDispH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, _perspDispW, _perspDispH);
+
+  // Default corners = full image
+  _perspPoints = [
+    {x:0, y:0},
+    {x:_perspDispW, y:0},
+    {x:_perspDispW, y:_perspDispH},
+    {x:0, y:_perspDispH}
+  ];
+  renderPerspSVG();
+}
+
+function renderPerspSVG() {
+  const svg = document.getElementById('perspSVG');
+  const canvas = document.getElementById('perspCanvas');
+  svg.setAttribute('width',  canvas.width);
+  svg.setAttribute('height', canvas.height);
+  svg.style.width  = canvas.style.width  || canvas.width  + 'px';
+  svg.style.height = canvas.style.height || canvas.height + 'px';
+
+  const colors = ['#e53e3e','#3182ce','#38a169','#d69e2e'];
+  const labels = ['TL','TR','BR','BL'];
+  svg.innerHTML = `
+    <polygon points="${_perspPoints.map(p=>p.x+','+p.y).join(' ')}"
+      fill="rgba(49,130,206,0.08)" stroke="#3182ce" stroke-width="2" stroke-dasharray="5,3"/>
+    ${_perspPoints.map((p,i) => `
+      <circle cx="${p.x}" cy="${p.y}" r="14" fill="${colors[i]}" stroke="white" stroke-width="2" opacity="0.85"
+        style="cursor:move" onmousedown="startDragCorner(event,${i})" ontouchstart="startDragCorner(event,${i})"/>
+      <text x="${p.x}" y="${p.y+4}" text-anchor="middle" fill="white" font-size="10" font-weight="bold"
+        style="pointer-events:none">${labels[i]}</text>
+    `).join('')}
+  `;
+}
+
+let _dragging = -1;
+function startDragCorner(e, idx) {
+  e.preventDefault();
+  _dragging = idx;
+  const svg = document.getElementById('perspSVG');
+  const rect = svg.getBoundingClientRect();
+  const move = ev => {
+    if (_dragging < 0) return;
+    const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    const x = Math.max(0, Math.min(_perspDispW, clientX - rect.left));
+    const y = Math.max(0, Math.min(_perspDispH, clientY - rect.top));
+    _perspPoints[_dragging] = {x, y};
+    renderPerspSVG();
+  };
+  const up = () => { _dragging = -1; };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up, {once:true});
+  document.addEventListener('touchmove', move, {passive:false});
+  document.addEventListener('touchend', up, {once:true});
+}
+
+function resetPerspective() {
+  _perspPoints = [
+    {x:0, y:0}, {x:_perspDispW, y:0},
+    {x:_perspDispW, y:_perspDispH}, {x:0, y:_perspDispH}
+  ];
+  renderPerspSVG();
+}
+
+function applyPerspective() {
+  // Scale points back to full image resolution
+  const srcPts = _perspPoints.map(p => ({x: p.x * _perspScaleX, y: p.y * _perspScaleY}));
+  const img = _origImg;
+
+  // Compute output dimensions from src quadrilateral
+  const w = Math.max(
+    Math.hypot(srcPts[1].x-srcPts[0].x, srcPts[1].y-srcPts[0].y),
+    Math.hypot(srcPts[2].x-srcPts[3].x, srcPts[2].y-srcPts[3].y)
+  );
+  const h = Math.max(
+    Math.hypot(srcPts[3].x-srcPts[0].x, srcPts[3].y-srcPts[0].y),
+    Math.hypot(srcPts[2].x-srcPts[1].x, srcPts[2].y-srcPts[1].y)
+  );
+  const outW = Math.round(w), outH = Math.round(h);
+
+  // Draw source image to offscreen canvas
+  const srcCanvas = document.createElement('canvas');
+  srcCanvas.width  = img.width;
+  srcCanvas.height = img.height;
+  srcCanvas.getContext('2d').drawImage(img, 0, 0);
+  const srcData = srcCanvas.getContext('2d').getImageData(0, 0, img.width, img.height);
+
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = outW; outCanvas.height = outH;
+  const outCtx = outCanvas.getContext('2d');
+  const outData = outCtx.createImageData(outW, outH);
+
+  // Destination corners: TL(0,0) TR(w,0) BR(w,h) BL(0,h)
+  const dstPts = [{x:0,y:0},{x:outW,y:0},{x:outW,y:outH},{x:0,y:outH}];
+
+  // Compute inverse homography (dst→src) for each dst pixel
+  const H = computeHomography(dstPts, srcPts);
+  for (let dy = 0; dy < outH; dy++) {
+    for (let dx = 0; dx < outW; dx++) {
+      const [sx, sy] = applyH(H, dx, dy);
+      const ix = Math.round(sx), iy = Math.round(sy);
+      if (ix >= 0 && ix < img.width && iy >= 0 && iy < img.height) {
+        const si = (iy * img.width + ix) * 4;
+        const di = (dy * outW + dx) * 4;
+        outData.data[di]   = srcData.data[si];
+        outData.data[di+1] = srcData.data[si+1];
+        outData.data[di+2] = srcData.data[si+2];
+        outData.data[di+3] = srcData.data[si+3];
+      }
+    }
+  }
+  outCtx.putImageData(outData, 0, 0);
+  _correctedCanvas = outCanvas;
+
+  // Show before/after and go to removebg step
+  const beforeCanvas = document.getElementById('previewBefore');
+  const scale2 = Math.min(220 / img.width, 220 / img.height, 1);
+  beforeCanvas.width  = Math.round(img.width  * scale2);
+  beforeCanvas.height = Math.round(img.height * scale2);
+  beforeCanvas.getContext('2d').drawImage(img, 0, 0, beforeCanvas.width, beforeCanvas.height);
+
+  const afterCanvas = document.getElementById('previewAfter');
+  const scale3 = Math.min(220 / outW, 220 / outH, 1);
+  afterCanvas.width  = Math.round(outW * scale3);
+  afterCanvas.height = Math.round(outH * scale3);
+  afterCanvas.getContext('2d').drawImage(outCanvas, 0, 0, afterCanvas.width, afterCanvas.height);
+
+  document.getElementById('removebgStatus').textContent = 'Sẵn sàng xoá nền. Bấm Xoá nền hoặc Bỏ qua để tiếp tục.';
+  document.getElementById('btnApplyRemoveBg').textContent = '🎨 Xoá nền & xác nhận';
+  goImgStep('removebg');
+}
+
+// ── Homography helpers ─────────────────────────────────────────
+function computeHomography(src, dst) {
+  // 4-point Direct Linear Transform (DLT)
+  const A = [], b = [];
+  for (let i = 0; i < 4; i++) {
+    const sx = src[i].x, sy = src[i].y;
+    const dx = dst[i].x, dy = dst[i].y;
+    A.push([sx,sy,1,0,0,0,-dx*sx,-dx*sy]);
+    A.push([0,0,0,sx,sy,1,-dy*sx,-dy*sy]);
+    b.push(dx); b.push(dy);
+  }
+  // Solve A*h = b using Gaussian elimination
+  const h = gaussianElimination(A, b);
+  return [...h, 1]; // 9 elements: h0..h8
+}
+
+function gaussianElimination(A, b) {
+  const n = b.length;
+  const M = A.map((row, i) => [...row, b[i]]);
+  for (let col = 0; col < n; col++) {
+    let max = col;
+    for (let row = col+1; row < n; row++) if (Math.abs(M[row][col]) > Math.abs(M[max][col])) max = row;
+    [M[col], M[max]] = [M[max], M[col]];
+    for (let row = col+1; row < n; row++) {
+      const f = M[row][col] / M[col][col];
+      for (let j = col; j <= n; j++) M[row][j] -= f * M[col][j];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let i = n-1; i >= 0; i--) {
+    x[i] = M[i][n] / M[i][i];
+    for (let j = i+1; j < n; j++) x[i] -= M[i][j] * x[j] / M[i][i];
+  }
+  return x;
+}
+
+function applyH(H, x, y) {
+  const w = H[6]*x + H[7]*y + H[8];
+  return [(H[0]*x + H[1]*y + H[2]) / w, (H[3]*x + H[4]*y + H[5]) / w];
+}
+
+// ── Step C: Remove background ─────────────────────────────────
+let _bgLibLoaded = false;
+async function applyRemoveBg() {
+  const btn = document.getElementById('btnApplyRemoveBg');
+  const status = document.getElementById('removebgStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang xoá nền...';
+  status.textContent = 'Đang tải thư viện AI (lần đầu ~10s)...';
+
+  try {
+    if (!_bgLibLoaded) {
+      await loadScript('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.js');
+      _bgLibLoaded = true;
+    }
+    status.textContent = 'Đang xử lý ảnh...';
+    const src = _correctedCanvas || (() => {
+      const c = document.createElement('canvas');
+      c.width = _origImg.width; c.height = _origImg.height;
+      c.getContext('2d').drawImage(_origImg, 0, 0);
+      return c;
+    })();
+
+    // Convert canvas to blob
+    const blob = await new Promise(res => src.toBlob(res, 'image/png'));
+    const result = await imglyRemoveBackground(blob, {
+      output: { format: 'image/png', quality: 1 },
+      publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/'
+    });
+    const url = URL.createObjectURL(result);
+    const img = new Image();
+    img.onload = () => {
+      _finalCanvas = buildFinalCanvas(img);
+      updateAfterPreview(_finalCanvas);
+      status.textContent = '✅ Xoá nền thành công!';
+      btn.disabled = false;
+      btn.textContent = '✅ Xác nhận';
+      btn.onclick = () => confirmProcessedImage();
+    };
+    img.src = url;
+  } catch(e) {
+    status.textContent = '⚠️ Không xoá được nền: ' + e.message + '. Bấm Bỏ qua để dùng ảnh gốc.';
+    btn.disabled = false;
+    btn.textContent = '🎨 Thử lại';
+  }
+}
+
+function skipRemoveBg() {
+  const src = _correctedCanvas || (() => {
+    const c = document.createElement('canvas');
+    c.width = _origImg.width; c.height = _origImg.height;
+    c.getContext('2d').drawImage(_origImg, 0, 0);
+    return c;
+  })();
+  _finalCanvas = buildFinalCanvas(src);
+  updateAfterPreview(_finalCanvas);
+  confirmProcessedImage();
+}
+
+function buildFinalCanvas(imgOrCanvas) {
+  // Get declared dimensions
+  const rongCm = parseFloat(document.getElementById('editRong').value) || 10;
+  const caoCm  = parseFloat(document.getElementById('editCao').value)  || 10;
+  // Output canvas: 600px on longest side, proportional
+  const maxPx = 600;
+  let outW, outH;
+  if (rongCm >= caoCm) { outW = maxPx; outH = Math.round(maxPx * caoCm / rongCm); }
+  else                  { outH = maxPx; outW = Math.round(maxPx * rongCm / caoCm); }
+
+  const out = document.createElement('canvas');
+  out.width = outW; out.height = outH;
+  const ctx = out.getContext('2d');
+  // White background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, outW, outH);
+  // Center image (fit inside, maintain aspect)
+  const srcW = imgOrCanvas.width || imgOrCanvas.naturalWidth;
+  const srcH = imgOrCanvas.height || imgOrCanvas.naturalHeight;
+  const scale = Math.min(outW / srcW, outH / srcH);
+  const drawW = Math.round(srcW * scale);
+  const drawH = Math.round(srcH * scale);
+  const dx = Math.round((outW - drawW) / 2);
+  const dy = Math.round((outH - drawH) / 2);
+  ctx.drawImage(imgOrCanvas, dx, dy, drawW, drawH);
+  return out;
+}
+
+function updateAfterPreview(canvas) {
+  const afterEl = document.getElementById('previewAfter');
+  const scale = Math.min(220 / canvas.width, 220 / canvas.height, 1);
+  afterEl.width  = Math.round(canvas.width  * scale);
+  afterEl.height = Math.round(canvas.height * scale);
+  afterEl.getContext('2d').drawImage(canvas, 0, 0, afterEl.width, afterEl.height);
+}
+
+async function confirmProcessedImage() {
+  // Upload canvas to Drive via Apps Script
+  const base64 = _finalCanvas.toDataURL('image/png').split(',')[1];
+  const maSP = editingProductMaSP;
+  const filename = maSP + '_' + Date.now() + '.png';
+  showLoading('Đang upload ảnh lên Drive...');
+  try {
+    const res = await apiPost({ action: 'uploadProductImage', maSP, base64, filename });
+    hideLoading();
+    if (res.success && res.driveUrl) {
+      document.getElementById('editLinkAnh').value = res.driveUrl;
+      switchImgTab('link');
+      previewEditImage();
+      showToast('✅ Upload ảnh thành công!', 'success');
+    } else {
+      // Fallback: store dataURL locally
+      document.getElementById('editLinkAnh').value = 'data:image/png;base64,' + base64.substring(0, 50) + '...';
+      showToast('Upload Drive thất bại, dán link thủ công', 'error');
+    }
+  } catch(e) {
+    hideLoading();
+    showToast('Lỗi upload: ' + e.message, 'error');
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
 function previewEditImage() {
   const url = document.getElementById('editLinkAnh').value.trim();
   const imgEl = document.getElementById('editProductImg');
@@ -1563,12 +1976,20 @@ function renderShelfGrid() {
 
   grid.innerHTML = allShelves.map(s => {
     const svgHtml = generateShelfSVG(s, 160, 120);
+    const loaiIcon = getShelfIcon(s.loai);
+    const loaiLabel = getShelfLabel(s.loai);
+    const tangList = getShelfTangList(s);
+    const rongTong = s.rongTong || s.rong || 100;
+    const isDumpinType = s.loai === 'dumpin' || s.loai === 'uDao';
+    const specsLine = isDumpinType
+      ? `${loaiIcon} ${loaiLabel} · ${s.soTang} mâm · ${rongTong}cm rộng`
+      : `${loaiIcon} ${loaiLabel} · ${s.soTang} tầng · ${rongTong}cm × ${s.caoTang||tangList[0]?.cao||40}cm/tầng`;
     return `<div class="shelf-card">
       <div class="shelf-preview">${svgHtml}</div>
       <div class="shelf-info">
         <div class="shelf-name">${escHtml(s.ten)}</div>
-        <div class="shelf-specs">${s.loai === 'tu' ? '🧊 Tủ lạnh/đông' : '🗄️ Kệ đứng'} · ${s.soTang} tầng · ${s.rong}cm × ${s.caoTang}cm/tầng</div>
-        <div class="shelf-specs" style="margin-top:3px;color:var(--gray-400)">Tạo: ${s.nguoiTao}</div>
+        <div class="shelf-specs">${specsLine}</div>
+        <div class="shelf-specs" style="margin-top:3px;color:var(--gray-400)">Tạo: ${escHtml(s.nguoiTao)}</div>
       </div>
       <div class="shelf-actions">
         <button class="btn-select-shelf" onclick="selectShelfFromLibrary(${JSON.stringify(s.id)})">📐 Dùng</button>
@@ -1576,6 +1997,24 @@ function renderShelfGrid() {
       </div>
     </div>`;
   }).join('');
+}
+
+function getShelfIcon(loai) {
+  switch(loai) {
+    case 'tu': return '🧊';
+    case 'dumpin': return '📦';
+    case 'uDao': return '🔄';
+    default: return '🗄️';
+  }
+}
+
+function getShelfLabel(loai) {
+  switch(loai) {
+    case 'tu': return 'Tủ lạnh/đông';
+    case 'dumpin': return 'Dumpin';
+    case 'uDao': return 'Ụ đảo';
+    default: return 'Kệ đứng';
+  }
 }
 
 function selectShelfFromLibrary(id) {
@@ -1593,25 +2032,167 @@ function openCreateShelfModal(shelfId) {
   document.getElementById('shelfModalTitle').textContent = shelfId ? '✏️ Sửa kệ' : '➕ Tạo kệ mới';
   document.getElementById('shelfTen').value = existing ? existing.ten : '';
   document.getElementById('shelfSoTang').value = existing ? existing.soTang : 4;
-  document.getElementById('shelfRong').value = existing ? existing.rong : 120;
-  document.getElementById('shelfCaoTang').value = existing ? existing.caoTang : 40;
+  document.getElementById('shelfRong').value = existing ? (existing.rongTong || existing.rong || 120) : 120;
 
   const loai = existing ? existing.loai : 'ke';
   document.querySelectorAll('[name="shelfLoai"]').forEach(r => {
     r.checked = r.value === loai;
   });
 
+  // Pre-fill tangList if editing existing shelf
+  const existingTangList = existing ? getShelfTangList(existing) : null;
+  const soTangVal = existing ? existing.soTang : 4;
+  const rongVal = existing ? (existing.rongTong || existing.rong || 120) : 120;
+
+  // Build initial rows
+  _buildTangListInputs(soTangVal, loai, rongVal, existingTangList);
+  _updateShelfFormLabels(loai);
+
   openModal('modalCreateShelf');
   updateShelfPreview();
 }
 
+// Update labels based on loai
+function _updateShelfFormLabels(loai) {
+  const isDumpinType = loai === 'dumpin' || loai === 'uDao';
+  document.getElementById('labelSoTang').textContent = isDumpinType ? 'Số mâm (1-10)' : 'Số tầng (1-10)';
+  document.getElementById('labelCaoTangList').textContent = isDumpinType
+    ? 'Kích thước từng mâm (cm) — từ trên xuống dưới'
+    : 'Chiều cao từng tầng (cm) — từ trên xuống dưới';
+}
+
+// Called when loai radio changes
+function onShelfLoaiChange() {
+  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+  const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
+  const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
+
+  // Get current values from inputs
+  const container = document.getElementById('shelfCaoTangList');
+  const existingInputs = container.querySelectorAll('[data-level-row]');
+  const currentVals = Array.from(existingInputs).map(row => {
+    const caoInput = row.querySelector('[data-cao]');
+    const rongInput = row.querySelector('[data-rong]');
+    return {
+      cao: parseFloat(caoInput?.value) || 40,
+      rong: parseFloat(rongInput?.value) || rongTong
+    };
+  });
+
+  _buildTangListInputs(soTang, loai, rongTong, currentVals.length > 0 ? currentVals : null);
+  _updateShelfFormLabels(loai);
+  updateShelfPreview();
+}
+
+// Called when rongTong input changes
+function onShelfRongChange() {
+  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+  // For ke/tu, auto-update rong display in rows (they're read-only)
+  if (loai === 'ke' || loai === 'tu') {
+    const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
+    const container = document.getElementById('shelfCaoTangList');
+    container.querySelectorAll('[data-rong-display]').forEach(el => {
+      el.textContent = rongTong + 'cm';
+    });
+  }
+  updateShelfPreview();
+}
+
+// Build per-level inputs based on loai
+function _buildTangListInputs(soTang, loai, rongTong, existingList) {
+  const isDumpinType = loai === 'dumpin' || loai === 'uDao';
+  const container = document.getElementById('shelfCaoTangList');
+  container.innerHTML = '';
+
+  for (let i = 0; i < soTang; i++) {
+    const existCao = existingList ? (existingList[i]?.cao || 40) : 40;
+    const existRong = existingList ? (existingList[i]?.rong || rongTong) : rongTong;
+    const levelLabel = isDumpinType ? `Mâm ${i+1}:` : `Tầng ${i+1}:`;
+
+    const row = document.createElement('div');
+    row.setAttribute('data-level-row', i);
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap';
+
+    if (isDumpinType) {
+      // Both cao and rong inputs
+      row.innerHTML = `
+        <span style="font-size:12px;color:#718096;min-width:60px">${levelLabel}</span>
+        <span style="font-size:11px;color:#9b8ec4;font-weight:600">Cao:</span>
+        <input type="number" class="form-input" data-cao value="${existCao}" min="5" max="300" step="1"
+          style="width:70px" oninput="updateShelfPreview()" placeholder="cm">
+        <span style="font-size:11px;color:#718096">cm</span>
+        <span style="font-size:11px;color:#9b8ec4;font-weight:600;margin-left:4px">Rộng:</span>
+        <input type="number" class="form-input" data-rong value="${existRong}" min="1" max="300" step="1"
+          style="width:70px" oninput="updateShelfPreview()" placeholder="cm">
+        <span style="font-size:11px;color:#718096">cm</span>
+      `;
+    } else {
+      // Only cao input; rong is auto = rongTong
+      row.innerHTML = `
+        <span style="font-size:12px;color:#718096;min-width:60px">${levelLabel}</span>
+        <input type="number" class="form-input" data-cao value="${existCao}" min="5" max="300" step="1"
+          style="flex:1" oninput="updateShelfPreview()" placeholder="cm">
+        <span style="font-size:12px;color:#718096">cm cao</span>
+        <span style="font-size:11px;color:#adb5bd" data-rong-display>${rongTong}cm rộng</span>
+      `;
+    }
+    container.appendChild(row);
+  }
+}
+
+// Rebuild per-level height inputs khi số tầng thay đổi
+function rebuildCaoTangInputs() {
+  const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
+  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+  const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
+
+  // Preserve current values
+  const container = document.getElementById('shelfCaoTangList');
+  const existingRows = container.querySelectorAll('[data-level-row]');
+  const oldVals = Array.from(existingRows).map(row => {
+    const caoInput = row.querySelector('[data-cao]');
+    const rongInput = row.querySelector('[data-rong]');
+    return {
+      cao: parseFloat(caoInput?.value) || 40,
+      rong: parseFloat(rongInput?.value) || rongTong
+    };
+  });
+
+  _buildTangListInputs(soTang, loai, rongTong, oldVals.length > 0 ? oldVals : null);
+  _updateShelfFormLabels(loai);
+  updateShelfPreview();
+}
+
+// Get tangList from form inputs
+function getTangListFromForm() {
+  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+  const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
+  const container = document.getElementById('shelfCaoTangList');
+  const rows = container.querySelectorAll('[data-level-row]');
+
+  return Array.from(rows).map(row => {
+    const caoInput = row.querySelector('[data-cao]');
+    const rongInput = row.querySelector('[data-rong]');
+    const cao = parseFloat(caoInput?.value) || 40;
+    // For ke/tu, rong = rongTong; for dumpin/uDao, use per-level input
+    const rong = (loai === 'ke' || loai === 'tu')
+      ? rongTong
+      : (parseFloat(rongInput?.value) || rongTong);
+    return { cao, rong };
+  });
+}
+
+// Legacy: get caoList array (backward compat)
+function getCaoTangList() {
+  return getTangListFromForm().map(tl => tl.cao);
+}
+
 function updateShelfPreview() {
   const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
-  const rong = parseFloat(document.getElementById('shelfRong').value) || 120;
-  const caoTang = parseFloat(document.getElementById('shelfCaoTang').value) || 40;
+  const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
   const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
-
-  const mockShelf = { soTang, rong, caoTang, loai };
+  const tangList = getTangListFromForm();
+  const mockShelf = { soTang, rongTong, rong: rongTong, loai, tangList };
   const svgHtml = generateShelfSVG(mockShelf, 220, 160);
   document.getElementById('shelfPreviewBox').innerHTML = svgHtml;
 }
@@ -1620,17 +2201,22 @@ async function saveShelf() {
   const ten = document.getElementById('shelfTen').value.trim();
   if (!ten) { showToast('Vui lòng nhập tên kệ', 'warning'); return; }
 
-  const soTang = parseInt(document.getElementById('shelfSoTang').value) || 4;
-  const rong = parseFloat(document.getElementById('shelfRong').value) || 120;
-  const caoTang = parseFloat(document.getElementById('shelfCaoTang').value) || 40;
-  const loai = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+  const soTang   = parseInt(document.getElementById('shelfSoTang').value) || 4;
+  const rongTong = parseFloat(document.getElementById('shelfRong').value) || 120;
+  const loai     = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
+  const tangList = getTangListFromForm();
+  const caoTang  = tangList[0]?.cao || 40; // backward compat
 
   showLoading('Đang lưu kệ...');
   try {
     const res = await apiPost({
       action: 'saveShelf',
       id: editingShelfId || '',
-      ten, loai, soTang, rong, caoTang,
+      ten, loai, soTang,
+      rong: rongTong,
+      rongTong,
+      caoTang,
+      tangList: JSON.stringify(tangList),
       username: currentUser.username
     });
     if (res.success) {
@@ -1659,51 +2245,143 @@ function deleteShelf(id, name) {
 // ============================================================
 // SVG SHELF GENERATOR
 // ============================================================
-function generateShelfSVG(shelf, svgW, svgH) {
-  const { soTang, rong, caoTang, loai } = shelf;
-  const ratio = rong / (soTang * caoTang);
-  const padding = 8;
-  const innerW = svgW - padding * 2;
-  const innerH = svgH - padding * 2;
 
-  let headerH = 0;
-  const hasHeader = loai === 'tu';
+/**
+ * getShelfTangList(shelf) — returns [{cao, rong}] for all levels.
+ * - ke/tu: rong = rongTong for all levels
+ * - dumpin/uDao: uses tangList[i].rong per level
+ * - Backward compat with old caoList / caoTang format
+ */
+function getShelfTangList(shelf) {
+  const rongTong = parseFloat(shelf.rongTong || shelf.rong) || 100;
+  const loai = shelf.loai || 'ke';
 
-  if (hasHeader) {
-    headerH = Math.round(innerH * 0.22);
+  // New format: tangList
+  if (shelf.tangList && Array.isArray(shelf.tangList) && shelf.tangList.length > 0) {
+    return shelf.tangList.map(tl => ({
+      cao: parseFloat(tl.cao) || 40,
+      rong: (loai === 'ke' || loai === 'tu') ? rongTong : (parseFloat(tl.rong) || rongTong)
+    }));
   }
 
-  const bodyH = innerH - headerH;
-  const tangH = bodyH / soTang;
+  // Old format: caoList (JSON string or array)
+  if (shelf.caoList) {
+    try {
+      const list = typeof shelf.caoList === 'string' ? JSON.parse(shelf.caoList) : shelf.caoList;
+      if (Array.isArray(list) && list.length > 0) {
+        return list.map(c => ({ cao: parseFloat(c) || 40, rong: rongTong }));
+      }
+    } catch(e) {}
+  }
+
+  // Fallback: all equal from soTang + caoTang
+  const n = parseInt(shelf.soTang) || 1;
+  const caoDefault = parseFloat(shelf.caoTang) || 40;
+  return Array(n).fill(null).map(() => ({ cao: caoDefault, rong: rongTong }));
+}
+
+// Legacy helper for backward compat
+function getShelfCaoList(shelf) {
+  return getShelfTangList(shelf).map(tl => tl.cao);
+}
+
+/**
+ * generateShelfSVG — thumbnail SVG for shelf library / modal preview.
+ * Handles all 4 types: ke, tu, dumpin, uDao
+ */
+function generateShelfSVG(shelf, svgW, svgH) {
+  const { soTang, loai } = shelf;
+  const rongTong = parseFloat(shelf.rongTong || shelf.rong) || 100;
+  const tangList = getShelfTangList(shelf);
+  const totalCao = tangList.reduce((a, tl) => a + tl.cao, 0);
+
+  const padding = 8;
+  const innerW = svgW - padding * 2;
+  const x = padding, y = padding;
+
+  // ── Dumpin / Ụ đảo ─────────────────────────────────────────
+  if (loai === 'dumpin' || loai === 'uDao') {
+    const isDumpin = loai === 'dumpin';
+    const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
+    const borderColor = isDumpin ? '#5d3a1a' : '#6b46c1';
+    const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
+
+    const bodyH = svgH - padding * 2;
+    let svg = `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">`;
+    // Outer container
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="${outerFill}" stroke="${borderColor}" stroke-width="2" rx="${isDumpin ? 2 : 6}" ry="${isDumpin ? 2 : 6}"/>`;
+
+    // Each mâm as centered rect with its own width
+    const mamPxHList = tangList.map(tl => Math.round((tl.cao / totalCao) * bodyH));
+    // Fix rounding
+    const sumH = mamPxHList.reduce((a, b) => a + b, 0);
+    if (sumH !== bodyH && mamPxHList.length > 0) mamPxHList[mamPxHList.length - 1] += bodyH - sumH;
+
+    let cumY = 0;
+    for (let i = 0; i < soTang; i++) {
+      const tl = tangList[i];
+      const mamH = mamPxHList[i];
+      const mamWidthRatio = Math.min(1, (tl.rong / rongTong));
+      const mamPxW = Math.max(10, Math.round(innerW * mamWidthRatio));
+      const mamX = x + Math.round((innerW - mamPxW) / 2);
+      const mamY = y + cumY;
+      const inset = 3;
+
+      if (isDumpin) {
+        svg += `<rect x="${mamX+inset}" y="${mamY+inset}" width="${mamPxW-inset*2}" height="${mamH-inset*2}" fill="${mamFill}" stroke="${borderColor}" stroke-width="1" opacity="0.8"/>`;
+      } else {
+        // Rounded corners per mâm
+        svg += `<rect x="${mamX+inset}" y="${mamY+inset}" width="${mamPxW-inset*2}" height="${mamH-inset*2}" fill="${mamFill}" stroke="${borderColor}" stroke-width="1" rx="4" ry="4" opacity="0.8"/>`;
+      }
+
+      // Width label inside mâm
+      if (mamH > 12 && mamPxW > 20) {
+        svg += `<text x="${mamX+mamPxW/2}" y="${mamY+mamH/2+3}" text-anchor="middle" fill="${borderColor}" font-size="7" font-family="sans-serif">${tl.rong}cm</text>`;
+      }
+
+      cumY += mamH;
+    }
+
+    svg += '</svg>';
+    return svg;
+  }
+
+  // ── Ke / Tu ────────────────────────────────────────────────
+  const hasHeader = loai === 'tu';
+  let headerH = 0;
+  if (hasHeader) headerH = Math.round(svgH * 0.18);
+  const bodyH = svgH - padding * 2 - headerH;
 
   let svg = `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">`;
-  const x = padding, y = padding;
-  const bw = 2; // border width
 
   if (hasHeader) {
-    // Header block
     svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH}" fill="#1a3c6e" rx="4" ry="4"/>`;
-    svg += `<text x="${x + innerW/2}" y="${y + headerH/2 + 5}" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
-    // Body
-    svg += `<rect x="${x}" y="${y + headerH}" width="${innerW}" height="${bodyH}" fill="#e8f4fd" rx="0" ry="0"/>`;
+    svg += `<text x="${x+innerW/2}" y="${y+headerH/2+5}" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
+    svg += `<rect x="${x}" y="${y+headerH}" width="${innerW}" height="${bodyH}" fill="#e8f4fd"/>`;
   } else {
-    // Wood shelf
     svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="#f5e6c8"/>`;
   }
 
-  // Tầng dividers
-  for (let i = 1; i < soTang; i++) {
-    const ty = y + headerH + Math.round(i * tangH);
-    svg += `<line x1="${x}" y1="${ty}" x2="${x + innerW}" y2="${ty}" stroke="${hasHeader ? '#a0c8e8' : '#c4a07a'}" stroke-width="1.5"/>`;
+  // Tầng dividers — proportional to each cao
+  const caoList = tangList.map(tl => tl.cao);
+  let cumY = 0;
+  for (let i = 0; i < soTang - 1; i++) {
+    cumY += caoList[i];
+    const ty = y + headerH + Math.round((cumY / totalCao) * bodyH);
+    svg += `<line x1="${x}" y1="${ty}" x2="${x+innerW}" y2="${ty}" stroke="${hasHeader ? '#a0c8e8' : '#c4a07a'}" stroke-width="1.5"/>`;
+    const tangH_px = Math.round((caoList[i] / totalCao) * bodyH);
+    const labelY = ty - tangH_px / 2 + 4;
+    svg += `<text x="${x+innerW-4}" y="${labelY}" text-anchor="end" fill="${hasHeader ? '#2b6cb0' : '#744210'}" font-size="8" font-family="sans-serif">${caoList[i]}cm</text>`;
   }
+  // Label last tầng
+  svg += `<text x="${x+innerW-4}" y="${y+headerH+bodyH-4}" text-anchor="end" fill="${hasHeader ? '#2b6cb0' : '#744210'}" font-size="8" font-family="sans-serif">${caoList[soTang-1]}cm</text>`;
 
   // Bottom line
-  const bottomY = y + headerH + bodyH;
-  svg += `<line x1="${x}" y1="${bottomY - 3}" x2="${x + innerW}" y2="${bottomY - 3}" stroke="${hasHeader ? '#1a6e9e' : '#5d3a1a'}" stroke-width="3"/>`;
+  svg += `<line x1="${x}" y1="${y+headerH+bodyH-3}" x2="${x+innerW}" y2="${y+headerH+bodyH-3}" stroke="${hasHeader ? '#1a6e9e' : '#5d3a1a'}" stroke-width="3"/>`;
 
   // Outer border
   if (hasHeader) {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${innerH}" fill="none" stroke="#1a3c6e" stroke-width="2" rx="4" ry="4"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH+bodyH}" fill="none" stroke="#1a3c6e" stroke-width="2" rx="4" ry="4"/>`;
   } else {
     svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="none" stroke="#5d3a1a" stroke-width="2"/>`;
   }
@@ -1712,28 +2390,88 @@ function generateShelfSVG(shelf, svgW, svgH) {
   return svg;
 }
 
-// Full shelf SVG for POG canvas (pixel-precise)
+/**
+ * generateCanvasShelfSVG — full-size SVG for POG canvas.
+ * Handles all 4 types: ke, tu, dumpin, uDao
+ * Returns { svg, headerPxH, bodyPxH, tangPxHList, tangPxWList, shelfLineH }
+ * tangPxWList[i] = pixel width of level i (= pxW for ke/tu, per-level for dumpin/uDao)
+ */
 function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
-  const { soTang, rong, caoTang, loai } = shelf;
+  const { soTang, loai } = shelf;
+  const rongTong = parseFloat(shelf.rongTong || shelf.rong) || 100;
+  const tangList = getShelfTangList(shelf);
+  const totalCao = tangList.reduce((a, tl) => a + tl.cao, 0);
   const hasHeader = loai === 'tu';
   const headerPxH = hasHeader ? Math.round(pxH * 0.15) : 0;
   const bodyPxH = pxH - headerPxH;
-  const tangPxH = bodyPxH / soTang;
   const shelfLineH = 6;
 
+  // Pixel height per level (proportional)
+  const tangPxHList = tangList.map(tl => Math.round((tl.cao / totalCao) * bodyPxH));
+  // Fix rounding
+  const sumH = tangPxHList.reduce((a, b) => a + b, 0);
+  if (sumH !== bodyPxH && tangPxHList.length > 0) tangPxHList[tangPxHList.length - 1] += bodyPxH - sumH;
+
+  // Pixel width per level
+  const tangPxWList = tangList.map(tl => {
+    if (loai === 'ke' || loai === 'tu') return pxW;
+    return Math.max(10, Math.round((tl.rong / rongTong) * pxW));
+  });
+
+  // ── Dumpin / Ụ đảo canvas SVG ──────────────────────────────
+  if (loai === 'dumpin' || loai === 'uDao') {
+    const isDumpin = loai === 'dumpin';
+    const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
+    const borderColor = isDumpin ? '#5d3a1a' : '#6b46c1';
+    const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
+    const rx = isDumpin ? 0 : 8;
+
+    let svg = `<svg width="${pxW}" height="${pxH + shelfLineH}" xmlns="http://www.w3.org/2000/svg" id="shelfSVGMain">`;
+    // Outer container background
+    svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="${outerFill}"/>`;
+
+    let cumPx = 0;
+    for (let i = 0; i < soTang; i++) {
+      const mamH = tangPxHList[i];
+      const mamW = tangPxWList[i];
+      const mamX = Math.round((pxW - mamW) / 2);
+      const mamY = cumPx;
+
+      // Mâm rect (centered)
+      svg += `<rect x="${mamX}" y="${mamY}" width="${mamW}" height="${mamH}" fill="${mamFill}" stroke="${borderColor}" stroke-width="1.5" rx="${rx}" ry="${rx}" opacity="0.85"/>`;
+
+      // Width label
+      const labelFontSize = Math.max(9, Math.min(14, mamH * 0.3));
+      svg += `<text x="${mamX + mamW/2}" y="${mamY + mamH/2 + labelFontSize*0.35}" text-anchor="middle" fill="${borderColor}" font-size="${labelFontSize}" font-family="sans-serif" font-weight="600">${tangList[i].rong}cm</text>`;
+
+      cumPx += mamH;
+    }
+
+    // Outer border
+    svg += `<rect x="1" y="1" width="${pxW-2}" height="${bodyPxH-2}" fill="none" stroke="${borderColor}" stroke-width="2"/>`;
+    // Bottom line
+    svg += `<rect x="0" y="${bodyPxH}" width="${pxW}" height="${shelfLineH}" fill="${borderColor}"/>`;
+
+    svg += '</svg>';
+    return { svg, headerPxH: 0, bodyPxH, tangPxHList, tangPxWList, shelfLineH };
+  }
+
+  // ── Ke / Tu canvas SVG ─────────────────────────────────────
   let svg = `<svg width="${pxW}" height="${pxH + shelfLineH}" xmlns="http://www.w3.org/2000/svg" id="shelfSVGMain">`;
 
   if (hasHeader) {
     svg += `<rect x="0" y="0" width="${pxW}" height="${headerPxH}" fill="#1a3c6e"/>`;
-    svg += `<text x="${pxW/2}" y="${headerPxH/2 + 6}" text-anchor="middle" fill="white" font-size="${Math.max(12, headerPxH * 0.4)}" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
+    svg += `<text x="${pxW/2}" y="${headerPxH/2+6}" text-anchor="middle" fill="white" font-size="${Math.max(12,headerPxH*0.4)}" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
     svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${bodyPxH}" fill="#e8f4fd"/>`;
   } else {
     svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="#f5e6c8"/>`;
   }
 
   // Tầng dividers
-  for (let i = 1; i < soTang; i++) {
-    const ty = headerPxH + Math.round(i * tangPxH);
+  let cumPx = 0;
+  for (let i = 0; i < soTang - 1; i++) {
+    cumPx += tangPxHList[i];
+    const ty = headerPxH + cumPx;
     svg += `<line x1="0" y1="${ty}" x2="${pxW}" y2="${ty}" stroke="${hasHeader ? '#7ab8d8' : '#c4a07a'}" stroke-width="2"/>`;
   }
 
@@ -1742,10 +2480,10 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   svg += `<rect x="0" y="${bottomY}" width="${pxW}" height="${shelfLineH}" fill="${hasHeader ? '#1a3c6e' : '#5d3a1a'}"/>`;
 
   // Outer border
-  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH - 1}" fill="none" stroke="${hasHeader ? '#1a3c6e' : '#5d3a1a'}" stroke-width="2"/>`;
+  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH-1}" fill="none" stroke="${hasHeader ? '#1a3c6e' : '#5d3a1a'}" stroke-width="2"/>`;
 
   svg += '</svg>';
-  return { svg, headerPxH, bodyPxH, tangPxH, shelfLineH };
+  return { svg, headerPxH, bodyPxH, tangPxHList, tangPxWList, shelfLineH };
 }
 
 // ============================================================
@@ -1771,12 +2509,31 @@ function initPOGScreen() {
 function populateLibraryFilters() {
   const sel = document.getElementById('libraryDanhMuc');
   const danhMucs = [...new Set(allProducts.map(p => p.danhMuc).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">-- Tất cả --</option>';
+  sel.innerHTML = '<option value="">-- Tất cả danh mục --</option>';
   danhMucs.forEach(d => {
     const o = document.createElement('option');
     o.value = d; o.textContent = d;
     sel.appendChild(o);
   });
+  // Reset MCH3
+  document.getElementById('libraryMCH3').innerHTML = '<option value="">-- Tất cả MCH3 --</option>';
+}
+
+function onLibraryDanhMucChange() {
+  const danhMuc = document.getElementById('libraryDanhMuc').value;
+  const mch3Sel = document.getElementById('libraryMCH3');
+  mch3Sel.innerHTML = '<option value="">-- Tất cả MCH3 --</option>';
+  if (danhMuc) {
+    const mch3s = [...new Set(
+      allProducts.filter(p => p.danhMuc === danhMuc).map(p => p.mch3).filter(Boolean)
+    )].sort();
+    mch3s.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      mch3Sel.appendChild(o);
+    });
+  }
+  filterLibrary();
 }
 
 function filterLibrary() {
@@ -1784,8 +2541,9 @@ function filterLibrary() {
 }
 
 function renderLibrary() {
-  const search = (document.getElementById('librarySearch')?.value || '').toLowerCase().trim();
+  const search  = (document.getElementById('librarySearch')?.value || '').toLowerCase().trim();
   const danhMuc = document.getElementById('libraryDanhMuc')?.value || '';
+  const mch3    = document.getElementById('libraryMCH3')?.value || '';
 
   const list = document.getElementById('libraryList');
   if (!allProducts || allProducts.length === 0) {
@@ -1795,6 +2553,7 @@ function renderLibrary() {
 
   const filtered = allProducts.filter(p => {
     if (danhMuc && p.danhMuc !== danhMuc) return false;
+    if (mch3 && p.mch3 !== mch3) return false;
     if (search) {
       const hay = (p.tenSP + ' ' + p.maSP).toLowerCase();
       if (!hay.includes(search)) return false;
@@ -1848,10 +2607,17 @@ function openShelfPickerModal() {
   } else {
     grid.innerHTML = allShelves.map(s => {
       const svgHtml = generateShelfSVG(s, 140, 110);
+      const loaiIcon = getShelfIcon(s.loai);
+      const rongTong = s.rongTong || s.rong || 100;
+      const tangList = getShelfTangList(s);
+      const isDumpinType = s.loai === 'dumpin' || s.loai === 'uDao';
+      const specsLine = isDumpinType
+        ? `${loaiIcon} ${s.soTang} mâm · ${rongTong}cm`
+        : `${loaiIcon} ${s.soTang} tầng · ${rongTong}cm × ${tangList[0]?.cao || s.caoTang || 40}cm`;
       return `<div class="shelf-picker-item" onclick="selectShelf(${JSON.stringify(s.id)}); closeModal('modalShelfPicker');">
         <div class="sp-preview">${svgHtml}</div>
         <div class="sp-name">${escHtml(s.ten)}</div>
-        <div class="sp-specs">${s.loai === 'tu' ? '🧊' : '🗄️'} ${s.soTang} tầng · ${s.rong}cm × ${s.caoTang}cm</div>
+        <div class="sp-specs">${specsLine}</div>
       </div>`;
     }).join('');
   }
@@ -1889,11 +2655,19 @@ function selectShelf(shelfOrId) {
 
 function updateShelfInfoPanel(shelf) {
   const el = document.getElementById('currentShelfInfo');
+  const loaiIcon = getShelfIcon(shelf.loai);
+  const loaiLabel = getShelfLabel(shelf.loai);
+  const rongTong = shelf.rongTong || shelf.rong || 100;
+  const isDumpinType = shelf.loai === 'dumpin' || shelf.loai === 'uDao';
+  const tangList = getShelfTangList(shelf);
+  const detailLine = isDumpinType
+    ? `${shelf.soTang} mâm · ${rongTong}cm rộng tổng`
+    : `${shelf.soTang} tầng · ${rongTong}cm rộng · ${tangList[0]?.cao || shelf.caoTang || 40}cm/tầng`;
   el.innerHTML = `
     <div class="shelf-name-disp">${escHtml(shelf.ten)}</div>
     <div class="shelf-info-panel">
-      ${shelf.loai === 'tu' ? '🧊 Tủ lạnh/đông' : '🗄️ Kệ đứng'}<br>
-      ${shelf.soTang} tầng · ${shelf.rong}cm rộng · ${shelf.caoTang}cm/tầng
+      ${loaiIcon} ${loaiLabel}<br>
+      ${detailLine}
     </div>`;
 }
 
@@ -1905,7 +2679,8 @@ let SCALE; // px per cm
 function computeScale(shelf) {
   const scrollEl = document.getElementById('pogCanvasScroll');
   const availW = scrollEl.clientWidth - 48;
-  SCALE = Math.min((availW / shelf.rong) * zoom, 12 * zoom);
+  const rongTong = parseFloat(shelf.rongTong || shelf.rong) || 100;
+  SCALE = Math.min((availW / rongTong) * zoom, 12 * zoom);
   return SCALE;
 }
 
@@ -1927,12 +2702,17 @@ function renderPOGCanvas() {
 
   const shelf = currentShelf;
   const sc = computeScale(shelf);
+  const rongTong = parseFloat(shelf.rongTong || shelf.rong) || 100;
+  const tangList = getShelfTangList(shelf);
+  const isDumpinType = shelf.loai === 'dumpin' || shelf.loai === 'uDao';
 
-  const pxW = Math.round(shelf.rong * sc);
+  const pxW = Math.round(rongTong * sc);
+  const totalCao = tangList.reduce((a, tl) => a + tl.cao, 0);
+
+  // Compute pixel heights — use same logic as generateCanvasShelfSVG
   const hasHeader = shelf.loai === 'tu';
-  const headerPxH = hasHeader ? Math.round(shelf.soTang * shelf.caoTang * sc * 0.15) : 0;
-  const bodyPxH = Math.round(shelf.soTang * shelf.caoTang * sc);
-  const tangPxH = Math.round(shelf.caoTang * sc);
+  const bodyPxH = Math.round(totalCao * sc);
+  const headerPxH = hasHeader ? Math.round(bodyPxH * 0.15) : 0;
   const shelfLineH = 6;
   const totalH = headerPxH + bodyPxH + shelfLineH;
 
@@ -1951,36 +2731,36 @@ function renderPOGCanvas() {
 
   container.insertBefore(shelfContainer, container.firstChild);
 
-  // Render product overlays for each tầng
-  // Remove old overlays
+  // Render product overlays for each level
   container.querySelectorAll('.tầng-overlay').forEach(el => el.remove());
 
   for (let ti = 0; ti < shelf.soTang; ti++) {
     const tConfig = pogConfig.tầng[ti] || { index: ti, products: [] };
-    // tầng 0 is TOP shelf, but visually we render top-to-bottom
-    const offsetY = headerPxH + ti * tangPxH;
+    const tangH = svgResult.tangPxHList[ti] || 40;
+    const tangW = svgResult.tangPxWList[ti] || pxW;
+    const offsetY = (svgResult.headerPxH || 0) + svgResult.tangPxHList.slice(0, ti).reduce((a, b) => a + b, 0);
+    // For dumpin/uDao, center the overlay horizontally
+    const offsetX = isDumpinType ? Math.round((pxW - tangW) / 2) : 0;
 
     const overlay = document.createElement('div');
     overlay.className = 'tầng-overlay';
     overlay.dataset.tang = ti;
     overlay.style.cssText = `
       position:absolute;
-      left:0; top:${offsetY}px;
-      width:${pxW}px; height:${tangPxH}px;
+      left:${offsetX}px; top:${offsetY}px;
+      width:${tangW}px; height:${tangH}px;
       align-items:flex-end;
       overflow:hidden;
     `;
 
     // Drop zone events
     overlay.addEventListener('dragover', e => { e.preventDefault(); overlay.classList.add('drag-over'); });
-    overlay.addEventListener('dragleave', e => { overlay.classList.remove('drag-over'); });
+    overlay.addEventListener('dragleave', () => { overlay.classList.remove('drag-over'); });
     overlay.addEventListener('drop', e => {
       e.preventDefault();
       overlay.classList.remove('drag-over');
       const maSP = e.dataTransfer.getData('text/plain');
-      if (maSP) {
-        addProductToTang(parseInt(overlay.dataset.tang), maSP);
-      }
+      if (maSP) addProductToTang(parseInt(overlay.dataset.tang), maSP);
     });
     overlay.addEventListener('click', e => {
       if (e.target === overlay && selectedLibProduct) {
@@ -1992,7 +2772,7 @@ function renderPOGCanvas() {
     let xOffset = 0;
     (tConfig.products || []).forEach((prod, pi) => {
       const pxRong = Math.round(prod.rong * sc);
-      const pxCao = Math.min(Math.round(prod.cao * sc), tangPxH - 4);
+      const pxCao = Math.min(Math.round(prod.cao * sc), tangH - 4);
       const facing = prod.facing || 1;
 
       const slot = document.createElement('div');
@@ -2001,7 +2781,7 @@ function renderPOGCanvas() {
       slot.dataset.slot = pi;
       slot.style.cssText = `
         width:${pxRong}px;
-        height:${tangPxH}px;
+        height:${tangH}px;
         position:absolute;
         left:${xOffset}px;
         bottom:0;
@@ -2029,9 +2809,7 @@ function renderPOGCanvas() {
           img.src = formatImgUrl(prod.linkAnh);
           img.alt = prod.tenSP || '';
           img.style.cssText = `width:${pxRong}px; height:${pxCao}px; object-fit:contain; display:block;`;
-          img.onerror = () => {
-            img.style.display = 'none';
-          };
+          img.onerror = () => { img.style.display = 'none'; };
           imgContainer.appendChild(img);
         } else {
           const placeholder = document.createElement('div');
@@ -2120,9 +2898,12 @@ function addProductToTang(tangIndex, maSP) {
   }
 
   const shelf = currentShelf;
+  const tangList = getShelfTangList(shelf);
+  // Available width = tangList[i].rong for dumpin/uDao, rongTong for ke/tu
+  const availWidth = tangList[tangIndex]?.rong || (shelf.rongTong || shelf.rong || 100);
   const totalWidth = pogConfig.tầng[tangIndex].products.reduce((sum, p) => sum + (p.rong || 10), 0);
-  if (totalWidth + (prod.rong || 10) > shelf.rong + 1) {
-    showToast('Tầng đã đầy!', 'warning');
+  if (totalWidth + (prod.rong || 10) > availWidth + 1) {
+    showToast('Tầng/mâm đã đầy!', 'warning');
     return;
   }
 
@@ -2353,18 +3134,31 @@ async function exportPNG() {
     const A4_W = 2480;
     const shelf = currentShelf;
     const hasHeader = shelf.loai === 'tu';
+    const isDumpinType = shelf.loai === 'dumpin' || shelf.loai === 'uDao';
 
     // Calculate scale to fit A4 landscape
     const margin = 80;
-    const exportScale = (A4_W - margin * 2) / shelf.rong;
+    const rongTong = parseFloat(shelf.rongTong || shelf.rong) || 100;
+    const exportScale = (A4_W - margin * 2) / rongTong;
 
-    const pxW = Math.round(shelf.rong * exportScale);
-    const headerPxH = hasHeader ? Math.round(shelf.soTang * shelf.caoTang * exportScale * 0.15) : 0;
-    const bodyPxH = Math.round(shelf.soTang * shelf.caoTang * exportScale);
-    const tangPxH = Math.round(shelf.caoTang * exportScale);
+    const tangList = getShelfTangList(shelf);
+    const totalCao = tangList.reduce((a, tl) => a + tl.cao, 0);
+
+    const pxW = Math.round(rongTong * exportScale);
+    const bodyPxH = Math.round(totalCao * exportScale);
+    const headerPxH = hasHeader ? Math.round(bodyPxH * 0.15) : 0;
     const shelfLineH = 12;
     const totalH = headerPxH + bodyPxH + shelfLineH + margin * 2;
     const totalW = A4_W;
+
+    // Pixel heights and widths per level
+    const tangPxHList = tangList.map(tl => Math.round((tl.cao / totalCao) * bodyPxH));
+    const sumH = tangPxHList.reduce((a, b) => a + b, 0);
+    if (sumH !== bodyPxH && tangPxHList.length > 0) tangPxHList[tangPxHList.length - 1] += bodyPxH - sumH;
+    const tangPxWList = tangList.map(tl => isDumpinType
+      ? Math.max(10, Math.round((tl.rong / rongTong) * pxW))
+      : pxW
+    );
 
     const canvas = document.createElement('canvas');
     canvas.width = totalW;
@@ -2378,56 +3172,117 @@ async function exportPNG() {
     const startX = margin;
     const startY = margin;
 
-    // Draw header if fridge
-    if (hasHeader) {
-      ctx.fillStyle = '#1a3c6e';
-      ctx.fillRect(startX, startY, pxW, headerPxH);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `bold ${Math.max(16, headerPxH * 0.4)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('TỦ LẠNH/ĐÔNG', startX + pxW / 2, startY + headerPxH / 2 + 8);
+    if (isDumpinType) {
+      // ── Draw Dumpin / Ụ đảo ─────────────────────────────────
+      const outerFill = shelf.loai === 'dumpin' ? '#f5e6c8' : '#e8d5f5';
+      const borderColor = shelf.loai === 'dumpin' ? '#5d3a1a' : '#6b46c1';
+      const mamFill = shelf.loai === 'dumpin' ? '#eedcc0' : '#d8bff5';
+      const rxPx = shelf.loai === 'uDao' ? 12 : 0;
+
+      ctx.fillStyle = outerFill;
+      ctx.fillRect(startX, startY, pxW, bodyPxH);
+
+      let cumY = 0;
+      for (let ti = 0; ti < shelf.soTang; ti++) {
+        const mamH = tangPxHList[ti];
+        const mamW = tangPxWList[ti];
+        const mamX = startX + Math.round((pxW - mamW) / 2);
+        const mamY = startY + cumY;
+        const inset = 6;
+
+        ctx.fillStyle = mamFill;
+        if (rxPx > 0 && typeof ctx.roundRect === 'function') {
+          ctx.beginPath();
+          ctx.roundRect(mamX + inset, mamY + inset, mamW - inset*2, mamH - inset*2, rxPx);
+          ctx.fill();
+          ctx.strokeStyle = borderColor;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          ctx.fillRect(mamX + inset, mamY + inset, mamW - inset*2, mamH - inset*2);
+          ctx.strokeStyle = borderColor;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(mamX + inset, mamY + inset, mamW - inset*2, mamH - inset*2);
+        }
+
+        // Width label
+        ctx.fillStyle = borderColor;
+        ctx.font = `bold ${Math.max(14, mamH * 0.25)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(`${tangList[ti].rong}cm`, mamX + mamW / 2, mamY + mamH / 2 + 6);
+
+        cumY += mamH;
+      }
+
+      // Outer border
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(startX, startY, pxW, bodyPxH);
+
+      // Bottom shelf line
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(startX, startY + bodyPxH, pxW, shelfLineH);
+    } else {
+      // ── Draw Ke / Tu ─────────────────────────────────────────
+      // Draw header if fridge
+      if (hasHeader) {
+        ctx.fillStyle = '#1a3c6e';
+        ctx.fillRect(startX, startY, pxW, headerPxH);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.max(16, headerPxH * 0.4)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('TỦ LẠNH/ĐÔNG', startX + pxW / 2, startY + headerPxH / 2 + 8);
+      }
+
+      // Draw shelf body
+      ctx.fillStyle = hasHeader ? '#e8f4fd' : '#f5e6c8';
+      ctx.fillRect(startX, startY + headerPxH, pxW, bodyPxH);
+
+      // Draw tầng dividers
+      ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
+      ctx.lineWidth = 2;
+      let cumDivPx = 0;
+      for (let i = 0; i < shelf.soTang - 1; i++) {
+        cumDivPx += tangPxHList[i];
+        const ty = startY + headerPxH + cumDivPx;
+        ctx.beginPath();
+        ctx.moveTo(startX, ty);
+        ctx.lineTo(startX + pxW, ty);
+        ctx.stroke();
+      }
+
+      // Bottom shelf line
+      ctx.fillStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
+      ctx.fillRect(startX, startY + headerPxH + bodyPxH, pxW, shelfLineH);
+
+      // Outer border
+      ctx.strokeStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
     }
-
-    // Draw shelf body
-    ctx.fillStyle = hasHeader ? '#e8f4fd' : '#f5e6c8';
-    ctx.fillRect(startX, startY + headerPxH, pxW, bodyPxH);
-
-    // Draw tầng dividers
-    ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
-    ctx.lineWidth = 2;
-    for (let i = 1; i < shelf.soTang; i++) {
-      const ty = startY + headerPxH + Math.round(i * tangPxH);
-      ctx.beginPath();
-      ctx.moveTo(startX, ty);
-      ctx.lineTo(startX + pxW, ty);
-      ctx.stroke();
-    }
-
-    // Bottom shelf line
-    ctx.fillStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
-    ctx.fillRect(startX, startY + headerPxH + bodyPxH, pxW, shelfLineH);
-
-    // Outer border
-    ctx.strokeStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
 
     // Draw products (load images async)
     const imagePromises = [];
 
     for (let ti = 0; ti < shelf.soTang; ti++) {
       const tConfig = pogConfig.tầng[ti] || { products: [] };
-      const tangStartY = startY + headerPxH + ti * tangPxH;
+      const tangH = tangPxHList[ti];
+      const tangW = tangPxWList[ti];
+      const levelOffsetY = tangPxHList.slice(0, ti).reduce((a, b) => a + b, 0);
+      const tangStartY = startY + headerPxH + levelOffsetY;
+      // For dumpin/uDao, center the product area
+      const levelOffsetX = isDumpinType ? Math.round((pxW - tangW) / 2) : 0;
+      const tangStartX = startX + levelOffsetX;
 
       let xOff = 0;
       for (const prod of tConfig.products) {
         const pxRong = Math.round(prod.rong * exportScale);
-        const pxCao = Math.min(Math.round(prod.cao * exportScale), tangPxH - 4);
+        const pxCao = Math.min(Math.round(prod.cao * exportScale), tangH - 4);
         const facing = prod.facing || 1;
 
         for (let f = 0; f < facing; f++) {
-          const imgY = tangStartY + tangPxH - (f + 1) * pxCao;
-          const imgX = startX + xOff;
+          const imgY = tangStartY + tangH - (f + 1) * pxCao;
+          const imgX = tangStartX + xOff;
 
           if (prod.linkAnh) {
             const p = new Promise(resolve => {
@@ -2438,7 +3293,6 @@ async function exportPNG() {
                 resolve();
               };
               img.onerror = () => {
-                // Placeholder
                 ctx.fillStyle = '#e0e0e0';
                 ctx.fillRect(imgX, imgY, pxRong, pxCao);
                 ctx.fillStyle = '#999';
@@ -2461,13 +3315,13 @@ async function exportPNG() {
         }
 
         // Product label
-        const labelY = tangStartY + tangPxH - 2;
+        const labelY = tangStartY + tangH - 2;
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(startX + xOff, tangStartY + tangPxH - 18, pxRong, 18);
+        ctx.fillRect(tangStartX + xOff, tangStartY + tangH - 18, pxRong, 18);
         ctx.fillStyle = '#ffffff';
         ctx.font = `${Math.max(9, Math.min(13, pxRong * 0.12))}px sans-serif`;
         ctx.textAlign = 'center';
-        ctx.fillText(prod.maSP || prod.tenSP || '', startX + xOff + pxRong/2, labelY - 4);
+        ctx.fillText(prod.maSP || prod.tenSP || '', tangStartX + xOff + pxRong/2, labelY - 4);
 
         xOff += pxRong;
       }
@@ -2488,19 +3342,28 @@ async function exportPNG() {
     await Promise.all(imagePromises);
 
     // Re-draw borders on top of images
-    ctx.strokeStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
+    if (isDumpinType) {
+      const borderColor = shelf.loai === 'dumpin' ? '#5d3a1a' : '#6b46c1';
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(startX, startY, pxW, bodyPxH);
+    } else {
+      ctx.strokeStyle = hasHeader ? '#1a3c6e' : '#5d3a1a';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
 
-    // Tầng dividers on top
-    ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
-    ctx.lineWidth = 2;
-    for (let i = 1; i < shelf.soTang; i++) {
-      const ty = startY + headerPxH + Math.round(i * tangPxH);
-      ctx.beginPath();
-      ctx.moveTo(startX, ty);
-      ctx.lineTo(startX + pxW, ty);
-      ctx.stroke();
+      // Tầng dividers on top
+      ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
+      ctx.lineWidth = 2;
+      let cumRedrawPx = 0;
+      for (let i = 0; i < shelf.soTang - 1; i++) {
+        cumRedrawPx += tangPxHList[i];
+        const ty = startY + headerPxH + cumRedrawPx;
+        ctx.beginPath();
+        ctx.moveTo(startX, ty);
+        ctx.lineTo(startX + pxW, ty);
+        ctx.stroke();
+      }
     }
 
     // Download
