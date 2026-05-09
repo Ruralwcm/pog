@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v23.7</title>
+<title>POG DESIGN by HaoDT v23.8</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -514,6 +514,15 @@ img { max-width: 100%; }
   overflow: hidden;
   min-width: 0;
 }
+.pog-info-panel {
+  width: 250px;
+  min-width: 220px;
+  background: #fff;
+  border-left: 2px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 .pog-toolbar {
   padding: 12px 20px;
   background: #fff;
@@ -890,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v23.7</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v23.8</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -909,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -996,7 +1005,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v23.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1062,6 +1071,13 @@ img { max-width: 100%; }
           </div>
         </div>
       </div>
+    </div>
+    <!-- INFO PANEL -->
+    <div class="pog-info-panel" id="pogInfoPanel">
+      <div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#1a3c6e;text-transform:uppercase">
+        📋 Diễn giải
+      </div>
+      <div id="pogInfoContent" style="padding:12px 16px;overflow-y:auto;flex:1;font-size:12px"></div>
     </div>
   </div>
 </div>
@@ -3171,7 +3187,6 @@ function renderLibrary() {
       <span class="lib-drag-icon">⠿</span>
     </div>`;
   }).join('');
-  _bindLibraryEvents();
 }
 
 function _bindLibraryEvents() {
@@ -3484,7 +3499,7 @@ function renderPOGCanvas() {
     // Render products
     let xOffset = 0;
     (tConfig.products || []).forEach((prod, pi) => {
-      const pxRong = Math.max(30, Math.round((prod.rong || 10) * sc));
+      const pxRong = Math.max(10, Math.round((prod.rong || 10) * sc));
       const pxCao  = Math.min(Math.max(30, Math.round((prod.cao  || 20) * sc)), tangH - 4);
       const facing = prod.facing || 1;
 
@@ -3597,6 +3612,36 @@ function renderPOGCanvas() {
 
   shelfContainer.style.width = pxW + 'px';
   shelfContainer.style.height = totalH + 'px';
+
+  _updateInfoPanel();
+}
+
+function _updateInfoPanel() {
+  if (!pogConfig || !currentShelf) return;
+  const content = document.getElementById('pogInfoContent');
+  if (!content) return;
+  let html = '';
+  for (let ti = 0; ti < currentShelf.soTang; ti++) {
+    const tConfig = pogConfig.tầng[ti] || { products: [] };
+    const prods = tConfig.products || [];
+    html += `<div style="margin-bottom:12px">
+      <div style="font-weight:700;color:#1a3c6e;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e2e8f0">
+        Tầng ${ti + 1}
+      </div>`;
+    if (prods.length === 0) {
+      html += `<div style="color:#adb5bd;font-style:italic">Chưa có SP</div>`;
+    } else {
+      prods.forEach(p => {
+        html += `<div style="display:flex;gap:6px;align-items:baseline;margin-bottom:3px;padding:3px 0;border-bottom:1px dotted #f0f0f0">
+          <span style="color:#495057;font-weight:600;flex-shrink:0">${escHtml(p.maSP)}</span>
+          <span style="color:#6c757d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</span>
+          <span style="color:#1a3c6e;font-weight:700;flex-shrink:0">×${p.facing||1}</span>
+        </div>`;
+      });
+    }
+    html += '</div>';
+  }
+  content.innerHTML = html || '<div style="color:#adb5bd">Chọn kệ để bắt đầu</div>';
 }
 
 // ============================================================
@@ -3661,8 +3706,8 @@ function _doAddProductToTang(tangIndex, prod) {
   // Available width = tangList[i].rong for dumpin/uDao, rongTong for ke/tu
   const availWidth = tangList[tangIndex]?.rong || (shelf.rongTong || shelf.rong || 100);
   const totalWidth = pogConfig.tầng[tangIndex].products.reduce((sum, p) => sum + (p.rong || 10), 0);
-  if (totalWidth + (prod.rong || 10) > availWidth + 1) {
-    showToast('Tầng/mâm đã đầy!', 'warning');
+  if (totalWidth + (prod.rong || 10) > availWidth * 1.2 + 1) {
+    showToast('Tầng/mâm đã đầy (vượt 120%)!', 'warning');
     return;
   }
 
@@ -3746,6 +3791,7 @@ function markDirty() {
   autosaveTimer = setTimeout(() => {
     if (isDirty && currentPOGId) autoSavePOG();
   }, 5000);
+  _updateInfoPanel();
 }
 
 function setAutosave(state) {
