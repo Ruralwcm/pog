@@ -1824,20 +1824,22 @@ function applyH(H, x, y) {
 }
 
 // ── Step C: Remove background ─────────────────────────────────
-let _bgLibLoaded = false;
+let _bgModule = null;
 async function applyRemoveBg() {
   const btn = document.getElementById('btnApplyRemoveBg');
   const status = document.getElementById('removebgStatus');
   btn.disabled = true;
   btn.textContent = '⏳ Đang xoá nền...';
-  status.textContent = 'Đang tải thư viện AI (lần đầu ~10s)...';
+  status.textContent = 'Đang tải thư viện AI (lần đầu ~15s, cần internet)...';
 
   try {
-    if (!_bgLibLoaded) {
-      await loadScript('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.js');
-      _bgLibLoaded = true;
+    // Load via ES module dynamic import
+    if (!_bgModule) {
+      status.textContent = 'Đang tải thư viện AI...';
+      _bgModule = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm');
     }
     status.textContent = 'Đang xử lý ảnh...';
+
     const src = _correctedCanvas || (() => {
       const c = document.createElement('canvas');
       c.width = _origImg.width; c.height = _origImg.height;
@@ -1845,12 +1847,12 @@ async function applyRemoveBg() {
       return c;
     })();
 
-    // Convert canvas to blob
     const blob = await new Promise(res => src.toBlob(res, 'image/png'));
-    const result = await imglyRemoveBackground(blob, {
+    const result = await _bgModule.removeBackground(blob, {
       output: { format: 'image/png', quality: 1 },
       publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/'
     });
+
     const url = URL.createObjectURL(result);
     const img = new Image();
     img.onload = () => {
@@ -1858,15 +1860,60 @@ async function applyRemoveBg() {
       updateAfterPreview(_finalCanvas);
       status.textContent = '✅ Xoá nền thành công!';
       btn.disabled = false;
-      btn.textContent = '✅ Xác nhận';
+      btn.textContent = '✅ Xác nhận & Lưu';
       btn.onclick = () => confirmProcessedImage();
     };
     img.src = url;
   } catch(e) {
-    status.textContent = '⚠️ Không xoá được nền: ' + e.message + '. Bấm Bỏ qua để dùng ảnh gốc.';
-    btn.disabled = false;
-    btn.textContent = '🎨 Thử lại';
+    // Fallback: thử dùng canvas-based simple bg removal (threshold)
+    status.textContent = '⚠️ Thư viện AI không load được. Thử xoá nền đơn giản...';
+    try {
+      await _simpleBgRemove();
+    } catch(e2) {
+      status.textContent = '⚠️ Không xoá được nền: ' + e.message + '. Bấm Bỏ qua để dùng ảnh gốc.';
+      btn.disabled = false;
+      btn.textContent = '🎨 Thử lại';
+      btn.onclick = applyRemoveBg;
+    }
   }
+}
+
+// Fallback: xoá nền trắng/sáng đơn giản bằng canvas pixel manipulation
+async function _simpleBgRemove() {
+  const btn = document.getElementById('btnApplyRemoveBg');
+  const status = document.getElementById('removebgStatus');
+  const src = _correctedCanvas || (() => {
+    const c = document.createElement('canvas');
+    c.width = _origImg.width; c.height = _origImg.height;
+    c.getContext('2d').drawImage(_origImg, 0, 0);
+    return c;
+  })();
+
+  const out = document.createElement('canvas');
+  out.width = src.width; out.height = src.height;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(src, 0, 0);
+  const imgData = ctx.getImageData(0, 0, out.width, out.height);
+  const d = imgData.data;
+
+  // Lấy màu góc TL làm màu nền tham chiếu
+  const bgR = d[0], bgG = d[1], bgB = d[2];
+  const threshold = 40;
+
+  for (let i = 0; i < d.length; i += 4) {
+    const dr = Math.abs(d[i] - bgR);
+    const dg = Math.abs(d[i+1] - bgG);
+    const db = Math.abs(d[i+2] - bgB);
+    if (dr + dg + db < threshold * 3) d[i+3] = 0; // transparent
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  _finalCanvas = buildFinalCanvas(out);
+  updateAfterPreview(_finalCanvas);
+  status.textContent = '✅ Xoá nền đơn giản (theo màu góc ảnh). Nếu chưa đạt, bấm Bỏ qua.';
+  btn.disabled = false;
+  btn.textContent = '✅ Xác nhận & Lưu';
+  btn.onclick = () => confirmProcessedImage();
 }
 
 function skipRemoveBg() {
