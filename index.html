@@ -1463,7 +1463,7 @@ function renderProductGrid(products) {
         <div class="product-masp">${escHtml(p.maSP)}</div>
         <div class="product-name" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</div>
         <div class="product-size">${p.rong > 0 ? p.rong+'cm' : '?'} × ${p.cao > 0 ? p.cao+'cm' : '?'} | ${escHtml(p.dvt||'')}</div>
-        <button class="btn-edit-product" onclick="openEditProduct(${JSON.stringify(p.maSP)})">✏️ Chỉnh sửa</button>
+        <button class="btn-edit-product" onclick="openEditProduct(this)" data-masp="${p.maSP.replace(/"/g,'&quot;')}">✏️ Chỉnh sửa</button>
       </div>
     </div>`;
   }).join('');
@@ -1472,9 +1472,11 @@ function renderProductGrid(products) {
 // ============================================================
 // EDIT PRODUCT
 // ============================================================
-function openEditProduct(maSP) {
+function openEditProduct(btnEl) {
+  const maSP = btnEl ? btnEl.getAttribute('data-masp') : null;
+  if (!maSP) { showToast('Không tìm thấy mã SP', 'error'); return; }
   const p = allProducts.find(x => x.maSP === maSP);
-  if (!p) return;
+  if (!p) { showToast('Không tìm thấy sản phẩm: ' + maSP, 'error'); return; }
   editingProductMaSP = maSP;
   document.getElementById('editProductName').textContent = p.tenSP;
   document.getElementById('editProductMaSP').textContent = p.maSP;
