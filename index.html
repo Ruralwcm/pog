@@ -1078,6 +1078,12 @@ img { max-width: 100%; }
         <strong id="editProductName"></strong><br>
         <span class="text-muted" id="editProductMaSP"></span>
       </div>
+      <!-- ĐVT Selector -->
+      <div style="margin-bottom:12px">
+        <label class="form-label">Đơn vị tính (ĐVT) *</label>
+        <div id="editDvtGroup" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div style="font-size:11px;color:#718096;margin-top:4px">Mỗi ĐVT có kích thước và ảnh riêng</div>
+      </div>
       <div class="edit-form-row" style="margin-bottom:12px">
         <div>
           <label class="form-label">Chiều rộng (cm) *</label>
@@ -1266,6 +1272,19 @@ img { max-width: 100%; }
 </div>
 
 <!-- ============================================================
+     MODAL: ĐVT PICKER (chọn đơn vị tính khi thêm SP vào kệ)
+     ============================================================ -->
+<div class="modal-overlay" id="modalDvtPicker">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">📦 Chọn đơn vị tính (ĐVT)</span>
+      <button class="modal-close" onclick="closeModal('modalDvtPicker')">×</button>
+    </div>
+    <div class="modal-body" id="dvtPickerBody"></div>
+  </div>
+</div>
+
+<!-- ============================================================
      MODAL: CONFIRM DIALOG
      ============================================================ -->
 <div class="modal-overlay" id="modalConfirm">
@@ -1305,6 +1324,7 @@ let zoom = 1;
 let selectedLibProduct = null;
 let editingShelfId = null;
 let editingProductMaSP = null;
+let editingDVT = '';
 let autosaveTimer = null;
 let isDirty = false;
 
@@ -1596,12 +1616,53 @@ function openEditProduct(btnEl) {
   editingProductMaSP = maSP;
   document.getElementById('editProductName').textContent = p.tenSP;
   document.getElementById('editProductMaSP').textContent = p.maSP;
-  document.getElementById('editRong').value = p.rong || '';
-  document.getElementById('editCao').value = p.cao || '';
-  document.getElementById('editLinkAnh').value = p.linkAnh || '';
+
+  // Populate ĐVT radio group
+  const variants = getProductVariants(maSP);
+  const dvtGroup = document.getElementById('editDvtGroup');
+  dvtGroup.innerHTML = '';
+  if (variants.length === 0) {
+    // Fallback: single entry with dvt from product itself
+    variants.push(p);
+  }
+  // Default to first variant
+  const defaultVariant = variants[0];
+  editingDVT = defaultVariant.dvt || '';
+
+  variants.forEach((v, idx) => {
+    const dvtVal = v.dvt || '';
+    const isChecked = idx === 0;
+    const btnId = `dvtRadio_${idx}`;
+    const btn = document.createElement('label');
+    btn.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:2px solid ${isChecked ? 'var(--primary)' : 'var(--gray-300)'};border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;color:${isChecked ? 'var(--primary)' : 'var(--gray-600)'};background:${isChecked ? '#e8f0fe' : '#fff'};transition:all 0.15s`;
+    btn.innerHTML = `<input type="radio" name="editDvtRadio" value="${escHtml(dvtVal)}" id="${btnId}" ${isChecked ? 'checked' : ''} style="display:none">
+      ${escHtml(dvtVal || 'N/A')}`;
+    btn.addEventListener('click', () => {
+      // Update selected DVT and fill dimensions
+      editingDVT = dvtVal;
+      const matched = allProducts.find(x => x.maSP === maSP && x.dvt === dvtVal) || v;
+      document.getElementById('editRong').value = matched.rong || '';
+      document.getElementById('editCao').value = matched.cao || '';
+      document.getElementById('editLinkAnh').value = matched.linkAnh || '';
+      previewEditImage();
+      // Update button styles
+      dvtGroup.querySelectorAll('label').forEach((lb, i) => {
+        const isNowChecked = lb.querySelector('input').value === dvtVal;
+        lb.style.borderColor = isNowChecked ? 'var(--primary)' : 'var(--gray-300)';
+        lb.style.color = isNowChecked ? 'var(--primary)' : 'var(--gray-600)';
+        lb.style.background = isNowChecked ? '#e8f0fe' : '#fff';
+      });
+    });
+    dvtGroup.appendChild(btn);
+  });
+
+  // Fill dimensions from default variant
+  document.getElementById('editRong').value = defaultVariant.rong || '';
+  document.getElementById('editCao').value = defaultVariant.cao || '';
+  document.getElementById('editLinkAnh').value = defaultVariant.linkAnh || '';
   const imgEl = document.getElementById('editProductImg');
-  imgEl.src = p.linkAnh ? formatImgUrl(p.linkAnh) : '';
-  imgEl.style.display = p.linkAnh ? 'block' : 'none';
+  imgEl.src = defaultVariant.linkAnh ? formatImgUrl(defaultVariant.linkAnh) : '';
+  imgEl.style.display = defaultVariant.linkAnh ? 'block' : 'none';
   openModal('modalEditProduct');
 }
 
@@ -1614,6 +1675,7 @@ function closeEditProductModal() {
   _perspPoints    = [];
   _dragging       = -1;
   editingProductMaSP = null;
+  editingDVT = '';
 
   // Reset UI về trạng thái ban đầu
   goImgStep('select');
@@ -2012,7 +2074,11 @@ function updateAfterPreview(canvas) {
 async function confirmProcessedImage() {
   if (!_finalCanvas) { showToast('Chưa có ảnh để lưu!', 'error'); return; }
   const maSP = editingProductMaSP;
-  const p = allProducts.find(x => x.maSP === maSP) || {};
+  const dvt = editingDVT;
+  // Find exact match by maSP + dvt, fallback to maSP
+  const p = allProducts.find(x => x.maSP === maSP && x.dvt === dvt)
+         || allProducts.find(x => x.maSP === maSP)
+         || {};
 
   // Auto-crop sát mép
   const croppedCanvas = autoCropCanvas(_finalCanvas);
@@ -2037,7 +2103,7 @@ async function confirmProcessedImage() {
       maSP, base64: base64Pog,
       tenSP: p.tenSP || '', danhMuc: p.danhMuc || '',
       mch3: p.mch3 || '', mch4: p.mch4 || '',
-      dvt: p.dvt || '',
+      dvt: dvt || p.dvt || '',
       rong: parseFloat(document.getElementById('editRong').value) || 0,
       cao:  parseFloat(document.getElementById('editCao').value)  || 0
     });
@@ -2048,20 +2114,26 @@ async function confirmProcessedImage() {
       switchImgTab('link');
       previewEditImage();
       // Cập nhật local product data ngay
-      const idx = allProducts.findIndex(p => p.maSP === maSP);
+      const idx = allProducts.findIndex(p => p.maSP === maSP && p.dvt === dvt)
+               || allProducts.findIndex(p => p.maSP === maSP);
       const rong = parseFloat(document.getElementById('editRong').value) || 0;
       const cao  = parseFloat(document.getElementById('editCao').value)  || 0;
       if (idx >= 0) {
         allProducts[idx].linkAnh   = res.driveUrl;
         allProducts[idx].linkThumb = res.driveUrlThumb || res.driveUrl;
         allProducts[idx].hasPhoto  = true;
-        allProducts[idx].rong = parseFloat(document.getElementById('editRong').value) || allProducts[idx].rong;
-        allProducts[idx].cao  = parseFloat(document.getElementById('editCao').value)  || allProducts[idx].cao;
+        allProducts[idx].rong = rong || allProducts[idx].rong;
+        allProducts[idx].cao  = cao  || allProducts[idx].cao;
       }
       // Tự động lưu link + kích thước vào GSheet + xóa cache
       try {
         showLoading('Đang cập nhật Google Sheet...');
-        const updateRes = await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh: res.driveUrl });
+        const updateRes = await apiPost({
+          action: 'updateProduct', maSP, dvt,
+          tenSP: p.tenSP || '', danhMuc: p.danhMuc || '',
+          mch3: p.mch3 || '', mch4: p.mch4 || '',
+          rong, cao, linkAnh: res.driveUrl
+        });
         hideLoading();
         console.log('[POG] updateProduct response:', updateRes);
         if (updateRes.success) {
@@ -2296,21 +2368,44 @@ function previewEditImage() {
 
 async function saveProductEdit() {
   const maSP = editingProductMaSP;
+  const dvt = editingDVT;
   const rong = parseFloat(document.getElementById('editRong').value) || 0;
   const cao = parseFloat(document.getElementById('editCao').value) || 0;
   const linkAnh = document.getElementById('editLinkAnh').value.trim();
 
+  // Find current product entry (matching maSP + dvt if possible)
+  const pEntry = allProducts.find(x => x.maSP === maSP && x.dvt === dvt)
+              || allProducts.find(x => x.maSP === maSP)
+              || {};
+
   showLoading('Đang lưu...');
   try {
-    const res = await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh });
+    const res = await apiPost({
+      action: 'updateProduct',
+      maSP, dvt,
+      tenSP: pEntry.tenSP || '',
+      danhMuc: pEntry.danhMuc || '',
+      mch3: pEntry.mch3 || '',
+      mch4: pEntry.mch4 || '',
+      rong, cao, linkAnh
+    });
     if (res.success) {
-      // Update local cache
-      const idx = allProducts.findIndex(p => p.maSP === maSP);
+      // Update local cache — find exact match by maSP + dvt
+      const idx = allProducts.findIndex(p => p.maSP === maSP && p.dvt === dvt);
       if (idx >= 0) {
         allProducts[idx].rong = rong;
         allProducts[idx].cao = cao;
         allProducts[idx].linkAnh = linkAnh;
         allProducts[idx].hasPhoto = !!linkAnh;
+      } else {
+        // Fallback: update first match
+        const idx2 = allProducts.findIndex(p => p.maSP === maSP);
+        if (idx2 >= 0) {
+          allProducts[idx2].rong = rong;
+          allProducts[idx2].cao = cao;
+          allProducts[idx2].linkAnh = linkAnh;
+          allProducts[idx2].hasPhoto = !!linkAnh;
+        }
       }
       closeModal('modalEditProduct');
       filterProducts();
@@ -3357,8 +3452,53 @@ function renderPOGCanvas() {
 // ============================================================
 // PRODUCT PLACEMENT
 // ============================================================
+
+// Returns all allProducts entries with this maSP (different ĐVTs)
+function getProductVariants(maSP) {
+  return allProducts.filter(p => p.maSP === maSP);
+}
+
+// Main entry: check variants, show ĐVT picker if multiple
 function addProductToTang(tangIndex, maSP) {
-  const prod = allProducts.find(p => p.maSP === maSP);
+  const variants = getProductVariants(maSP);
+  if (variants.length === 0) return;
+  if (variants.length === 1) {
+    _doAddProductToTang(tangIndex, variants[0]);
+  } else {
+    _showDvtPicker(tangIndex, variants);
+  }
+}
+
+// Show ĐVT picker modal
+function _showDvtPicker(tangIndex, variants) {
+  const body = document.getElementById('dvtPickerBody');
+  body.innerHTML = variants.map((v, i) => {
+    // Safely serialize the prod object to avoid JSON issues in onclick
+    const idx = allProducts.indexOf(v);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:8px;transition:background 0.15s" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='#fff'" onclick="_doAddProductToTangByIdx(${tangIndex}, ${idx}); closeModal('modalDvtPicker')">
+      ${v.linkThumb || v.linkAnh
+        ? `<img src="${formatThumbUrl(v.linkThumb || v.linkAnh)}" style="width:48px;height:48px;object-fit:contain;border-radius:4px;background:#f8f9fa;border:1px solid #e2e8f0" onerror="this.style.display='none'">`
+        : '<div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div>'
+      }
+      <div>
+        <div style="font-weight:700;color:#1a3c6e">${escHtml(v.dvt || 'N/A')}</div>
+        <div style="font-size:12px;color:#6c757d">${v.rong || '?'}cm × ${v.cao || '?'}cm</div>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('modalDvtPicker');
+  // Store tangIndex for picker
+  document.getElementById('modalDvtPicker').dataset.tangIndex = tangIndex;
+}
+
+// Called from ĐVT picker — uses allProducts index to avoid JSON serialization issues
+function _doAddProductToTangByIdx(tangIndex, idx) {
+  if (idx < 0 || idx >= allProducts.length) return;
+  _doAddProductToTang(tangIndex, allProducts[idx]);
+}
+
+// Core logic — takes a specific product entry (with correct dvt, rong, cao, linkAnh)
+function _doAddProductToTang(tangIndex, prod) {
   if (!prod) return;
 
   if (!pogConfig.tầng[tangIndex]) {
@@ -3378,6 +3518,7 @@ function addProductToTang(tangIndex, maSP) {
   pogConfig.tầng[tangIndex].products.push({
     maSP: prod.maSP,
     tenSP: prod.tenSP,
+    dvt: prod.dvt || '',
     linkAnh: prod.linkAnh || '',
     rong: prod.rong || 10,
     cao: prod.cao || 20,
