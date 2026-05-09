@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v27.5</title>
+<title>POG DESIGN by HaoDT v27.6</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v27.5</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v27.6</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v27.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3249,9 +3249,12 @@ function renderMultiDeviceCanvas() {
   if (!pogDevices || pogDevices.length === 0) { renderPOGCanvas(); return; }
   const container = document.getElementById('pogCanvasContainer');
   const emptyState = document.getElementById('pogEmptyState');
-  emptyState.style.display = 'none';
-  // Clear toàn bộ canvas
+  if (emptyState) emptyState.style.display = 'none';
+  // Clear toàn bộ canvas (giữ lại pogEmptyState)
+  const _emptyEl = document.getElementById('pogEmptyState');
   while (container.firstChild) container.removeChild(container.firstChild);
+  if (_emptyEl && !container.contains(_emptyEl)) container.appendChild(_emptyEl);
+  if (_emptyEl) _emptyEl.style.display = 'none';
   container.style.cssText = 'display:flex;flex-direction:row;gap:16px;align-items:flex-start;padding:8px;min-height:200px;';
   // Scroll container lên đầu
   const scrollEl = document.getElementById('pogCanvasScroll');
