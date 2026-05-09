@@ -3353,17 +3353,23 @@ function renderPOGCanvas() {
     const tangW = svgResult.tangPxWList[ti] || pxW;
     const offsetY = (svgResult.headerPxH || 0) + svgResult.tangPxHList.slice(0, ti).reduce((a, b) => a + b, 0);
     // For dumpin/uDao, center the overlay horizontally
-    const offsetX = isDumpinType ? Math.round((pxW - tangW) / 2) : 0;
+    // Dumpin: drop zone full width (pxW) nhưng SP render trong vùng mâm (tangW, centered)
+    const dropOffsetX = 0;
+    const dropW = isDumpinType ? pxW : tangW;
+    const mamOffsetX = isDumpinType ? Math.round((pxW - tangW) / 2) : 0;
 
     const overlay = document.createElement('div');
     overlay.className = 'tầng-overlay';
     overlay.dataset.tang = ti;
+    overlay.dataset.mamOffsetX = mamOffsetX;
+    overlay.dataset.mamW = tangW;
     overlay.style.cssText = `
       position:absolute;
-      left:${offsetX}px; top:${offsetY}px;
-      width:${tangW}px; height:${tangH}px;
+      left:${dropOffsetX}px; top:${offsetY}px;
+      width:${dropW}px; height:${tangH}px;
       align-items:flex-end;
-      overflow:hidden;
+      overflow:visible;
+      ${isDumpinType ? 'background:rgba(26,60,110,0.03);border:1px dashed rgba(26,60,110,0.15);' : ''}
     `;
 
     // Drop zone events
