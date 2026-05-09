@@ -3329,9 +3329,9 @@ function renderMultiDeviceCanvas() {
       (tConfig.products||[]).forEach((prod,pi)=>{
         const pxR=_fw[pi]||Math.max(6,Math.round((prod.rong||10)*sc*_rat));
         const _sc=Math.max(8,Math.round((prod.rotated?(prod.rong||10):(prod.cao||20))*sc));
-        const _mf=Math.max(1,Math.floor(tangH*1.2/Math.max(1,_sc)));
+        const _mf=Math.max(1,Math.floor(tangH*1.5/Math.max(1,_sc)));
         const fac=prod.facing||_mf;
-        const pxC=Math.min(_sc*fac,tangH);
+        const pxC=Math.min(_sc*fac,Math.round(tangH*1.5));
         const slot=document.createElement('div');
         slot.className='product-slot';
         slot.style.cssText='width:'+pxR+'px;height:'+pxC+'px;position:absolute;left:'+Math.min(xOff,Math.max(0,tangW-pxR))+'px;bottom:0;';
