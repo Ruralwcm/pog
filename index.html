@@ -1097,6 +1097,19 @@ img { max-width: 100%; }
           <p style="color:#718096;font-size:13px;margin-top:6px">Bấm để chọn ảnh / Chụp ảnh sản phẩm</p>
         </div>
 
+        <!-- Step CROP: Manual crop -->
+        <div id="imgStep_crop" style="display:none">
+          <p style="font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:600">✂️ Kéo để chọn vùng crop:</p>
+          <canvas id="cropCanvas" style="border:1px solid #e2e8f0;border-radius:6px;max-width:100%;cursor:crosshair;touch-action:none"
+            onmousedown="onCropMouseDown(event)" onmousemove="onCropMouseMove(event)" onmouseup="onCropMouseUp()"
+            ontouchstart="onCropMouseDown(event)" ontouchmove="onCropMouseMove(event)" ontouchend="onCropMouseUp()">
+          </canvas>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="goImgStep('perspective')" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">← Quay lại</button>
+            <button onclick="applyCrop()" style="flex:1;padding:8px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✅ Áp dụng crop</button>
+          </div>
+        </div>
+
         <!-- Step B: Perspective correction -->
         <div id="imgStep_perspective" style="display:none">
           <p style="font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:600">📐 Kéo 4 góc để chỉnh perspective, sau đó bấm Áp dụng:</p>
@@ -1106,6 +1119,7 @@ img { max-width: 100%; }
           </div>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button onclick="resetPerspective()" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">↺ Reset</button>
+            <button onclick="enableCropMode()" style="flex:1;padding:8px;background:#e67e22;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✂️ Crop</button>
             <button onclick="applyPerspective()" style="flex:1;padding:8px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✅ Áp dụng</button>
           </div>
         </div>
@@ -1124,10 +1138,10 @@ img { max-width: 100%; }
             </div>
           </div>
           <div id="removebgStatus" style="margin-top:8px;font-size:12px;color:#718096;text-align:center"></div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="goImgStep('perspective')" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">← Quay lại</button>
-            <button onclick="skipRemoveBg()" style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">Bỏ qua xoá nền</button>
-            <button id="btnApplyRemoveBg" onclick="applyRemoveBg()" style="flex:1;padding:8px;background:#276749;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✅ Xác nhận</button>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button onclick="enableCropMode()" style="flex:1;min-width:80px;padding:8px;background:#e67e22;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">✂️ Crop</button>
+            <button onclick="skipRemoveBg()" style="flex:1;min-width:80px;padding:8px;border:1px solid #cbd5e0;border-radius:6px;background:white;cursor:pointer;font-size:13px">Bỏ qua</button>
+            <button id="btnApplyRemoveBg" onclick="applyRemoveBg()" style="flex:1;min-width:100px;padding:8px;background:#276749;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">🎨 Xoá nền</button>
           </div>
         </div>
       </div>
@@ -1611,9 +1625,10 @@ function switchImgTab(tab) {
 }
 
 function goImgStep(step) {
-  ['select','perspective','removebg'].forEach(s =>
-    document.getElementById('imgStep_' + s).style.display = s === step ? 'block' : 'none'
-  );
+  ['select','perspective','crop','removebg'].forEach(s => {
+    const el = document.getElementById('imgStep_' + s);
+    if (el) el.style.display = s === step ? 'block' : 'none';
+  });
 }
 
 // ── State for image processing ────────────────────────────────
@@ -1967,25 +1982,47 @@ function updateAfterPreview(canvas) {
 }
 
 async function confirmProcessedImage() {
-  // Upload canvas to Drive via Apps Script
-  const base64 = _finalCanvas.toDataURL('image/png').split(',')[1];
+  if (!_finalCanvas) { showToast('Chưa có ảnh để lưu!', 'error'); return; }
   const maSP = editingProductMaSP;
-  const filename = maSP + '_' + Date.now() + '.png';
-  showLoading('Đang upload ảnh lên Drive...');
+  const filename = maSP.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now() + '.png';
+
+  // Auto-crop sát mép trước khi upload
+  const croppedCanvas = autoCropCanvas(_finalCanvas);
+
+  // Nén về JPEG để giảm size (tránh timeout Apps Script)
+  const base64 = croppedCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+  const sizeKB = Math.round(base64.length * 3 / 4 / 1024);
+
+  if (sizeKB > 5000) {
+    showToast(`⚠️ Ảnh quá lớn (${sizeKB}KB). Đang nén thêm...`, 'warning');
+  }
+
+  showLoading(`Đang upload ảnh (~${sizeKB}KB) lên Drive...`);
   try {
     const res = await apiPost({ action: 'uploadProductImage', maSP, base64, filename });
     hideLoading();
+    console.log('[POG] uploadProductImage response:', res);
     if (res.success && res.driveUrl) {
       document.getElementById('editLinkAnh').value = res.driveUrl;
       switchImgTab('link');
       previewEditImage();
-      // Cập nhật local product data ngay (không chờ cache expire)
+      // Cập nhật local product data ngay
       const idx = allProducts.findIndex(p => p.maSP === maSP);
+      const rong = parseFloat(document.getElementById('editRong').value) || 0;
+      const cao  = parseFloat(document.getElementById('editCao').value)  || 0;
       if (idx >= 0) {
         allProducts[idx].linkAnh = res.driveUrl;
         allProducts[idx].hasPhoto = true;
+        allProducts[idx].rong = rong;
+        allProducts[idx].cao  = cao;
       }
-      showToast('✅ Upload ảnh thành công!', 'success');
+      // Tự động lưu link + kích thước vào GSheet luôn (không cần bấm Lưu thêm)
+      try {
+        await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh: res.driveUrl });
+        showToast('✅ Upload & lưu sheet thành công!', 'success');
+      } catch(e2) {
+        showToast('✅ Upload Drive OK nhưng lưu sheet lỗi: ' + e2.message, 'warning');
+      }
     } else {
       // Fallback: store dataURL locally
       document.getElementById('editLinkAnh').value = 'data:image/png;base64,' + base64.substring(0, 50) + '...';
@@ -1995,6 +2032,183 @@ async function confirmProcessedImage() {
     hideLoading();
     showToast('Lỗi upload: ' + e.message, 'error');
   }
+}
+
+// ── Auto-crop canvas sát mép sản phẩm ────────────────────────
+// Loại bỏ vùng trắng/trong suốt xung quanh, giữ đúng tỷ lệ kích thước khai báo
+function autoCropCanvas(src) {
+  const ctx = src.getContext('2d');
+  const w = src.width, h = src.height;
+  const data = ctx.getImageData(0, 0, w, h).data;
+
+  let minX = w, maxX = 0, minY = h, maxY = 0;
+
+  // Tìm bounding box của pixel không trong suốt và không trắng
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = (y * w + x) * 4;
+      const a = data[idx + 3];
+      const r = data[idx], g = data[idx+1], b = data[idx+2];
+      const isTransparent = a < 10;
+      const isWhite = r > 245 && g > 245 && b > 245 && a > 200;
+      if (!isTransparent && !isWhite) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  // Nếu không tìm thấy pixel nào → trả về canvas gốc
+  if (minX >= maxX || minY >= maxY) return src;
+
+  // Thêm padding nhỏ
+  const pad = 4;
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(w - 1, maxX + pad);
+  maxY = Math.min(h - 1, maxY + pad);
+
+  const cropW = maxX - minX + 1;
+  const cropH = maxY - minY + 1;
+
+  // Tạo canvas output với tỷ lệ đúng theo kích thước khai báo (cm)
+  const rongCm = parseFloat(document.getElementById('editRong').value) || cropW;
+  const caoCm  = parseFloat(document.getElementById('editCao').value)  || cropH;
+  const maxPx  = 600;
+  let outW, outH;
+  if (rongCm >= caoCm) { outW = maxPx; outH = Math.round(maxPx * caoCm / rongCm); }
+  else                  { outH = maxPx; outW = Math.round(maxPx * rongCm / caoCm); }
+
+  const out = document.createElement('canvas');
+  out.width = outW; out.height = outH;
+  const octx = out.getContext('2d');
+  // Nền trắng
+  octx.fillStyle = '#ffffff';
+  octx.fillRect(0, 0, outW, outH);
+
+  // Vẽ vùng crop vào center với fit-contain
+  const scale = Math.min(outW / cropW, outH / cropH);
+  const drawW = Math.round(cropW * scale);
+  const drawH = Math.round(cropH * scale);
+  const dx = Math.round((outW - drawW) / 2);
+  const dy = Math.round((outH - drawH) / 2);
+  octx.drawImage(src, minX, minY, cropW, cropH, dx, dy, drawW, drawH);
+
+  return out;
+}
+
+// ── Manual crop tool ──────────────────────────────────────────
+let _cropMode = false;
+let _cropStart = null, _cropEnd = null;
+let _preCropCanvas = null;
+
+function enableCropMode() {
+  if (!_correctedCanvas && !_origImg) { showToast('Chọn ảnh trước!', 'warning'); return; }
+  _cropMode = true;
+  _preCropCanvas = _finalCanvas || _correctedCanvas || (() => {
+    const c = document.createElement('canvas');
+    c.width = _origImg.width; c.height = _origImg.height;
+    c.getContext('2d').drawImage(_origImg, 0, 0); return c;
+  })();
+
+  // Hiển thị canvas crop
+  const cropCanvas = document.getElementById('cropCanvas');
+  const maxW = Math.min(560, window.innerWidth - 80);
+  const scale = Math.min(maxW / _preCropCanvas.width, 400 / _preCropCanvas.height, 1);
+  cropCanvas.width  = Math.round(_preCropCanvas.width  * scale);
+  cropCanvas.height = Math.round(_preCropCanvas.height * scale);
+  cropCanvas._scale = scale;
+  cropCanvas.getContext('2d').drawImage(_preCropCanvas, 0, 0, cropCanvas.width, cropCanvas.height);
+  _cropStart = null; _cropEnd = null;
+  document.getElementById('imgStep_crop').style.display = 'block';
+  // Hide other steps
+  ['select','perspective','removebg'].forEach(s => document.getElementById('imgStep_'+s).style.display='none');
+}
+
+function onCropMouseDown(e) {
+  const canvas = document.getElementById('cropCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  _cropStart = { x: clientX - rect.left, y: clientY - rect.top };
+  _cropEnd = { ..._cropStart };
+  drawCropOverlay();
+}
+function onCropMouseMove(e) {
+  if (!_cropStart) return;
+  const canvas = document.getElementById('cropCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  _cropEnd = {
+    x: Math.max(0, Math.min(canvas.width,  clientX - rect.left)),
+    y: Math.max(0, Math.min(canvas.height, clientY - rect.top))
+  };
+  drawCropOverlay();
+}
+function onCropMouseUp() {
+  if (!_cropStart || !_cropEnd) return;
+  drawCropOverlay();
+}
+
+function drawCropOverlay() {
+  const canvas = document.getElementById('cropCanvas');
+  const ctx = canvas.getContext('2d');
+  // Redraw base image
+  ctx.drawImage(_preCropCanvas, 0, 0, canvas.width, canvas.height);
+  if (!_cropStart || !_cropEnd) return;
+  const x = Math.min(_cropStart.x, _cropEnd.x);
+  const y = Math.min(_cropStart.y, _cropEnd.y);
+  const cw = Math.abs(_cropEnd.x - _cropStart.x);
+  const ch = Math.abs(_cropEnd.y - _cropStart.y);
+  // Dim outside
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Clear crop area
+  ctx.clearRect(x, y, cw, ch);
+  ctx.drawImage(_preCropCanvas,
+    x / canvas._scale, y / canvas._scale, cw / canvas._scale, ch / canvas._scale,
+    x, y, cw, ch);
+  // Border
+  ctx.strokeStyle = '#3182ce';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 3]);
+  ctx.strokeRect(x, y, cw, ch);
+  ctx.setLineDash([]);
+}
+
+function applyCrop() {
+  if (!_cropStart || !_cropEnd) { showToast('Kéo chọn vùng crop trước!', 'warning'); return; }
+  const canvas = document.getElementById('cropCanvas');
+  const sc = canvas._scale || 1;
+  const x = Math.round(Math.min(_cropStart.x, _cropEnd.x) / sc);
+  const y = Math.round(Math.min(_cropStart.y, _cropEnd.y) / sc);
+  const cw = Math.round(Math.abs(_cropEnd.x - _cropStart.x) / sc);
+  const ch = Math.round(Math.abs(_cropEnd.y - _cropStart.y) / sc);
+  if (cw < 10 || ch < 10) { showToast('Vùng crop quá nhỏ!', 'warning'); return; }
+
+  const out = document.createElement('canvas');
+  out.width = cw; out.height = ch;
+  out.getContext('2d').drawImage(_preCropCanvas, x, y, cw, ch, 0, 0, cw, ch);
+  _correctedCanvas = out;
+  _cropStart = null; _cropEnd = null;
+
+  // Go to removebg step
+  const beforeCanvas = document.getElementById('previewBefore');
+  const s2 = Math.min(220/cw, 220/ch, 1);
+  beforeCanvas.width = Math.round(cw*s2); beforeCanvas.height = Math.round(ch*s2);
+  beforeCanvas.getContext('2d').drawImage(out, 0, 0, beforeCanvas.width, beforeCanvas.height);
+  document.getElementById('removebgStatus').textContent = 'Đã crop. Bấm Xoá nền hoặc Bỏ qua.';
+  document.getElementById('btnApplyRemoveBg').textContent = '🎨 Xoá nền & xác nhận';
+  document.getElementById('imgStep_crop').style.display = 'none';
+  goImgStep('removebg');
+  // Update after preview with cropped
+  const afterEl = document.getElementById('previewAfter');
+  const s3 = Math.min(220/cw, 220/ch, 1);
+  afterEl.width = Math.round(cw*s3); afterEl.height = Math.round(ch*s3);
+  afterEl.getContext('2d').drawImage(out, 0, 0, afterEl.width, afterEl.height);
 }
 
 function loadScript(src) {
