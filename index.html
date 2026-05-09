@@ -3559,26 +3559,32 @@ function renderPOGCanvas() {
         renderPOGCanvas();
       });
 
-      slot.addEventListener('pointerdown', (e) => {
-        if (e.target.closest('.slot-controls') || e.target.closest('.slot-btn')) return;
-        e.preventDefault(); e.stopPropagation();
-        const startX = e.clientX, startY = e.clientY;
-        let dragging = false;
-        const onMove = (ev) => {
-          if (!dragging && (Math.abs(ev.clientX-startX)>5 || Math.abs(ev.clientY-startY)>5)) {
-            dragging = true;
-            document.removeEventListener('pointermove', onMove);
-            _startSlotReorder(e, ti, pi);
-          }
-        };
-        const onUp = () => {
+      slot.dataset.capTi = ti;
+    slot.dataset.capPi = pi;
+    slot.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.slot-controls') || e.target.closest('.slot-btn')) return;
+      e.preventDefault(); e.stopPropagation();
+      const capTi = parseInt(slot.dataset.capTi);
+      const capPi = parseInt(slot.dataset.capPi);
+      const startX = e.clientX, startY = e.clientY;
+      let dragging = false;
+      const onMove = (ev) => {
+        if (!dragging && (Math.abs(ev.clientX-startX)>5 || Math.abs(ev.clientY-startY)>5)) {
+          dragging = true;
           document.removeEventListener('pointermove', onMove);
-          if (!dragging) {
-            selectedSlot = {tangIndex: ti, slotIndex: pi};
-            renderPOGCanvas();
-          }
-        };
-        document.addEventListener('pointermove', onMove, {passive:false});
+          _startSlotReorder(e, capTi, capPi);
+        }
+      };
+      const onUp = () => {
+        document.removeEventListener('pointermove', onMove);
+        if (!dragging) {
+          selectedSlot = {tangIndex: capTi, slotIndex: capPi};
+          renderPOGCanvas();
+        }
+      };
+      document.addEventListener('pointermove', onMove, {passive:false});
+      document.addEventListener('pointerup', onUp, {once:true});
+    });
         document.addEventListener('pointerup', onUp, {once:true});
       });
 
