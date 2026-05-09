@@ -2058,7 +2058,13 @@ function skipRemoveBg() {
   })();
   _finalCanvas = buildFinalCanvas(src);
   updateAfterPreview(_finalCanvas);
-  confirmProcessedImage();
+  // Không upload ngay — chỉ hiện nút Xác nhận & Lưu
+  const status = document.getElementById('removebgStatus');
+  status.textContent = '✅ Sẵn sàng lưu. Bấm "Xác nhận & Lưu" bên dưới.';
+  const btn = document.getElementById('btnApplyRemoveBg');
+  btn.disabled = false;
+  btn.textContent = '✅ Xác nhận & Lưu';
+  btn.onclick = () => confirmProcessedImage();
 }
 
 function buildFinalCanvas(imgOrCanvas) {
