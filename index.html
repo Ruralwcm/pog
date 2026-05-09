@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v24.6</title>
+<title>POG DESIGN by HaoDT v24.7</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -901,7 +901,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v24.6</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v24.7</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -920,7 +920,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.7</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.6</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v24.7</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1347,7 +1347,7 @@ let currentShelf = null;
 let pogConfig = null;  // {shelfId, shelfConfig, tầng:[{index, products:[]}]}
 let currentPOGId = null;
 let selectedSlot = null;  // {tangIndex, slotIndex}
-let zoom = 1;
+let zoom = 0.5;
 let selectedLibProduct = null;
 let editingShelfId = null;
 let _draggingMaSP = null; // track SP đang drag
@@ -3514,7 +3514,10 @@ function renderPOGCanvas() {
     const _totalFit = _fitW.reduce((s,w)=>s+w, 0);
     let xOffset = Math.max(0, Math.round((tangW - _totalFit) / 2));
     (tConfig.products || []).forEach((prod, pi) => {
-      const facing = prod.facing || 1;
+      // Auto-stack: tính max facing có thể chồng trong khoang (biên độ 120%)
+      const _singleCao = prod.rotated ? (prod.rong||10) : (prod.cao||20);
+      const _maxFacing = Math.max(1, Math.floor(tangH / Math.max(1, Math.round(_singleCao * sc)) * 1.2));
+      const facing = prod.facing || _maxFacing; // nếu user chưa set → auto stack tối đa
       // Support rotation: swap rong/cao when rotated
       const pxRong = prod.rotated
         ? Math.min(Math.max(10, Math.round((prod.cao||20)*sc)), tangW)
@@ -4234,7 +4237,10 @@ async function exportPNG() {
       for (const prod of tConfig.products) {
         const pxRong = Math.round(prod.rong * exportScale);
         const pxCao = Math.min(Math.round(prod.cao * exportScale), tangH - 4);
-        const facing = prod.facing || 1;
+        // Auto-stack: tính max facing có thể chồng trong khoang (biên độ 120%)
+      const _singleCao = prod.rotated ? (prod.rong||10) : (prod.cao||20);
+      const _maxFacing = Math.max(1, Math.floor(tangH / Math.max(1, Math.round(_singleCao * sc)) * 1.2));
+      const facing = prod.facing || _maxFacing; // nếu user chưa set → auto stack tối đa
 
         for (let f = 0; f < facing; f++) {
           const imgY = tangStartY + tangH - (f + 1) * pxCao;
