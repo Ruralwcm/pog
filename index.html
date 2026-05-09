@@ -1332,6 +1332,7 @@ let selectedSlot = null;  // {tangIndex, slotIndex}
 let zoom = 1;
 let selectedLibProduct = null;
 let editingShelfId = null;
+let _draggingMaSP = null; // track SP đang drag
 let editingProductMaSP = null;
 let editingDVT = '';
 let autosaveTimer = null;
@@ -3391,10 +3392,9 @@ function renderPOGCanvas() {
       e.preventDefault();
       e.stopPropagation();
       overlay.classList.remove('drag-over');
-      const maSP = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('Text');
-      console.log('[DROP] tang=', overlay.dataset.tang, 'maSP=', maSP);
+      const maSP = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('Text') || _draggingMaSP || (selectedLibProduct && selectedLibProduct.maSP);
+      console.log('[DROP] tang=', overlay.dataset.tang, 'maSP=', maSP, '_draggingMaSP=', _draggingMaSP);
       if (maSP) addProductToTang(parseInt(overlay.dataset.tang), maSP);
-      else if (selectedLibProduct) addProductToTang(parseInt(overlay.dataset.tang), selectedLibProduct.maSP);
     });
     // Click để thêm SP đã chọn
     overlay.addEventListener('click', e => {
@@ -3624,6 +3624,7 @@ function changeFacing(tangIndex, slotIndex, delta) {
 // ============================================================
 function onLibDragStart(event, maSP) {
   const prod = allProducts.find(p => p.maSP === maSP);
+  _draggingMaSP = maSP; // lưu global để dùng khi drop
   event.dataTransfer.setData('text/plain', maSP);
   event.dataTransfer.effectAllowed = 'copy';
 
@@ -3644,6 +3645,7 @@ function onLibDragStart(event, maSP) {
 }
 
 function onLibDragEnd(event) {
+  _draggingMaSP = null; // clear sau khi drag xong
   document.getElementById('dragGhost').classList.remove('active');
   document.removeEventListener('mousemove', moveDragGhost);
   document.querySelectorAll('.tầng-overlay').forEach(el => el.classList.remove('drag-over'));
