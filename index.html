@@ -1009,7 +1009,10 @@ img { max-width: 100%; }
         </div>
       </div>
       <div class="product-library">
-        <div class="sidebar-section-title" style="padding:12px 16px 4px">Kho sản phẩm</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px">
+          <div class="sidebar-section-title" style="padding:0">Kho sản phẩm</div>
+          <button onclick="reloadProducts()" title="Làm mới danh sách SP" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray-500)" title="Làm mới">🔄</button>
+        </div>
         <div class="library-filters">
           <input type="text" class="library-search" id="librarySearch" placeholder="🔍 Tìm sản phẩm..." oninput="filterLibrary()">
           <select class="library-filter-select" id="libraryDanhMuc" onchange="onLibraryDanhMucChange()">
@@ -1429,6 +1432,27 @@ function handleLogout() {
 // ============================================================
 // PRODUCT DATA LOADING
 // ============================================================
+async function reloadProducts() {
+  showLoading('Đang làm mới danh sách SP...');
+  try {
+    await apiGet({ action: 'clearCache' });
+    allProducts = [];
+    const data = await apiGet({ action: 'getProducts' });
+    if (Array.isArray(data)) {
+      allProducts = data;
+      populateProductFilters();
+      populateLibraryFilters();
+      renderLibrary();
+      filterProducts();
+      showToast('✅ Đã làm mới danh sách SP!', 'success');
+    }
+  } catch(e) {
+    showToast('Lỗi reload: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
 async function loadProductsData() {
   if (allProducts.length > 0) return; // already loaded
   try {
@@ -1522,7 +1546,7 @@ function renderProductGrid(products) {
 
   grid.innerHTML = products.map(p => {
     const imgHtml = p.linkAnh
-      ? `<img src="${formatImgUrl(p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img src="${formatImgUrl(p.linkThumb || p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const noImgStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="product-card">
@@ -1984,22 +2008,35 @@ function updateAfterPreview(canvas) {
 async function confirmProcessedImage() {
   if (!_finalCanvas) { showToast('Chưa có ảnh để lưu!', 'error'); return; }
   const maSP = editingProductMaSP;
-  const filename = maSP.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now() + '.png';
+  const p = allProducts.find(x => x.maSP === maSP) || {};
 
-  // Auto-crop sát mép trước khi upload
+  // Auto-crop sát mép
   const croppedCanvas = autoCropCanvas(_finalCanvas);
 
-  // Nén về JPEG để giảm size (tránh timeout Apps Script)
-  const base64 = croppedCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
-  const sizeKB = Math.round(base64.length * 3 / 4 / 1024);
+  // Tạo ảnh POG ~200px (thumbnail tự generate bằng Drive URL sz param)
+  const pogCanvas = document.createElement('canvas');
+  const pogMax = 200;
+  const pogScale = Math.min(pogMax / croppedCanvas.width, pogMax / croppedCanvas.height, 1);
+  pogCanvas.width  = Math.round(croppedCanvas.width  * pogScale);
+  pogCanvas.height = Math.round(croppedCanvas.height * pogScale);
+  const pogCtx = pogCanvas.getContext('2d');
+  pogCtx.fillStyle = '#ffffff';
+  pogCtx.fillRect(0, 0, pogCanvas.width, pogCanvas.height);
+  pogCtx.drawImage(croppedCanvas, 0, 0, pogCanvas.width, pogCanvas.height);
+  const base64Pog = pogCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
 
-  if (sizeKB > 5000) {
-    showToast(`⚠️ Ảnh quá lớn (${sizeKB}KB). Đang nén thêm...`, 'warning');
-  }
-
+  const sizeKB = Math.round(base64Pog.length * 3 / 4 / 1024);
   showLoading(`Đang upload ảnh (~${sizeKB}KB) lên Drive...`);
   try {
-    const res = await apiPost({ action: 'uploadProductImage', maSP, base64, filename });
+    const res = await apiPost({
+      action: 'uploadProductImage',
+      maSP, base64: base64Pog,
+      tenSP: p.tenSP || '', danhMuc: p.danhMuc || '',
+      mch3: p.mch3 || '', mch4: p.mch4 || '',
+      dvt: p.dvt || '',
+      rong: parseFloat(document.getElementById('editRong').value) || 0,
+      cao:  parseFloat(document.getElementById('editCao').value)  || 0
+    });
     hideLoading();
     console.log('[POG] uploadProductImage response:', res);
     if (res.success && res.driveUrl) {
@@ -2011,19 +2048,22 @@ async function confirmProcessedImage() {
       const rong = parseFloat(document.getElementById('editRong').value) || 0;
       const cao  = parseFloat(document.getElementById('editCao').value)  || 0;
       if (idx >= 0) {
-        allProducts[idx].linkAnh = res.driveUrl;
-        allProducts[idx].hasPhoto = true;
-        allProducts[idx].rong = rong;
-        allProducts[idx].cao  = cao;
+        allProducts[idx].linkAnh   = res.driveUrl;
+        allProducts[idx].linkThumb = res.driveUrlThumb || res.driveUrl;
+        allProducts[idx].hasPhoto  = true;
+        allProducts[idx].rong = parseFloat(document.getElementById('editRong').value) || allProducts[idx].rong;
+        allProducts[idx].cao  = parseFloat(document.getElementById('editCao').value)  || allProducts[idx].cao;
       }
-      // Tự động lưu link + kích thước vào GSheet luôn
+      // Tự động lưu link + kích thước vào GSheet + xóa cache
       try {
         showLoading('Đang cập nhật Google Sheet...');
         const updateRes = await apiPost({ action: 'updateProduct', maSP, rong, cao, linkAnh: res.driveUrl });
         hideLoading();
         console.log('[POG] updateProduct response:', updateRes);
         if (updateRes.success) {
-          showToast('✅ Upload Drive + lưu Sheet thành công!', 'success');
+          // Xóa cache để lần load sau lấy data mới
+          apiGet({ action: 'clearCache' }).catch(() => {});
+          showToast('✅ Upload Drive + lưu Sheet thành công! Bấm 🔄 để làm mới danh sách SP.', 'success');
         } else {
           showToast('⚠️ Upload Drive OK nhưng lưu Sheet lỗi: ' + (updateRes.error || 'unknown'), 'warning');
         }
@@ -2967,7 +3007,7 @@ function renderLibrary() {
   list.innerHTML = filtered.map(p => {
     const isSelected = selectedLibProduct && selectedLibProduct.maSP === p.maSP;
     const thumbHtml = p.linkAnh
-      ? `<img class="lib-product-thumb" src="${formatImgUrl(p.linkAnh)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="lib-product-thumb" src="${formatImgUrl(p.linkThumb || p.linkAnh)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const placeholderStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="lib-product-item${isSelected ? ' selected-product' : ''}"
