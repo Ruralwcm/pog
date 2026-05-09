@@ -1979,6 +1979,12 @@ async function confirmProcessedImage() {
       document.getElementById('editLinkAnh').value = res.driveUrl;
       switchImgTab('link');
       previewEditImage();
+      // Cập nhật local product data ngay (không chờ cache expire)
+      const idx = allProducts.findIndex(p => p.maSP === maSP);
+      if (idx >= 0) {
+        allProducts[idx].linkAnh = res.driveUrl;
+        allProducts[idx].hasPhoto = true;
+      }
       showToast('✅ Upload ảnh thành công!', 'success');
     } else {
       // Fallback: store dataURL locally
@@ -2091,6 +2097,7 @@ function renderShelfGrid() {
       </div>
       <div class="shelf-actions">
         <button class="btn-select-shelf" onclick="selectShelfFromLibrary(${JSON.stringify(s.id)})">📐 Dùng</button>
+        <button class="btn-select-shelf" style="background:#f0ad4e;color:white;border-color:#f0ad4e" onclick="openCreateShelfModal(${JSON.stringify(s.id)})">✏️ Sửa</button>
         <button class="btn-delete-shelf" onclick="deleteShelf(${JSON.stringify(s.id)}, ${JSON.stringify(s.ten)})">🗑</button>
       </div>
     </div>`;
@@ -2356,10 +2363,21 @@ async function saveShelf() {
 
 function deleteShelf(id, name) {
   openConfirm(`Xoá kệ "${name}"?`, 'Dữ liệu sẽ không thể khôi phục.', async () => {
-    // Remove from local (no backend delete for now, just remove from UI)
-    allShelves = allShelves.filter(s => s.id !== id);
-    renderShelfGrid();
-    showToast('Đã xoá kệ', 'info');
+    showLoading('Đang xoá...');
+    try {
+      const res = await apiPost({ action: 'deleteShelf', id });
+      hideLoading();
+      if (res.success) {
+        allShelves = allShelves.filter(s => s.id !== id);
+        renderShelfGrid();
+        showToast('✅ Đã xoá kệ', 'success');
+      } else {
+        showToast('❌ ' + (res.error || 'Lỗi xoá kệ'), 'error');
+      }
+    } catch(e) {
+      hideLoading();
+      showToast('❌ Lỗi: ' + e.message, 'error');
+    }
   });
 }
 
@@ -2744,14 +2762,25 @@ function selectLibProduct(maSP) {
 // ============================================================
 // SHELF SELECTION & CANVAS RENDER
 // ============================================================
-function openShelfPickerModal() {
+async function openShelfPickerModal() {
   const grid = document.getElementById('shelfPickerGrid');
+  // Nếu chưa load shelves → load trước
+  if (allShelves.length === 0) {
+    grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Đang tải...</p></div>`;
+    openModal('modalShelfPicker');
+    try {
+      const data = await apiGet({ action: 'getShelves', username: currentUser.username });
+      if (Array.isArray(data)) allShelves = data;
+    } catch(e) {}
+  }
   if (allShelves.length === 0) {
     grid.innerHTML = `<div class="empty-list" style="grid-column:1/-1">
       <div class="empty-icon">🗄️</div>
       <p>Chưa có kệ nào. Hãy vào <strong>Thư viện Kệ</strong> để tạo kệ.</p>
     </div>`;
-  } else {
+    return;
+  }
+  if (allShelves.length > 0) {
     grid.innerHTML = allShelves.map(s => {
       const svgHtml = generateShelfSVG(s, 140, 110);
       const loaiIcon = getShelfIcon(s.loai);
