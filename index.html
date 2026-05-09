@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v25.2</title>
+<title>POG DESIGN by HaoDT v25.3</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -293,6 +293,7 @@ img { max-width: 100%; }
 }
 .product-card .product-size { font-size: 11px; color: var(--gray-500); margin-bottom: 6px; }
 .product-card .product-masp { font-size: 10px; color: var(--gray-400); margin-bottom: 4px; }
+.product-card .product-barcode { font-size:10px; color:var(--gray-400); margin-bottom:2px; }
 .btn-edit-product {
   width: 100%;
   padding: 6px;
@@ -901,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v25.2</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v25.3</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -920,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.2</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.3</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -967,6 +968,8 @@ img { max-width: 100%; }
         <option value="">-- Tất cả MCH3 --</option>
       </select>
       <input type="text" class="search-input" id="searchProduct" placeholder="🔍 Tìm tên SP, mã SP..." oninput="filterProducts()">
+      <button id="filterNoImg" onclick="toggleFilter('noImg')" style="padding:6px 12px;border:2px solid var(--gray-300);border-radius:var(--radius);font-size:13px;background:#fff;cursor:pointer">📷 Chưa có ảnh</button>
+      <button id="filterNoSize" onclick="toggleFilter('noSize')" style="padding:6px 12px;border:2px solid var(--gray-300);border-radius:var(--radius);font-size:13px;background:#fff;cursor:pointer">📐 Chưa có KT</button>
       <span class="results-count" id="resultsCount">0 sản phẩm</span>
     </div>
     <div class="product-grid" id="productGrid">
@@ -1007,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.2</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v25.3</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1108,6 +1111,14 @@ img { max-width: 100%; }
         <label class="form-label">Đơn vị tính (ĐVT) *</label>
         <div id="editDvtGroup" style="display:flex;gap:8px;flex-wrap:wrap"></div>
         <div style="font-size:11px;color:#718096;margin-top:4px">Mỗi ĐVT có kích thước và ảnh riêng</div>
+      </div>
+      <!-- Barcode -->
+      <div style="margin-bottom:12px">
+        <label class="form-label">Barcode</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-input" id="editBarcode" placeholder="EAN/UPC barcode..." style="flex:1">
+          <button onclick="searchProductOnline()" style="padding:9px 14px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;white-space:nowrap">🔍 Tìm kiếm</button>
+        </div>
       </div>
       <div class="edit-form-row" style="margin-bottom:12px">
         <div>
@@ -1342,6 +1353,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbyOhJikSxjNZQ5AILdAQhng
 let currentUser = null;
 let allProducts = [];
 let filteredProducts = [];
+let activeFilters = new Set();
 let allShelves = [];
 let currentShelf = null;
 let pogConfig = null;  // {shelfId, shelfConfig, tầng:[{index, products:[]}]}
@@ -1581,9 +1593,29 @@ function filterProducts() {
     }
     return true;
   });
+  if (activeFilters.has('noImg')) filteredProducts = filteredProducts.filter(p => !p.hasPhoto);
+  if (activeFilters.has('noSize')) filteredProducts = filteredProducts.filter(p => !p.rong || !p.cao);
 
   document.getElementById('resultsCount').textContent = filteredProducts.length + ' sản phẩm';
   renderProductGrid(filteredProducts);
+}
+
+function toggleFilter(name) {
+  if (activeFilters.has(name)) { activeFilters.delete(name); }
+  else { activeFilters.add(name); }
+  document.getElementById('filterNoImg').style.background = activeFilters.has('noImg') ? 'var(--danger)' : '#fff';
+  document.getElementById('filterNoImg').style.color = activeFilters.has('noImg') ? '#fff' : 'inherit';
+  document.getElementById('filterNoSize').style.background = activeFilters.has('noSize') ? 'var(--danger)' : '#fff';
+  document.getElementById('filterNoSize').style.color = activeFilters.has('noSize') ? '#fff' : 'inherit';
+  filterProducts();
+}
+
+function searchProductOnline() {
+  const barcode = document.getElementById('editBarcode').value.trim();
+  const tenSP = document.getElementById('editProductName').textContent.trim();
+  const query = [barcode, tenSP].filter(Boolean).join(' ');
+  if (!query) { showToast('Nhập barcode hoặc tên SP để tìm kiếm', 'warning'); return; }
+  window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
 }
 
 function renderProductGrid(products) {
@@ -1598,7 +1630,7 @@ function renderProductGrid(products) {
 
   grid.innerHTML = products.map(p => {
     const imgHtml = p.linkAnh
-      ? `<img src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img src="${formatThumbUrl(p.linkAnh)}" alt="${escHtml(p.tenSP)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const noImgStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="product-card">
@@ -1613,6 +1645,7 @@ function renderProductGrid(products) {
       <div class="product-info">
         <div class="product-masp">${escHtml(p.maSP)}</div>
         <div class="product-name" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</div>
+        <div class="product-barcode">${escHtml(p.barcode||'')}</div>
         <div class="product-size">${p.rong > 0 ? p.rong+'cm' : '?'} × ${p.cao > 0 ? p.cao+'cm' : '?'} | ${escHtml(p.dvt||'')}</div>
         <button class="btn-edit-product" onclick="openEditProduct(this)" data-masp="${p.maSP.replace(/"/g,'&quot;')}">✏️ Chỉnh sửa</button>
       </div>
@@ -1688,6 +1721,7 @@ function openEditProduct(btnEl) {
   document.getElementById('editRong').value = defaultVariant.rong || '';
   document.getElementById('editCao').value = defaultVariant.cao || '';
   document.getElementById('editLinkAnh').value = defaultVariant.linkAnh || '';
+  document.getElementById('editBarcode').value = p.barcode || '';
   // Update header thumbnail
   const headerImg = document.getElementById('editProductImgHeader');
   const headerPlaceholder = document.getElementById('editProductImgHeaderPlaceholder');
@@ -1728,6 +1762,7 @@ function closeEditProductModal() {
   document.getElementById('btnToggleUpload').textContent = '📷 Cập nhật ảnh mới ▼';
   document.getElementById('editRong').value = '';
   document.getElementById('editCao').value = '';
+  document.getElementById('editBarcode').value = '';
   document.getElementById('removebgStatus').textContent = '';
 
   // Reset perspective canvas + SVG
@@ -2167,6 +2202,7 @@ async function confirmProcessedImage() {
       tenSP: p.tenSP || '', danhMuc: p.danhMuc || '',
       mch3: p.mch3 || '', mch4: p.mch4 || '',
       dvt: dvt || p.dvt || '',
+      barcode: document.getElementById('editBarcode').value.trim(),
       rong: parseFloat(document.getElementById('editRong').value) || 0,
       cao:  parseFloat(document.getElementById('editCao').value)  || 0
     });
@@ -2182,9 +2218,8 @@ async function confirmProcessedImage() {
       const rong = parseFloat(document.getElementById('editRong').value) || 0;
       const cao  = parseFloat(document.getElementById('editCao').value)  || 0;
       if (idx >= 0) {
-        allProducts[idx].linkAnh   = res.driveUrl;
-        allProducts[idx].linkThumb = res.driveUrlThumb || res.driveUrl;
-        allProducts[idx].hasPhoto  = true;
+        allProducts[idx].linkAnh  = res.driveUrl;
+        allProducts[idx].hasPhoto = true;
         allProducts[idx].rong = rong || allProducts[idx].rong;
         allProducts[idx].cao  = cao  || allProducts[idx].cao;
       }
@@ -2439,6 +2474,7 @@ async function saveProductEdit() {
   const rong = parseFloat(document.getElementById('editRong').value) || 0;
   const cao = parseFloat(document.getElementById('editCao').value) || 0;
   const linkAnh = document.getElementById('editLinkAnh').value.trim();
+  const barcode = document.getElementById('editBarcode').value.trim();
 
   // Find current product entry (matching maSP + dvt if possible)
   const pEntry = allProducts.find(x => x.maSP === maSP && x.dvt === dvt)
@@ -2454,7 +2490,7 @@ async function saveProductEdit() {
       danhMuc: pEntry.danhMuc || '',
       mch3: pEntry.mch3 || '',
       mch4: pEntry.mch4 || '',
-      rong, cao, linkAnh
+      rong, cao, linkAnh, barcode
     });
     if (res.success) {
       // Update local cache — find exact match by maSP + dvt
@@ -2464,6 +2500,7 @@ async function saveProductEdit() {
         allProducts[idx].cao = cao;
         allProducts[idx].linkAnh = linkAnh;
         allProducts[idx].hasPhoto = !!linkAnh;
+        allProducts[idx].barcode = barcode;
       } else {
         // Fallback: update first match
         const idx2 = allProducts.findIndex(p => p.maSP === maSP);
@@ -2472,6 +2509,7 @@ async function saveProductEdit() {
           allProducts[idx2].cao = cao;
           allProducts[idx2].linkAnh = linkAnh;
           allProducts[idx2].hasPhoto = !!linkAnh;
+          allProducts[idx2].barcode = barcode;
         }
       }
       closeModal('modalEditProduct');
@@ -3176,7 +3214,7 @@ function renderLibrary() {
   list.innerHTML = filtered.map(p => {
     const isSelected = selectedLibProduct && selectedLibProduct.maSP === p.maSP;
     const thumbHtml = p.linkAnh
-      ? `<img class="lib-product-thumb" src="${formatThumbUrl(p.linkThumb || p.linkAnh)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="lib-product-thumb" src="${formatThumbUrl(p.linkAnh)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
     const placeholderStyle = p.linkAnh ? 'display:none' : '';
     return `<div class="lib-product-item${isSelected ? ' selected-product' : ''}"
@@ -3758,8 +3796,8 @@ function _showDvtPicker(tangIndex, variants) {
     // Safely serialize the prod object to avoid JSON issues in onclick
     const idx = allProducts.indexOf(v);
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:8px;transition:background 0.15s" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='#fff'" onclick="_doAddProductToTangByIdx(${tangIndex}, ${idx}); closeModal('modalDvtPicker')">
-      ${v.linkThumb || v.linkAnh
-        ? `<img src="${formatThumbUrl(v.linkThumb || v.linkAnh)}" style="width:48px;height:48px;object-fit:contain;border-radius:4px;background:#f8f9fa;border:1px solid #e2e8f0" onerror="this.style.display='none'">`
+      ${v.linkAnh
+        ? `<img src="${formatThumbUrl(v.linkAnh)}" style="width:48px;height:48px;object-fit:contain;border-radius:4px;background:#f8f9fa;border:1px solid #e2e8f0" onerror="this.style.display='none'">`
         : '<div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div>'
       }
       <div>
@@ -4428,11 +4466,7 @@ function formatImgUrl(url) {
 }
 
 function formatThumbUrl(url) {
-  if (!url) return '';
-  if (url.includes('lh3.googleusercontent.com')) return url;
-  const id = _extractDriveId(url);
-  if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-  return url;
+  return formatImgUrl(url);
 }
 
 function formatDate(isoStr) {
