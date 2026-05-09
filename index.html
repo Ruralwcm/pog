@@ -4049,18 +4049,20 @@ function _extractDriveId(url) {
   return null;
 }
 
+// Dùng lh3.googleusercontent.com — direct image link, không bị CORS block từ GitHub Pages
 function formatImgUrl(url) {
   if (!url) return '';
+  if (url.includes('lh3.googleusercontent.com')) return url;
   const id = _extractDriveId(url);
-  if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+  if (id) return `https://lh3.googleusercontent.com/d/${id}`;
   return url;
 }
 
-// Thumbnail URL — dùng uc?export=view (không bị CORS block từ GitHub Pages)
 function formatThumbUrl(url) {
   if (!url) return '';
+  if (url.includes('lh3.googleusercontent.com')) return url;
   const id = _extractDriveId(url);
-  if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+  if (id) return `https://lh3.googleusercontent.com/d/${id}`;
   return url;
 }
 
