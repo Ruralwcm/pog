@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v28.7</title>
+<title>POG DESIGN by HaoDT v28.8</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -902,7 +902,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v28.7</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v28.8</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -921,7 +921,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.8</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1010,7 +1010,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v28.8</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3332,10 +3332,9 @@ function renderMultiDeviceCanvas() {
         const _mf=Math.max(1,Math.floor(tangH*1.2/Math.max(1,_sc)));
         const fac=prod.facing||_mf;
         const pxC=Math.min(_sc*fac,Math.round(tangH*1.2));
-        const totalStackH=pxC; // pre-declare before slot
         const slot=document.createElement('div');
         slot.className='product-slot';
-        slot.style.cssText='width:'+pxR+'px;height:'+totalStackH+'px;position:absolute;left:'+Math.min(xOff,Math.max(0,tangW-pxR))+'px;bottom:0;';
+        slot.style.cssText='width:'+pxR+'px;height:'+pxC+'px;position:absolute;left:'+Math.min(xOff,Math.max(0,tangW-pxR))+'px;bottom:0;';
         slot.dataset.capDeviceIdx=di;slot.dataset.capTi=ti;slot.dataset.capPi=pi;
         if(selectedSlot&&selectedSlot.deviceIdx===di&&selectedSlot.tangIndex===ti&&selectedSlot.slotIndex===pi)slot.classList.add('selected');
         const ic=document.createElement('div');
