@@ -3364,25 +3364,33 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 // ============================================================
 function openCreatePOGModal(isEdit) {
   // Fill current values nếu edit
-  if (isEdit && pogDevices && pogDevices.length > 0) {
-    document.getElementById('newPogName').value = document.getElementById('pogNameInput').value || '';
+ isEdit && pogDevices && pogDevices.length > 0) {
+    document.getElementById('newPogName').value = (document.getElementById('pogNameInputHidden')?.value || document.getElementById('pogNameInput').textContent || '').trim();
     document.getElementById('newPogDesc').value = window.pogDesc || '';
-    document.getElementById('newPogCount').value = pogDevices.length;
-    // Ẩn các trường chỉ dùng khi tạo mới
-    ['newPogLoai','newPogTemplate','newPogSeries'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.closest('div[style*="margin-bottom"]')?.style.setProperty('display','none');
-    });
+    // Loại thiết bị + số lượng cùng hàng - tạo inline display
+    const _loaiWrap = document.querySelector('[name="newPogLoai"]')?.closest('div');
+    const _cntWrap = document.getElementById('newPogCount')?.closest('div[style*="margin-bottom"]') || document.getElementById('newPogCount')?.closest('div');
+    if (_loaiWrap) _loaiWrap.style.display = 'none';
+    if (_cntWrap) _cntWrap.style.display = 'none';
+    let _eld = document.getElementById('_editLoaiDisplay');
+    if (!_eld) { _eld = document.createElement('div'); _eld.id = '_editLoaiDisplay'; _eld.style.marginBottom = '14px'; document.getElementById('newPogName').closest('div').parentNode.insertBefore(_eld, document.querySelector('#modalCreatePOG .modal-footer')); }
+    const _cl = pogDevices[0]?.loai || 'ke';
+    _eld.style.display = 'block';
+    _eld.innerHTML = '<div class="form-label">Loại TTB & Số lượng</div><div style="display:flex;gap:10px;align-items:center"><div style="flex:1;padding:9px 12px;border:2px solid var(--primary);border-radius:var(--radius);font-weight:600;color:var(--primary);background:#e8f0fe">' + getShelfIcon(_cl) + ' ' + getShelfLabel(_cl) + '</div><input type="number" id="_editCount" value="' + pogDevices.length + '" min="1" max="20" style="width:80px;padding:9px;border:2px solid var(--gray-300);border-radius:var(--radius);text-align:center;font-size:15px;font-weight:600"></div>';
+    // Ẩn mẫu kệ và series
+    ['newPogTemplate','newPogSeries'].forEach(id => { const el = document.getElementById(id); if(el) { const w = el.closest('div[style*="margin-bottom"]') || el.closest('div'); if(w) w.style.display = 'none'; }});
     document.querySelector('#modalCreatePOG .modal-title').textContent = '✏️ Edit POG';
     document.querySelector('#modalCreatePOG .btn-primary').textContent = '✅ Cập nhật POG';
   } else {
-    ['newPogLoai','newPogTemplate','newPogSeries'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.closest('div[style*="margin-bottom"]')?.style.removeProperty('display');
-    });
+    // Reset về Tạo mới
+    ['newPogTemplate','newPogSeries'].forEach(id => { const el = document.getElementById(id); if(el) { const w = el.closest('div[style*="margin-bottom"]') || el.closest('div'); if(w) w.style.display = ''; }});
+    const _loaiWrap2 = document.querySelector('[name="newPogLoai"]')?.closest('div');
+    const _cntWrap2 = document.getElementById('newPogCount')?.closest('div[style*="margin-bottom"]') || document.getElementById('newPogCount')?.closest('div');
+    if (_loaiWrap2) _loaiWrap2.style.display = '';
+    if (_cntWrap2) _cntWrap2.style.display = '';
+    document.getElementById('_editLoaiDisplay')?.remove();
     document.querySelector('#modalCreatePOG .modal-title').textContent = '📐 Tạo POG mới';
     document.querySelector('#modalCreatePOG .btn-primary').textContent = '📐 Tạo POG';
-  }
   window._pogEditMode = isEdit || false;
   _updatePOGTemplateList();
   // Cập nhật mẫu kệ khi đổi loại TTB
@@ -3426,7 +3434,7 @@ function createNewPOG() {
     const dd3 = document.getElementById('pogDescDisplay');
     if (dd3) dd3.textContent = desc.toUpperCase();
     // Thêm/bớt TTB
-    const newCount = Math.max(1, Math.min(20, parseInt(document.getElementById('newPogCount').value)||pogDevices.length));
+    const newCount = Math.max(1, Math.min(20, parseInt((document.getElementById('_editCount')||document.getElementById('newPogCount'))?.value)||pogDevices.length));
     while (pogDevices.length < newCount) {
       const ref = pogDevices[0];
       pogDevices.push({id:pogDevices.length+1,series:ref.series?ref.series.replace(/\d+$/,'')+(pogDevices.length+1):'',soTang:ref.soTang,rongTong:ref.rongTong,loai:ref.loai,tangList:JSON.parse(JSON.stringify(ref.tangList)),tầng:Array.from({length:ref.soTang},(_,j)=>({index:j,products:[]}))});
