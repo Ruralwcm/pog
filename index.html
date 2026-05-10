@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v32.7</title>
+<title>POG DESIGN by HaoDT v32.8</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v32.7</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v32.8</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.8</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.7</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.8</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1055,8 +1055,9 @@ img { max-width: 100%; }
           <button id="btnAddDevice" onclick="addDeviceToPOG()" disabled style="padding:8px 16px;background:var(--success);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:not-allowed;min-width:110px;opacity:0.4">➕ Thêm TTB</button>
           <button id="btnCancelPOG" onclick="cancelPOG()" disabled style="padding:8px 16px;background:#fff;color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius);font-size:13px;cursor:not-allowed;min-width:80px;opacity:0.4">🗑️ Hủy</button>
         </div>
-        <input type="text" class="pog-name-input" id="pogNameInput" placeholder="Tên POG..." value="POG Mới">
-        <span id="pogDescLabel" style="font-size:12px;color:var(--gray-500);flex-shrink:0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <button id="btnUploadExcel" style="padding:8px 14px;background:#fff;color:var(--primary);border:1px solid var(--primary);border-radius:var(--radius);font-size:13px;cursor:pointer;flex-shrink:0" onclick="document.getElementById('excelFileInput').click()">📂 Excel</button>
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none">
+        <div style="display:flex;align-items:baseline;gap:8px;flex:1;overflow:hidden;min-width:0"><span id="pogNameDisplay" style="font-weight:700;font-size:16px;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;display:inline-block">POG Mới</span><span id="pogDescLabel" style="font-size:13px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;display:inline-block"></span></div>
         <div class="zoom-controls">
           <button class="btn-zoom" onclick="setZoom(zoom - 0.1)">−</button>
           <span class="zoom-label" id="zoomLabel">100%</span>
@@ -3296,7 +3297,7 @@ function _updatePOGToolbar(hasActivePOG) {
 function openCreatePOGModal(isEdit) {
   if (isEdit) {
     // Edit mode: fill existing POG info
-    const currentName = document.getElementById('pogNameInput').value.trim() || '';
+    const currentName = (document.getElementById('pogNameDisplay')?.textContent || window._currentPOGName || '').trim();
     const currentDesc = window._currentPOGDesc || '';
     document.getElementById('newPogName').value = currentName;
     document.getElementById('newPogDesc').value = currentDesc;
@@ -3338,7 +3339,7 @@ function updateExistingPOG() {
   if (!ten) { showToast('Vui lòng nhập tên POG', 'warning'); return; }
   const desc = document.getElementById('newPogDesc').value.trim();
   window._currentPOGDesc = desc;
-  document.getElementById('pogNameInput').value = ten;
+  const _nd3=document.getElementById('pogNameDisplay');if(_nd3)_nd3.textContent=ten;
   window._currentPOGName = ten;
   // Update desc label
   const descLabel = document.getElementById('pogDescLabel');
@@ -3389,7 +3390,7 @@ function createNewPOG() {
   currentPOGId = null;
   const desc = document.getElementById('newPogDesc').value.trim();
   window._currentPOGDesc = desc;
-  document.getElementById('pogNameInput').value = ten;
+  const _nd2=document.getElementById('pogNameDisplay');if(_nd2)_nd2.textContent=ten;window._currentPOGName=ten;
   const descLabel = document.getElementById('pogDescLabel');
   if (descLabel) descLabel.textContent = desc ? ('- ' + desc) : '';
   setAutosave('new');
@@ -3798,7 +3799,7 @@ function cancelPOG() {
   currentPOGId = null;
   pogConfig = null;
   currentShelf = null;
-  document.getElementById('pogNameInput').value = 'POG Mới';
+  const _nd=document.getElementById('pogNameDisplay');if(_nd)_nd.textContent='POG Mới';window._currentPOGName='POG Mới';
   const cont = document.getElementById('pogCanvasContainer');
   if (cont) { while(cont.firstChild) cont.removeChild(cont.firstChild); }
   const empty = document.getElementById('pogEmptyState');
@@ -4113,7 +4114,7 @@ function selectShelf(shelfOrId) {
       tầng: Array.from({ length: shelf.soTang }, (_, i) => ({ index: i, products: [] }))
     };
     currentPOGId = null;
-    document.getElementById('pogNameInput').value = 'POG Mới';
+    const _nd=document.getElementById('pogNameDisplay');if(_nd)_nd.textContent='POG Mới';window._currentPOGName='POG Mới';
     setAutosave('new');
   }
 
@@ -4757,7 +4758,7 @@ async function autoSavePOG() {
     await apiPost({
       action: 'savePOG',
       id: currentPOGId,
-      ten: document.getElementById('pogNameInput').value.trim() || 'POG',
+      ten: (document.getElementById('pogNameDisplay')?.textContent||window._currentPOGName||'POG').trim(),
       username: currentUser.username,
       shelfId: currentShelf?.id || '',
       jsonConfig: (pogDevices && pogDevices.length > 0) ? {devices: pogDevices, loai: pogLoai} : pogConfig
@@ -4772,13 +4773,9 @@ async function autoSavePOG() {
 async function savePOG() {
   if (!pogConfig && (!pogDevices || pogDevices.length === 0)) { showToast('Chưa có POG. Bấm ➕ Tạo POG!', 'warning'); return; }
   // Đọc tên POG từ nhiều nguồn (input hoặc text element)
-  const _nameEl = document.getElementById('pogNameInput');
-  let name = (_nameEl?.value || _nameEl?.textContent || window._currentPOGName || '').trim();
-  if (!name) {
-    name = prompt('Nhập tên POG:') || 'POG';
-    if (_nameEl) { if (_nameEl.tagName === 'INPUT') _nameEl.value = name; else _nameEl.textContent = name; }
-    window._currentPOGName = name;
-  }
+  const _nameEl = document.getElementById('pogNameDisplay');
+  let name = (_nameEl?.textContent || window._currentPOGName || '').trim();
+  if (!name) { showToast('Vui lòng đặt tên POG trước khi lưu!','warning'); return; }
 
   showLoading('Đang lưu POG...');
   try {
@@ -4805,6 +4802,26 @@ async function savePOG() {
   }
 }
 
+async function deletePOGFile(pogId, pogName) {
+  const confirmed = await new Promise(resolve => {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:14px 20px;border-radius:12px;z-index:99999;display:flex;gap:10px;align-items:center;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.4)';
+    toast.innerHTML = '<span>🗑️ Xóa vĩnh viễn "<b>' + pogName + '</b>"?</span><button id="_cfYes" style="background:#e53e3e;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600">✅ Xóa</button><button id="_cfNo" style="background:#4a5568;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer">❌ Hủy</button>';
+    document.body.appendChild(toast);
+    toast.querySelector('#_cfYes').onclick = () => { document.body.removeChild(toast); resolve(true); };
+    toast.querySelector('#_cfNo').onclick = () => { document.body.removeChild(toast); resolve(false); };
+  });
+  if (!confirmed) return;
+  showLoading('Đang xóa...');
+  try {
+    await apiPost({ action: 'deletePOG', id: pogId, username: currentUser.username });
+    hideLoading();
+    showToast('✅ Đã xóa POG "' + pogName + '"', 'success');
+    if (currentPOGId === pogId) { cancelPOG(); }
+    openPOGListModal();
+  } catch(e) { hideLoading(); showToast('❌ Lỗi xóa: ' + e.message, 'error'); }
+}
+
 async function openPOGListModal() {
   openModal('modalPOGList');
   const body = document.getElementById('pogListBody');
@@ -4827,6 +4844,11 @@ async function openPOGListModal() {
     const isCurrent = currentPOGId === p.id;
     item.innerHTML = '<span class="pog-list-icon">📐</span><div class="pog-list-details"><div class="pog-list-name">' + escHtml(p.ten) + (isCurrent ? ' <span style="background:#1a3c6e;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px">Hiện tại</span>' : '') + '</div><div class="pog-list-meta">Tạo: ' + formatDate(p.ngayTao) + ' · ' + escHtml(p.nguoiTao) + '</div></div><span class="pog-list-arrow">›</span>';
     item.addEventListener('click', (function(pid) { return function() { console.log('[POG] Loading:', pid); loadPOG(pid); }; })(p.id));
+    const delFileBtn = document.createElement('button');
+    delFileBtn.textContent = '🗑️ Xóa file';
+    delFileBtn.style.cssText = 'padding:5px 10px;background:#fff;color:#e53e3e;border:1px solid #e53e3e;border-radius:6px;font-size:11px;cursor:pointer;margin-left:4px;flex-shrink:0';
+    delFileBtn.addEventListener('click', (function(pid, pname) { return function(e) { e.stopPropagation(); deletePOGFile(pid, pname); }; })(p.id, p.ten));
+    item.appendChild(delFileBtn);
     body.appendChild(item);
   });
   } catch(e) {
@@ -4849,7 +4871,7 @@ async function loadPOG(id) {
     if (!data.id && !data.success) { showToast('❌ ' + (data.error||'Không tìm thấy POG') + '. Hãy Save trước!', 'error'); hideLoading(); return; }
 
     currentPOGId = data.id;
-    document.getElementById('pogNameInput').value = data.ten || 'POG';
+    const _nd4=document.getElementById('pogNameDisplay');if(_nd4)_nd4.textContent=data.ten||'POG';window._currentPOGName=data.ten||'POG';
     const jc = data.jsonConfig || {};
     if (jc.devices && Array.isArray(jc.devices)) {
       pogDevices = jc.devices; pogLoai = jc.loai||(pogDevices[0]?.loai)||'ke';
@@ -4893,7 +4915,7 @@ async function exportPNG() {
       const margin = 60;
       const gap = 20;
       const N = pogDevices.length;
-      const pogName = document.getElementById('pogNameInput').value.trim() || 'POG';
+      const pogName = (document.getElementById('pogNameDisplay')?.textContent||window._currentPOGName||'POG').trim();
       const dateStr = new Date().toLocaleDateString('vi-VN');
       const titleH = 80;
       const labelH = 40;
@@ -5355,7 +5377,7 @@ async function exportPNG() {
     }
 
     // Title
-    const pogName = document.getElementById('pogNameInput').value.trim() || 'POG';
+    const pogName = (document.getElementById('pogNameDisplay')?.textContent||window._currentPOGName||'POG').trim();
     ctx.fillStyle = '#1a3c6e';
     ctx.font = `bold 36px sans-serif`;
     ctx.textAlign = 'left';
@@ -5503,6 +5525,68 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Delete' && selectedSlot && document.getElementById('screenPOG').classList.contains('active')) {
     removeProductFromTang(selectedSlot.tangIndex, selectedSlot.slotIndex);
   }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Excel upload handler - bind sau DOM ready
+  const excelInput = document.getElementById('excelFileInput');
+  if (excelInput) excelInput.addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!window.XLSX) {
+      showToast('Đang tải thư viện Excel...', 'info');
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    const ab = await file.arrayBuffer();
+    const wb = XLSX.read(ab, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    const dataRows = rows.slice(1).filter(r => r[3]);
+    if (!dataRows.length) { showToast('File Excel không có dữ liệu!', 'warning'); return; }
+    const deviceMap = {};
+    const loaiSet = new Set();
+    dataRows.forEach(r => {
+      const loai = (r[0]||'ke').toLowerCase();
+      const stt = parseInt(r[1])||1;
+      const tang = parseInt(r[2])||1;
+      const maSP = String(r[3]).trim();
+      const dvt = String(r[4]||'').trim();
+      loaiSet.add(loai);
+      if (!deviceMap[stt]) deviceMap[stt] = {};
+      if (!deviceMap[stt][tang]) deviceMap[stt][tang] = [];
+      deviceMap[stt][tang].push({maSP, dvt});
+    });
+    const loai = loaiSet.values().next().value || 'ke';
+    const deviceKeys = Object.keys(deviceMap).map(Number).sort((a,b)=>a-b);
+    pogLoai = loai;
+    pogDevices = deviceKeys.map(stt => {
+      const tangData = deviceMap[stt];
+      const tangKeys = Object.keys(tangData).map(Number).sort((a,b)=>a-b);
+      const soTang = Math.max(...tangKeys);
+      const tangArr = Array.from({length: soTang}, (_,i) => {
+        const products = (tangData[i+1]||[]).map(item => {
+          const sp = allProducts.find(p => p.maHang===item.maSP||p.maSP===item.maSP||p.barcode===item.maSP);
+          return sp ? {...sp} : {maSP:item.maSP, tenSP:item.maSP, rong:10, cao:40, linkDrive:'', dvt:item.dvt||''};
+        });
+        return {index: i, products};
+      });
+      return {id:stt, series:String(stt), soTang, rongTong:100, loai, tangList:Array.from({length:soTang},()=>({cao:40,rong:100})), tầng:tangArr};
+    });
+    currentDeviceIdx = 0; currentPOGId = null;
+    const pogName = file.name.replace(/\.[^.]+$/,'');
+    const nd = document.getElementById('pogNameDisplay');
+    if (nd) nd.textContent = pogName;
+    window._currentPOGName = pogName;
+    renderMultiDeviceCanvas();
+    _updatePOGToolbar(true);
+    showToast('✅ Tạo POG từ Excel: '+deviceKeys.length+' TTB — bấm 💾 Save để lưu!','success');
+    this.value='';
+  });
 });
 </script>
 </body>
