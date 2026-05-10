@@ -516,13 +516,7 @@ img { max-width: 100%; }
   min-width: 0;
 }
 .pog-info-panel {
-  width: 250px;
-  min-width: 220px;
-  background: #fff;
-  border-left: 2px solid #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: none; /* ẩn panel diễn giải để mở rộng canvas */
 }
 .pog-toolbar {
   padding: 12px 20px;
@@ -1018,10 +1012,7 @@ img { max-width: 100%; }
   <div class="pog-layout">
     <!-- LEFT SIDEBAR -->
     <div class="pog-sidebar">
-      <div class="sidebar-section">
-          <div class="sidebar-section-title">POG</div>
-          <div id="currentShelfInfo"></div>
-        </div>
+      <div id="currentShelfInfo" style="display:none"></div>
       <div class="sidebar-section" style="padding:8px 12px;border-bottom:1px solid var(--gray-200)">
         <div class="autosave-indicator" id="autosaveIndicator" style="margin-bottom:4px">Chưa lưu</div>
         <div style="display:flex;gap:4px">
