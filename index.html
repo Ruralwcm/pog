@@ -3362,7 +3362,7 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 // ============================================================
 function openCreatePOGModal(isEdit) {
   // Fill current values nếu edit
- isEdit && pogDevices && pogDevices.length > 0) {
+  if (isEdit && pogDevices && pogDevices.length > 0) {
     document.getElementById('newPogName').value = (document.getElementById('pogNameInputHidden')?.value || document.getElementById('pogNameInput').textContent || '').trim();
     document.getElementById('newPogDesc').value = window.pogDesc || '';
     // Loại thiết bị + số lượng cùng hàng - tạo inline display
