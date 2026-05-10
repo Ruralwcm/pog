@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v32.9</title>
+<title>POG DESIGN by HaoDT v33.0</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v32.9</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v33.0</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.0</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.0</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -4848,8 +4848,14 @@ async function openPOGListModal() {
     delFileBtn.textContent = '🗑️ Xóa file';
     delFileBtn.style.cssText = 'padding:5px 10px;background:#fff;color:#e53e3e;border:1px solid #e53e3e;border-radius:6px;font-size:11px;cursor:pointer;margin-left:4px;flex-shrink:0';
     delFileBtn.addEventListener('click', (function(pid, pname) { return function(e) { e.stopPropagation(); deletePOGFile(pid, pname); }; })(p.id, p.ten));
-    item.appendChild(delFileBtn);
-    body.appendChild(item);
+    // Wrap item + delBtn trong container
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:flex;align-items:center;gap:6px;border-bottom:1px solid #f0f0f0;';
+    item.style.flex = '1';
+    item.style.borderBottom = 'none';
+    wrapper.appendChild(item);
+    wrapper.appendChild(delFileBtn);
+    body.appendChild(wrapper);
   });
   } catch(e) {
     body.innerHTML = `<div class="empty-list"><div class="empty-icon">❌</div><p>Lỗi tải: ${e.message}</p></div>`;
