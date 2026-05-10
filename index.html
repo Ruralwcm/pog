@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v30.1</title>
+<title>POG DESIGN by HaoDT v30.2</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -896,7 +896,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v30.1</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v30.2</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -915,7 +915,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.2</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1004,7 +1004,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.2</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1257,6 +1257,38 @@ img { max-width: 100%; }
             <svg id="shelfPreviewSVG" width="200" height="180"></svg>
           </div>
         </div>
+        <div class="full-width" style="margin-top:12px">
+          <label class="form-label">🎨 Màu nền & Đường viền</label>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;color:#4a5568">Nền:</span>
+              <input type="color" id="shelfBgColor" value="#ffffff" style="width:36px;height:30px;border:1px solid #cbd5e0;cursor:pointer;border-radius:4px" oninput="updateShelfPreview()">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;color:#4a5568">Viền:</span>
+              <input type="color" id="shelfBorderColor" value="#1a3c6e" style="width:36px;height:30px;border:1px solid #cbd5e0;cursor:pointer;border-radius:4px" oninput="updateShelfPreview()">
+            </div>
+            <div style="display:flex;gap:4px;align-items:center">
+              <span style="font-size:11px;color:#718096">T:</span><input type="number" id="shelfBorderTop" value="0" min="0" max="20" style="width:44px;padding:3px;border:1px solid #cbd5e0;border-radius:3px;font-size:12px;text-align:center" oninput="updateShelfPreview()">
+              <span style="font-size:11px;color:#718096">P:</span><input type="number" id="shelfBorderRight" value="0" min="0" max="20" style="width:44px;padding:3px;border:1px solid #cbd5e0;border-radius:3px;font-size:12px;text-align:center" oninput="updateShelfPreview()">
+              <span style="font-size:11px;color:#718096">D:</span><input type="number" id="shelfBorderBottom" value="0" min="0" max="20" style="width:44px;padding:3px;border:1px solid #cbd5e0;border-radius:3px;font-size:12px;text-align:center" oninput="updateShelfPreview()">
+              <span style="font-size:11px;color:#718096">T:</span><input type="number" id="shelfBorderLeft" value="0" min="0" max="20" style="width:44px;padding:3px;border:1px solid #cbd5e0;border-radius:3px;font-size:12px;text-align:center" oninput="updateShelfPreview()">
+            </div>
+          </div>
+        </div>
+        <div class="full-width" style="margin-top:8px">
+          <label class="form-label">📝 Text Header & Bottom (chữ trắng)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <div style="font-size:11px;color:#718096;margin-bottom:3px">Header</div>
+              <input type="text" class="form-input" id="shelfHeaderText" placeholder="VD: KHU BÁNH KẸO" oninput="updateShelfPreview()">
+            </div>
+            <div>
+              <div style="font-size:11px;color:#718096;margin-bottom:3px">Bottom</div>
+              <input type="text" class="form-input" id="shelfBottomText" placeholder="VD: WinMart+" oninput="updateShelfPreview()">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1406,6 +1438,7 @@ let selectedSlot = null;  // {tangIndex, slotIndex}
 let zoom = 0.5;
 let selectedLibProduct = null;
 let editingShelfId = null;
+const shelfExtraConfigs = {}; // {shelfId: {bgColor, borderColor, borderTop, borderRight, borderBottom, borderLeft, headerText, bottomText}}
 let _draggingMaSP = null; // track SP đang drag
 let editingProductMaSP = null;
 let editingDVT = '';
@@ -2715,6 +2748,16 @@ function openCreateShelfModal(shelfId) {
   _updateShelfFormLabels(loai);
 
   openModal('modalCreateShelf');
+  // Fill extra config
+  const ec = shelfId ? (shelfExtraConfigs[shelfId] || {}) : {};
+  document.getElementById('shelfBgColor').value = ec.bgColor || '#ffffff';
+  document.getElementById('shelfBorderColor').value = ec.borderColor || '#1a3c6e';
+  document.getElementById('shelfBorderTop').value = ec.borderTop || 0;
+  document.getElementById('shelfBorderRight').value = ec.borderRight || 0;
+  document.getElementById('shelfBorderBottom').value = ec.borderBottom || 0;
+  document.getElementById('shelfBorderLeft').value = ec.borderLeft || 0;
+  document.getElementById('shelfHeaderText').value = ec.headerText || '';
+  document.getElementById('shelfBottomText').value = ec.bottomText || '';
   updateShelfPreview();
 }
 
@@ -2892,6 +2935,16 @@ async function saveShelf() {
   const loai     = document.querySelector('[name="shelfLoai"]:checked')?.value || 'ke';
   const tangList = getTangListFromForm();
   const caoTang  = tangList[0]?.cao || 40; // backward compat
+  const extraConfig = {
+    bgColor: document.getElementById('shelfBgColor').value || '#ffffff',
+    borderColor: document.getElementById('shelfBorderColor').value || '#1a3c6e',
+    borderTop: parseInt(document.getElementById('shelfBorderTop').value) || 0,
+    borderRight: parseInt(document.getElementById('shelfBorderRight').value) || 0,
+    borderBottom: parseInt(document.getElementById('shelfBorderBottom').value) || 0,
+    borderLeft: parseInt(document.getElementById('shelfBorderLeft').value) || 0,
+    headerText: document.getElementById('shelfHeaderText').value.trim(),
+    bottomText: document.getElementById('shelfBottomText').value.trim()
+  };
 
   showLoading('Đang lưu kệ...');
   try {
@@ -2903,9 +2956,12 @@ async function saveShelf() {
       rongTong,
       caoTang,
       tangList: JSON.stringify(tangList),
+      extraConfig: JSON.stringify(extraConfig),
       username: currentUser.username
     });
     if (res.success) {
+      if (res.id) shelfExtraConfigs[res.id] = extraConfig;
+      else if (editingShelfId) shelfExtraConfigs[editingShelfId] = extraConfig;
       closeModal('modalCreateShelf');
       await loadShelves();
       showToast('Đã lưu kệ!', 'success');
@@ -2995,6 +3051,15 @@ function generateShelfSVG(shelf, svgW, svgH) {
   const tangList = getShelfTangList(shelf);
   const totalCao = tangList.reduce((a, tl) => a + tl.cao, 0);
 
+  // ExtraConfig for border/color/text
+  const ec = shelfExtraConfigs[shelf.id] || {};
+  const bgColor = ec.bgColor || null; // null = use type default
+  const ecBorderColor = ec.borderColor || null;
+  const bTop = ec.borderTop || 0, bRight = ec.borderRight || 0;
+  const bBottom = ec.borderBottom || 0, bLeft = ec.borderLeft || 0;
+  const headerText = ec.headerText || '';
+  const bottomText = ec.bottomText || '';
+
   const padding = 8;
   const innerW = svgW - padding * 2;
   const x = padding, y = padding;
@@ -3002,7 +3067,7 @@ function generateShelfSVG(shelf, svgW, svgH) {
   // ── Dumpin / Ụ đảo ─────────────────────────────────────────
   if (loai === 'dumpin' || loai === 'uDao') {
     const isDumpin = loai === 'dumpin';
-    const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
+    const outerFill = bgColor || (isDumpin ? '#f5e6c8' : '#e8d5f5');
     const borderColor = isDumpin ? '#5d3a1a' : '#6b46c1';
     const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
 
@@ -3042,6 +3107,24 @@ function generateShelfSVG(shelf, svgW, svgH) {
       cumY += mamH;
     }
 
+    // Extra border lines for dumpin/uDao
+    if (ecBorderColor) {
+      if (bTop > 0)    svg += `<line x1="${x}" y1="${y}" x2="${x+innerW}" y2="${y}" stroke="${ecBorderColor}" stroke-width="${bTop}"/>`;
+      if (bRight > 0)  svg += `<line x1="${x+innerW}" y1="${y}" x2="${x+innerW}" y2="${y+bodyH}" stroke="${ecBorderColor}" stroke-width="${bRight}"/>`;
+      if (bBottom > 0) svg += `<line x1="${x}" y1="${y+bodyH}" x2="${x+innerW}" y2="${y+bodyH}" stroke="${ecBorderColor}" stroke-width="${bBottom}"/>`;
+      if (bLeft > 0)   svg += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y+bodyH}" stroke="${ecBorderColor}" stroke-width="${bLeft}"/>`;
+    }
+    // Header text bar
+    if (headerText) {
+      svg += `<rect x="${x}" y="${y}" width="${innerW}" height="14" fill="${ecBorderColor||borderColor}" opacity="0.85"/>`;
+      svg += `<text x="${x+innerW/2}" y="${y+10}" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">${headerText}</text>`;
+    }
+    // Bottom text bar
+    if (bottomText) {
+      svg += `<rect x="${x}" y="${y+bodyH-14}" width="${innerW}" height="14" fill="${ecBorderColor||borderColor}" opacity="0.85"/>`;
+      svg += `<text x="${x+innerW/2}" y="${y+bodyH-4}" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">${bottomText}</text>`;
+    }
+
     svg += '</svg>';
     return svg;
   }
@@ -3057,9 +3140,9 @@ function generateShelfSVG(shelf, svgW, svgH) {
   if (hasHeader) {
     svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH}" fill="#1a3c6e" rx="4" ry="4"/>`;
     svg += `<text x="${x+innerW/2}" y="${y+headerH/2+5}" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
-    svg += `<rect x="${x}" y="${y+headerH}" width="${innerW}" height="${bodyH}" fill="#e8f4fd"/>`;
+    svg += `<rect x="${x}" y="${y+headerH}" width="${innerW}" height="${bodyH}" fill="${bgColor || '#e8f4fd'}"/>`;
   } else {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="#f5e6c8"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="${bgColor || '#f5e6c8'}"/>`;
   }
 
   // Tầng dividers — proportional to each cao
@@ -3081,9 +3164,30 @@ function generateShelfSVG(shelf, svgW, svgH) {
 
   // Outer border
   if (hasHeader) {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH+bodyH}" fill="none" stroke="#1a3c6e" stroke-width="2" rx="4" ry="4"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH+bodyH}" fill="none" stroke="${ecBorderColor||'#1a3c6e'}" stroke-width="2" rx="4" ry="4"/>`;
   } else {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="none" stroke="#5d3a1a" stroke-width="2"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="none" stroke="${ecBorderColor||'#5d3a1a'}" stroke-width="2"/>`;
+  }
+
+  // Extra border lines for ke/tu
+  if (ecBorderColor) {
+    const totalBodyY = y + headerH;
+    if (bTop > 0)    svg += `<line x1="${x}" y1="${totalBodyY}" x2="${x+innerW}" y2="${totalBodyY}" stroke="${ecBorderColor}" stroke-width="${bTop}"/>`;
+    if (bRight > 0)  svg += `<line x1="${x+innerW}" y1="${totalBodyY}" x2="${x+innerW}" y2="${totalBodyY+bodyH}" stroke="${ecBorderColor}" stroke-width="${bRight}"/>`;
+    if (bBottom > 0) svg += `<line x1="${x}" y1="${totalBodyY+bodyH}" x2="${x+innerW}" y2="${totalBodyY+bodyH}" stroke="${ecBorderColor}" stroke-width="${bBottom}"/>`;
+    if (bLeft > 0)   svg += `<line x1="${x}" y1="${totalBodyY}" x2="${x}" y2="${totalBodyY+bodyH}" stroke="${ecBorderColor}" stroke-width="${bLeft}"/>`;
+  }
+  // Header text bar (over the shelf body top)
+  if (headerText) {
+    const htY = y + headerH;
+    svg += `<rect x="${x}" y="${htY}" width="${innerW}" height="14" fill="${ecBorderColor||'#1a3c6e'}" opacity="0.85"/>`;
+    svg += `<text x="${x+innerW/2}" y="${htY+10}" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">${headerText}</text>`;
+  }
+  // Bottom text bar
+  if (bottomText) {
+    const btY = y + headerH + bodyH - 14;
+    svg += `<rect x="${x}" y="${btY}" width="${innerW}" height="14" fill="${ecBorderColor||'#1a3c6e'}" opacity="0.85"/>`;
+    svg += `<text x="${x+innerW/2}" y="${btY+10}" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">${bottomText}</text>`;
   }
 
   svg += '</svg>';
@@ -3106,6 +3210,15 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   const bodyPxH = pxH - headerPxH;
   const shelfLineH = 6;
 
+  // ExtraConfig for border/color/text
+  const cec = shelfExtraConfigs[shelf.id] || {};
+  const cBgColor = cec.bgColor || null;
+  const cBorderColor = cec.borderColor || null;
+  const cBTop = cec.borderTop || 0, cBRight = cec.borderRight || 0;
+  const cBBottom = cec.borderBottom || 0, cBLeft = cec.borderLeft || 0;
+  const cHeaderText = cec.headerText || '';
+  const cBottomText = cec.bottomText || '';
+
   // Pixel height per level (proportional)
   // Đảm bảo đủ soTang phần tử (fallback nếu tangList thiếu)
   const tangListFull = Array.from({length: soTang}, (_, i) => tangList[i] || {cao: (totalCao/soTang)||40, rong: rongTong});
@@ -3124,7 +3237,7 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   // ── Dumpin / Ụ đảo canvas SVG ──────────────────────────────
   if (loai === 'dumpin' || loai === 'uDao') {
     const isDumpin = loai === 'dumpin';
-    const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
+    const outerFill = cBgColor || (isDumpin ? '#f5e6c8' : '#e8d5f5');
     const borderColor = isDumpin ? '#5d3a1a' : '#6b46c1';
     const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
     const rx = isDumpin ? 0 : 8;
@@ -3151,9 +3264,30 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
     }
 
     // Outer border
-    svg += `<rect x="1" y="1" width="${pxW-2}" height="${bodyPxH-2}" fill="none" stroke="${borderColor}" stroke-width="2"/>`;
+    svg += `<rect x="1" y="1" width="${pxW-2}" height="${bodyPxH-2}" fill="none" stroke="${cBorderColor||borderColor}" stroke-width="2"/>`;
+    // Extra border lines
+    if (cBorderColor) {
+      if (cBTop > 0)    svg += `<line x1="0" y1="0" x2="${pxW}" y2="0" stroke="${cBorderColor}" stroke-width="${cBTop}"/>`;
+      if (cBRight > 0)  svg += `<line x1="${pxW}" y1="0" x2="${pxW}" y2="${bodyPxH}" stroke="${cBorderColor}" stroke-width="${cBRight}"/>`;
+      if (cBBottom > 0) svg += `<line x1="0" y1="${bodyPxH}" x2="${pxW}" y2="${bodyPxH}" stroke="${cBorderColor}" stroke-width="${cBBottom}"/>`;
+      if (cBLeft > 0)   svg += `<line x1="0" y1="0" x2="0" y2="${bodyPxH}" stroke="${cBorderColor}" stroke-width="${cBLeft}"/>`;
+    }
+    // Header text bar
+    const cHdrFontSize = Math.max(10, Math.min(18, bodyPxH * 0.08));
+    const cHdrBarH = cHdrFontSize + 8;
+    if (cHeaderText) {
+      svg += `<rect x="0" y="0" width="${pxW}" height="${cHdrBarH}" fill="${cBorderColor||borderColor}" opacity="0.9"/>`;
+      svg += `<text x="${pxW/2}" y="${cHdrBarH*0.7}" text-anchor="middle" fill="white" font-size="${cHdrFontSize}" font-weight="bold" font-family="sans-serif">${cHeaderText}</text>`;
+    }
+    // Bottom text bar
+    const cBtmFontSize = Math.max(10, Math.min(18, bodyPxH * 0.08));
+    const cBtmBarH = cBtmFontSize + 8;
+    if (cBottomText) {
+      svg += `<rect x="0" y="${bodyPxH-cBtmBarH}" width="${pxW}" height="${cBtmBarH}" fill="${cBorderColor||borderColor}" opacity="0.9"/>`;
+      svg += `<text x="${pxW/2}" y="${bodyPxH-cBtmBarH*0.3}" text-anchor="middle" fill="white" font-size="${cBtmFontSize}" font-weight="bold" font-family="sans-serif">${cBottomText}</text>`;
+    }
     // Bottom line
-    svg += `<rect x="0" y="${bodyPxH}" width="${pxW}" height="${shelfLineH}" fill="${borderColor}"/>`;
+    svg += `<rect x="0" y="${bodyPxH}" width="${pxW}" height="${shelfLineH}" fill="${cBorderColor||borderColor}"/>`;
 
     svg += '</svg>';
     return { svg, headerPxH: 0, bodyPxH, tangPxHList, tangPxWList, shelfLineH };
@@ -3165,9 +3299,9 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   if (hasHeader) {
     svg += `<rect x="0" y="0" width="${pxW}" height="${headerPxH}" fill="#1a3c6e"/>`;
     svg += `<text x="${pxW/2}" y="${headerPxH/2+6}" text-anchor="middle" fill="white" font-size="${Math.max(12,headerPxH*0.4)}" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
-    svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${bodyPxH}" fill="#e8f4fd"/>`;
+    svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${bodyPxH}" fill="${cBgColor||'#e8f4fd'}"/>`;
   } else {
-    svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="#f5e6c8"/>`;
+    svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="${cBgColor||'#f5e6c8'}"/>`;
   }
 
   // Tầng dividers
@@ -3180,10 +3314,33 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 
   // Bottom thick shelf line
   const bottomY = headerPxH + bodyPxH;
-  svg += `<rect x="0" y="${bottomY}" width="${pxW}" height="${shelfLineH}" fill="${hasHeader ? '#1a3c6e' : '#5d3a1a'}"/>`;
+  svg += `<rect x="0" y="${bottomY}" width="${pxW}" height="${shelfLineH}" fill="${cBorderColor||(hasHeader ? '#1a3c6e' : '#5d3a1a')}"/>`;
 
   // Outer border
-  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH-1}" fill="none" stroke="${hasHeader ? '#1a3c6e' : '#5d3a1a'}" stroke-width="2"/>`;
+  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH-1}" fill="none" stroke="${cBorderColor||(hasHeader ? '#1a3c6e' : '#5d3a1a')}" stroke-width="2"/>`;
+
+  // Extra border lines for ke/tu
+  if (cBorderColor) {
+    const cBodyStartY = headerPxH;
+    if (cBTop > 0)    svg += `<line x1="0" y1="${cBodyStartY}" x2="${pxW}" y2="${cBodyStartY}" stroke="${cBorderColor}" stroke-width="${cBTop}"/>`;
+    if (cBRight > 0)  svg += `<line x1="${pxW}" y1="${cBodyStartY}" x2="${pxW}" y2="${cBodyStartY+bodyPxH}" stroke="${cBorderColor}" stroke-width="${cBRight}"/>`;
+    if (cBBottom > 0) svg += `<line x1="0" y1="${cBodyStartY+bodyPxH}" x2="${pxW}" y2="${cBodyStartY+bodyPxH}" stroke="${cBorderColor}" stroke-width="${cBBottom}"/>`;
+    if (cBLeft > 0)   svg += `<line x1="0" y1="${cBodyStartY}" x2="0" y2="${cBodyStartY+bodyPxH}" stroke="${cBorderColor}" stroke-width="${cBLeft}"/>`;
+  }
+  // Header text bar (at top of body)
+  const cHdrFontSizeKT = Math.max(10, Math.min(18, bodyPxH * 0.08));
+  const cHdrBarHKT = cHdrFontSizeKT + 8;
+  if (cHeaderText) {
+    svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${cHdrBarHKT}" fill="${cBorderColor||(hasHeader?'#1a3c6e':'#5d3a1a')}" opacity="0.9"/>`;
+    svg += `<text x="${pxW/2}" y="${headerPxH+cHdrBarHKT*0.7}" text-anchor="middle" fill="white" font-size="${cHdrFontSizeKT}" font-weight="bold" font-family="sans-serif">${cHeaderText}</text>`;
+  }
+  // Bottom text bar
+  const cBtmFontSizeKT = Math.max(10, Math.min(18, bodyPxH * 0.08));
+  const cBtmBarHKT = cBtmFontSizeKT + 8;
+  if (cBottomText) {
+    svg += `<rect x="0" y="${headerPxH+bodyPxH-cBtmBarHKT}" width="${pxW}" height="${cBtmBarHKT}" fill="${cBorderColor||(hasHeader?'#1a3c6e':'#5d3a1a')}" opacity="0.9"/>`;
+    svg += `<text x="${pxW/2}" y="${headerPxH+bodyPxH-cBtmBarHKT*0.3}" text-anchor="middle" fill="white" font-size="${cBtmFontSizeKT}" font-weight="bold" font-family="sans-serif">${cBottomText}</text>`;
+  }
 
   svg += '</svg>';
   return { svg, headerPxH, bodyPxH, tangPxHList, tangPxWList, shelfLineH };
