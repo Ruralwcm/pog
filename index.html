@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v32.5</title>
+<title>POG DESIGN by HaoDT v32.6</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v32.5</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v32.6</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.6</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.5</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.6</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3339,6 +3339,7 @@ function updateExistingPOG() {
   const desc = document.getElementById('newPogDesc').value.trim();
   window._currentPOGDesc = desc;
   document.getElementById('pogNameInput').value = ten;
+  window._currentPOGName = ten;
   // Update desc label
   const descLabel = document.getElementById('pogDescLabel');
   if (descLabel) descLabel.textContent = desc ? ('- ' + desc) : '';
@@ -3398,7 +3399,7 @@ function createNewPOG() {
   _updatePOGToolbar(true);
   showToast('✅ Tạo POG "' + ten + '" với ' + count + ' TTB — đang lưu...', 'success');
   // Auto-save ngay sau khi tạo
-  setTimeout(() => savePOG(), 500);
+  setTimeout(() => savePOG(), 800);
 }
 
 function renderMultiDeviceCanvas() {
@@ -4772,10 +4773,13 @@ async function autoSavePOG() {
 
 async function savePOG() {
   if (!pogConfig && (!pogDevices || pogDevices.length === 0)) { showToast('Chưa có POG. Bấm ➕ Tạo POG!', 'warning'); return; }
-  let name = document.getElementById('pogNameInput').value.trim();
+  // Đọc tên POG từ nhiều nguồn (input hoặc text element)
+  const _nameEl = document.getElementById('pogNameInput');
+  let name = (_nameEl?.value || _nameEl?.textContent || window._currentPOGName || '').trim();
   if (!name) {
     name = prompt('Nhập tên POG:') || 'POG';
-    document.getElementById('pogNameInput').value = name;
+    if (_nameEl) { if (_nameEl.tagName === 'INPUT') _nameEl.value = name; else _nameEl.textContent = name; }
+    window._currentPOGName = name;
   }
 
   showLoading('Đang lưu POG...');
