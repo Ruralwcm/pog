@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v31.3</title>
+<title>POG DESIGN by HaoDT v31.4</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -896,7 +896,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v31.3</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v31.4</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -915,7 +915,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v31.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v31.4</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1004,7 +1004,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v31.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v31.4</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -5496,13 +5496,21 @@ async function exportPNG() {
 function openModal(id) {
   const el = document.getElementById(id);
   el.classList.add('active');
-  // Scroll modal vào view
-  el.scrollTop = 0;
-  // Đảm bảo overlay ở trên cùng
+  el.style.display = 'flex';
+  el.style.position = 'fixed';
+  el.style.inset = '0';
   el.style.zIndex = '10000';
+  el.style.alignItems = 'center';
+  el.style.justifyContent = 'center';
+  el.style.padding = '20px';
+  el.style.background = 'rgba(0,0,0,0.55)';
+  const modal = el.querySelector('.modal');
+  if (modal) modal.scrollTop = 0;
 }
 function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
+  const el = document.getElementById(id);
+  el.classList.remove('active');
+  el.style.display = '';
 }
 
 // Close modal on overlay click
