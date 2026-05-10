@@ -3806,6 +3806,27 @@ function _updateInfoPanelMulti() {
   el.innerHTML=html||'<div style="color:#adb5bd">Chưa có SP</div>';
 }
 
+async function deleteCurrentPOGFile() {
+  if (!currentPOGId) { showToast('Không có file POG nào đang mở!', 'warning'); return; }
+  const pogName = document.getElementById('pogNameDisplay')?.textContent || window._currentPOGName || 'POG này';
+  const confirmed = await new Promise(resolve => {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:14px 20px;border-radius:12px;z-index:99999;display:flex;gap:10px;align-items:center;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.4)';
+    t.innerHTML = '<span>🗑️ Xóa "<b>' + pogName + '</b>"?</span><button id="_dYes" style="background:#e53e3e;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600">✅ Xóa</button><button id="_dNo" style="background:#4a5568;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer">❌ Hủy</button>';
+    document.body.appendChild(t);
+    t.querySelector('#_dYes').onclick = () => { document.body.removeChild(t); resolve(true); };
+    t.querySelector('#_dNo').onclick = () => { document.body.removeChild(t); resolve(false); };
+  });
+  if (!confirmed) return;
+  showLoading('Đang xóa...');
+  try {
+    await apiPost({ action: 'deletePOG', id: currentPOGId, username: currentUser.username });
+    hideLoading();
+    showToast('✅ Đã xóa POG "' + pogName + '"', 'success');
+    cancelPOG();
+  } catch(e) { hideLoading(); showToast('❌ Lỗi: ' + e.message, 'error'); }
+}
+
 function cancelPOG() {
   pogDevices = [];
   currentDeviceIdx = 0;
