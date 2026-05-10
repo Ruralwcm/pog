@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v30.9</title>
+<title>POG DESIGN by HaoDT v31.0</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -896,7 +896,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v30.9</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v31.0</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -915,7 +915,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v31.0</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1004,7 +1004,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.9</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v31.0</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1686,6 +1686,7 @@ function filterProducts() {
 
   document.getElementById('resultsCount').textContent = filteredProducts.length + ' sản phẩm';
   renderProductGrid(filteredProducts);
+  setTimeout(_bindEditProductBtns, 50);
 }
 
 function toggleFilter(name) {
@@ -1738,7 +1739,7 @@ function renderProductGrid(products) {
         <div class="product-name" title="${escHtml(p.tenSP)}">${escHtml(p.tenSP)}</div>
         <div class="product-barcode">${escHtml(p.barcode||'')}</div>
         <div class="product-size">${p.rong > 0 ? p.rong+'cm' : '?'} × ${p.cao > 0 ? p.cao+'cm' : '?'} | ${escHtml(p.dvt||'')}</div>
-        <button class="btn-edit-product" onclick="openEditProduct(this)" data-masp="${p.maSP.replace(/"/g,'&quot;')}">✏️ Chỉnh sửa</button>
+        <button class="btn-edit-product edit-product-btn" data-masp="${p.maSP.replace(/"/g,'&quot;')}">✏️ Chỉnh sửa</button>
       </div>
     </div>`;
   }).join('');
@@ -1747,6 +1748,15 @@ function renderProductGrid(products) {
 // ============================================================
 // EDIT PRODUCT
 // ============================================================
+function _bindEditProductBtns() {
+  document.querySelectorAll('.edit-product-btn').forEach(btn => {
+    if (!btn._bound) {
+      btn.addEventListener('click', () => openEditProduct(btn));
+      btn._bound = true;
+    }
+  });
+}
+
 function openEditProduct(btnEl) {
   const maSP = btnEl ? btnEl.getAttribute('data-masp') : null;
   if (!maSP) { showToast('Không tìm thấy mã SP', 'error'); return; }
