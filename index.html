@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v30.0</title>
+<title>POG DESIGN by HaoDT v30.1</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -896,7 +896,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v30.0</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v30.1</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -915,7 +915,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.0</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.1</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1004,7 +1004,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.0</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.1</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1055,6 +1055,7 @@ img { max-width: 100%; }
           <span class="zoom-label" id="zoomLabel">100%</span>
           <button class="btn-zoom" onclick="setZoom(zoom + 0.1)">+</button>
           <button class="btn-zoom" onclick="setZoom(1)" title="Reset zoom">↺</button>
+          <button id="btnAddDevice" onclick="addDeviceToPOG()" style="display:none;padding:6px 12px;background:var(--success);color:#fff;border:none;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;margin-left:8px">➕ Thêm TTB</button>
         </div>
       </div>
       <div class="pog-canvas-scroll" id="pogCanvasScroll">
@@ -3192,15 +3193,27 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 // SCREEN 5: POG DESIGNER
 // ============================================================
 function openCreatePOGModal() {
-  const sel = document.getElementById('newPogTemplate');
-  sel.innerHTML = '<option value="">-- Không dùng mẫu --</option>';
-  allShelves.forEach(s => {
-    const o = document.createElement('option');
-    o.value = s.id;
-    o.textContent = getShelfIcon(s.loai) + ' ' + escHtml(s.ten);
-    sel.appendChild(o);
+  _updatePOGTemplateList();
+  // Cập nhật mẫu kệ khi đổi loại TTB
+  document.querySelectorAll('[name="newPogLoai"]').forEach(r => {
+    r.onchange = _updatePOGTemplateList;
   });
   openModal('modalCreatePOG');
+}
+
+function _updatePOGTemplateList() {
+  const loai = document.querySelector('[name="newPogLoai"]:checked')?.value || 'ke';
+  const sel = document.getElementById('newPogTemplate');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Không dùng mẫu --</option>';
+  allShelves.filter(s => s.loai === loai).forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = escHtml(s.ten);
+    sel.appendChild(o);
+  });
+  // Giữ lại giá trị nếu còn hợp lệ
+  if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 
 function createNewPOG() {
@@ -3241,6 +3254,8 @@ function renderMultiDeviceCanvas() {
   const container = document.getElementById('pogCanvasContainer');
   const emptyState = document.getElementById('pogEmptyState');
   if (emptyState) emptyState.style.display = 'none';
+  const addBtn = document.getElementById('btnAddDevice');
+  if (addBtn) addBtn.style.display = 'inline-block';
   // Clear toàn bộ canvas (giữ lại pogEmptyState)
   const _emptyEl = document.getElementById('pogEmptyState');
   while (container.firstChild) container.removeChild(container.firstChild);
@@ -3274,11 +3289,15 @@ function renderMultiDeviceCanvas() {
     const hdr = document.createElement('div');
     hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:5px 8px;background:' + (di===currentDeviceIdx?'var(--primary)':'var(--gray-600)') + ';color:#fff;border-radius:6px 6px 0 0;font-size:12px;font-weight:700;cursor:pointer;user-select:none;';
     const devLabel = dev.series ? dev.series : ('TTB #' + (di+1));
-    hdr.innerHTML = '<span style="flex:1">📦 ' + escHtml(devLabel) + '</span><button class="dev-del-btn" data-didx="' + di + '" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
+    hdr.innerHTML = '<span style="flex:1">📦 ' + escHtml(devLabel) + '</span><button class="dev-cfg-btn" data-didx="' + di + '" style="background:rgba(255,255,255,0.25);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 6px;font-size:11px;margin-right:2px" title="Chỉnh cấu hình TTB">⚙️</button><button class="dev-del-btn" data-didx="' + di + '" style="background:rgba(255,255,255,0.3);border:none;color:#fff;cursor:pointer;border-radius:3px;padding:1px 5px;font-size:12px">×</button>';
     hdr.querySelector('.dev-del-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       const idx = parseInt(e.target.getAttribute('data-didx'));
       deleteDevice(idx);
+    });
+    hdr.querySelector('.dev-cfg-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDeviceConfig(parseInt(e.target.getAttribute('data-didx')));
     });
     hdr.addEventListener('click', () => { currentDeviceIdx = di; renderMultiDeviceCanvas(); });
     col.appendChild(hdr);
@@ -3491,6 +3510,69 @@ function _doAddMulti(deviceIdx, tangIdx, prod) {
   dev.tầng[tangIdx].products.push({maSP:prod.maSP,tenSP:prod.tenSP,dvt:prod.dvt||'',linkAnh:prod.linkAnh||'',rong:prod.rong||10,cao:prod.cao||20,facing:1,rotated:false});
   selectedSlot={deviceIdx,tangIndex:tangIdx,slotIndex:dev.tầng[tangIdx].products.length-1};
   renderMultiDeviceCanvas();markDirty();
+}
+
+function openDeviceConfig(deviceIdx) {
+  const dev = pogDevices[deviceIdx];
+  if (!dev) return;
+  // Tạo inline config panel
+  const existing = document.getElementById('devCfgPanel');
+  if (existing) existing.remove();
+  const panel = document.createElement('div');
+  panel.id = 'devCfgPanel';
+  panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);padding:20px;z-index:9999;min-width:280px;';
+  const tangListStr = dev.tangList.map((tl,i) => `<div style="display:flex;gap:8px;margin-bottom:6px;align-items:center"><span style="font-size:12px;color:#718096;min-width:55px">Tầng ${i+1}:</span><input type="number" value="${tl.cao}" min="5" max="300" style="width:70px;padding:4px 6px;border:1px solid #cbd5e0;border-radius:4px;font-size:13px" data-tang="${i}" data-field="cao" class="tang-input"> cm cao${dev.loai==='dumpin'||dev.loai==='uDao'?` <input type="number" value="${tl.rong||dev.rongTong}" min="1" max="${dev.rongTong}" style="width:70px;padding:4px 6px;border:1px solid #cbd5e0;border-radius:4px;font-size:13px" data-tang="${i}" data-field="rong" class="tang-input"> cm rộng`:''}</div>`).join('');
+  panel.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:12px"><strong style="color:#1a3c6e">⚙️ TTB #${deviceIdx+1}: ${escHtml(dev.series||('TTB '+(deviceIdx+1)))}</strong><button onclick="document.getElementById('devCfgPanel').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#718096">×</button></div>
+    <label style="font-size:12px;font-weight:600;color:#4a5568">Số tầng/mâm:</label>
+    <input type="number" id="devCfgSoTang" value="${dev.soTang}" min="1" max="20" style="width:80px;padding:6px;border:1px solid #cbd5e0;border-radius:4px;margin-left:8px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:6px">Kích thước từng tầng:</div>
+    <div id="devCfgTangs">${tangListStr}</div>
+    <button onclick="_applyDeviceConfig(${deviceIdx})" style="width:100%;padding:8px;background:#1a3c6e;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;margin-top:10px">✅ Áp dụng</button>`;
+  document.body.appendChild(panel);
+}
+
+function _applyDeviceConfig(deviceIdx) {
+  const dev = pogDevices[deviceIdx];
+  if (!dev) return;
+  const newSoTang = parseInt(document.getElementById('devCfgSoTang').value)||dev.soTang;
+  // Cập nhật tangList
+  const inputs = document.querySelectorAll('#devCfgTangs .tang-input');
+  const newTangList = [...Array(newSoTang).keys()].map(i => {
+    const caoInput = [...inputs].find(el => parseInt(el.dataset.tang)===i && el.dataset.field==='cao');
+    const rongInput = [...inputs].find(el => parseInt(el.dataset.tang)===i && el.dataset.field==='rong');
+    return {
+      cao: caoInput ? (parseFloat(caoInput.value)||40) : (dev.tangList[i]?.cao||40),
+      rong: rongInput ? (parseFloat(rongInput.value)||dev.rongTong) : (dev.tangList[i]?.rong||dev.rongTong)
+    };
+  });
+  dev.soTang = newSoTang;
+  dev.tangList = newTangList;
+  // Cập nhật tầng products
+  if (dev.tầng.length < newSoTang) {
+    for (let i = dev.tầng.length; i < newSoTang; i++) dev.tầng.push({index:i, products:[]});
+  }
+  document.getElementById('devCfgPanel').remove();
+  renderMultiDeviceCanvas();
+  markDirty();
+  showToast('✅ Đã cập nhật cấu hình TTB', 'success');
+}
+
+function addDeviceToPOG() {
+  if (!pogDevices || pogDevices.length === 0) { showToast('Tạo POG trước!', 'warning'); return; }
+  const ref = pogDevices[0]; // copy cấu hình từ TTB đầu
+  const newDev = {
+    id: pogDevices.length + 1,
+    series: ref.series ? ref.series.replace(/\d+$/, '') + (pogDevices.length + 1) : '',
+    soTang: ref.soTang,
+    rongTong: ref.rongTong,
+    loai: ref.loai,
+    tangList: JSON.parse(JSON.stringify(ref.tangList)),
+    tầng: Array.from({length: ref.soTang}, (_, j) => ({index: j, products: []}))
+  };
+  pogDevices.push(newDev);
+  renderMultiDeviceCanvas();
+  markDirty();
+  showToast('✅ Đã thêm ' + (newDev.series || 'TTB #' + newDev.id), 'success');
 }
 
 function deleteDevice(deviceIdx) {
