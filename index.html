@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v32.4</title>
+<title>POG DESIGN by HaoDT v32.5</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v32.4</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v32.5</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.4</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.5</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.4</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.5</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1050,15 +1050,18 @@ img { max-width: 100%; }
     <!-- CANVAS AREA -->
     <div class="pog-canvas-area">
       <div class="pog-toolbar">
-        <button onclick="openCreatePOGModal()" style="padding:8px 14px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;margin-right:4px;flex-shrink:0">➕ Tạo POG</button>
-        <button onclick="cancelPOG()" style="padding:8px 12px;background:#fff;color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius);font-size:12px;cursor:pointer;margin-right:8px;flex-shrink:0">🗑️ Hủy</button>
+        <div style="display:flex;gap:8px;align-items:center;margin-right:8px;flex-shrink:0">
+          <button id="btnCreatePOGMain" onclick="openCreatePOGModal()" style="padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;min-width:110px">➕ Tạo POG</button>
+          <button id="btnAddDevice" onclick="addDeviceToPOG()" disabled style="padding:8px 16px;background:var(--success);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:not-allowed;min-width:110px;opacity:0.4">➕ Thêm TTB</button>
+          <button id="btnCancelPOG" onclick="cancelPOG()" disabled style="padding:8px 16px;background:#fff;color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius);font-size:13px;cursor:not-allowed;min-width:80px;opacity:0.4">🗑️ Hủy</button>
+        </div>
         <input type="text" class="pog-name-input" id="pogNameInput" placeholder="Tên POG..." value="POG Mới">
+        <span id="pogDescLabel" style="font-size:12px;color:var(--gray-500);flex-shrink:0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
         <div class="zoom-controls">
           <button class="btn-zoom" onclick="setZoom(zoom - 0.1)">−</button>
           <span class="zoom-label" id="zoomLabel">100%</span>
           <button class="btn-zoom" onclick="setZoom(zoom + 0.1)">+</button>
           <button class="btn-zoom" onclick="setZoom(1)" title="Reset zoom">↺</button>
-          <button id="btnAddDevice" onclick="addDeviceToPOG()" style="display:none;padding:6px 12px;background:var(--success);color:#fff;border:none;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;margin-left:8px">➕ Thêm TTB</button>
         </div>
       </div>
       <div class="pog-canvas-scroll" id="pogCanvasScroll">
@@ -1257,6 +1260,31 @@ img { max-width: 100%; }
           <div id="shelfCaoTangList" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
         <div class="full-width">
+          <label class="form-label">Màu nền TTB</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="color" id="shelfBgColor" value="#ffffff" style="width:40px;height:32px;padding:2px;border:1px solid #cbd5e0;border-radius:4px;cursor:pointer">
+            <span style="font-size:12px;color:var(--gray-500)">Màu nền thiết bị</span>
+          </div>
+        </div>
+        <div class="full-width">
+          <label class="form-label">Viền (px) — Top / Right / Bottom / Left</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="shelfBorderTop" value="0" min="0" max="20" style="width:60px" class="form-input" placeholder="T">
+            <input type="number" id="shelfBorderRight" value="0" min="0" max="20" style="width:60px" class="form-input" placeholder="R">
+            <input type="number" id="shelfBorderBottom" value="2" min="0" max="20" style="width:60px" class="form-input" placeholder="B">
+            <input type="number" id="shelfBorderLeft" value="0" min="0" max="20" style="width:60px" class="form-input" placeholder="L">
+            <input type="color" id="shelfBorderColor" value="#1a3c6e" style="width:40px;height:32px;padding:2px;border:1px solid #cbd5e0;border-radius:4px;cursor:pointer">
+          </div>
+        </div>
+        <div class="full-width">
+          <label class="form-label">Text Header (thanh trên)</label>
+          <input type="text" class="form-input" id="shelfHeaderText" placeholder="VD: KHU BÁNH KẸO">
+        </div>
+        <div class="full-width">
+          <label class="form-label">Text Bottom (thanh dưới)</label>
+          <input type="text" class="form-input" id="shelfBottomText" placeholder="VD: WinMart+">
+        </div>
+        <div class="full-width">
           <label class="form-label">Xem trước</label>
           <div class="shelf-preview-box" id="shelfPreviewBox">
             <svg id="shelfPreviewSVG" width="200" height="180"></svg>
@@ -1337,6 +1365,19 @@ img { max-width: 100%; }
         <input type="text" class="form-input" id="newPogName" placeholder="VD: POG Bia T6...">
       </div>
       <div style="margin-bottom:14px">
+        <label class="form-label">Diễn giải / Ghi chú</label>
+        <input type="text" class="form-input" id="newPogDesc" placeholder="VD: Khu vực siêu thị, tháng 6...">
+      </div>
+      <div id="pogEditLockedInfo" style="display:none;margin-bottom:14px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #c3d0ef">
+        <div style="font-size:12px;color:#6c757d;margin-bottom:6px">Loại TTB (đã khóa)</div>
+        <div id="pogLockedBadge" style="display:inline-block;padding:4px 12px;background:var(--primary);color:#fff;border-radius:20px;font-size:13px;font-weight:700"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Số lượng TTB</label>
+        <input type="number" class="form-input" id="newPogCount" value="1" min="1" max="20">
+      </div>
+      <div id="pogCreateOnlyFields">
+      <div style="margin-bottom:14px">
         <label class="form-label">Loại thiết bị</label>
         <div class="radio-group" style="flex-wrap:wrap;gap:10px">
           <label class="radio-item"><input type="radio" name="newPogLoai" value="ke" checked> 🗄️ Kệ đứng</label>
@@ -1356,10 +1397,7 @@ img { max-width: 100%; }
         <input type="text" class="form-input" id="newPogSeries" placeholder="VD: A, B, Khu 1... (tùy chọn)">
         <div style="font-size:11px;color:var(--gray-500);margin-top:4px">TTB sẽ đánh số: Series-1, Series-2...</div>
       </div>
-      <div>
-        <label class="form-label">Số lượng TTB</label>
-        <input type="number" class="form-input" id="newPogCount" value="1" min="1" max="20">
-      </div>
+      </div><!-- /pogCreateOnlyFields -->
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('modalCreatePOG')">Huỷ</button>
@@ -1424,20 +1462,15 @@ const SCALE_BASE = 4; // px per cm base (before zoom)
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   // btnCreateShelfMain dùng onclick inline
-  // Event delegation trên productGrid
-  const _grid = document.getElementById('productGrid');
-  if (_grid) {
-    _grid.addEventListener('pointerup', e => {
-      // pointerup thay vì click để tránh conflict với overlay close
-      const btn = e.target.closest('.edit-product-btn');
-      if (btn) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        // Delay nhỏ để đảm bảo screen transition không xảy ra trước
-        requestAnimationFrame(() => openEditProduct(btn));
-      }
-    });
-  }
+  // Event delegation trên screenProducts (luôn tồn tại trong DOM dù display:none)
+  document.getElementById('screenProducts')?.addEventListener('pointerup', e => {
+    const btn = e.target.closest('.btn-edit-product');
+    if (btn) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openEditProduct(btn);
+    }
+  });
   // Check localStorage for existing session
   const saved = localStorage.getItem('pogUser');
   if (saved) {
@@ -2717,6 +2750,15 @@ function openCreateShelfModal(shelfId) {
 
   document.getElementById('shelfModalTitle').textContent = shelfId ? '✏️ Sửa kệ' : '➕ Tạo kệ mới';
   document.getElementById('shelfTen').value = existing ? existing.ten : '';
+  // Fill border/text fields
+  document.getElementById('shelfBgColor').value = existing ? (existing.bgColor || '#ffffff') : '#ffffff';
+  document.getElementById('shelfBorderTop').value = existing ? (existing.borderTop != null ? existing.borderTop : 0) : 0;
+  document.getElementById('shelfBorderRight').value = existing ? (existing.borderRight != null ? existing.borderRight : 0) : 0;
+  document.getElementById('shelfBorderBottom').value = existing ? (existing.borderBottom != null ? existing.borderBottom : 2) : 2;
+  document.getElementById('shelfBorderLeft').value = existing ? (existing.borderLeft != null ? existing.borderLeft : 0) : 0;
+  document.getElementById('shelfBorderColor').value = existing ? (existing.borderColor || '#1a3c6e') : '#1a3c6e';
+  document.getElementById('shelfHeaderText').value = existing ? (existing.headerText || '') : '';
+  document.getElementById('shelfBottomText').value = existing ? (existing.bottomText || '') : '';
   const loai = existing ? existing.loai : 'ke';
   const isDumpinType = loai === 'dumpin' || loai === 'uDao';
   // Mặc định: ke/tu = 5 tầng, dumpin/uDao = 2 mâm
@@ -2926,6 +2968,14 @@ async function saveShelf() {
       rongTong,
       caoTang,
       tangList: JSON.stringify(tangList),
+      bgColor: document.getElementById('shelfBgColor').value || '#ffffff',
+      borderTop: parseInt(document.getElementById('shelfBorderTop').value)||0,
+      borderRight: parseInt(document.getElementById('shelfBorderRight').value)||0,
+      borderBottom: parseInt(document.getElementById('shelfBorderBottom').value)||2,
+      borderLeft: parseInt(document.getElementById('shelfBorderLeft').value)||0,
+      borderColor: document.getElementById('shelfBorderColor').value || '#1a3c6e',
+      headerText: document.getElementById('shelfHeaderText').value.trim(),
+      bottomText: document.getElementById('shelfBottomText').value.trim(),
       username: currentUser.username
     });
     if (res.success) {
@@ -3215,13 +3265,87 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 // ============================================================
 // SCREEN 5: POG DESIGNER
 // ============================================================
-function openCreatePOGModal() {
+function _updatePOGToolbar(hasActivePOG) {
+  const btnCreate = document.getElementById('btnCreatePOGMain');
+  const btnAdd = document.getElementById('btnAddDevice');
+  const btnCancel = document.getElementById('btnCancelPOG');
+  if (!btnCreate || !btnAdd || !btnCancel) return;
+  if (hasActivePOG) {
+    btnCreate.textContent = '✏️ Edit POG';
+    btnCreate.style.background = 'var(--warning, #ed8936)';
+    btnCreate.onclick = function() { openCreatePOGModal(true); };
+    btnAdd.disabled = false;
+    btnAdd.style.opacity = '1';
+    btnAdd.style.cursor = 'pointer';
+    btnCancel.disabled = false;
+    btnCancel.style.opacity = '1';
+    btnCancel.style.cursor = 'pointer';
+  } else {
+    btnCreate.textContent = '➕ Tạo POG';
+    btnCreate.style.background = 'var(--primary)';
+    btnCreate.onclick = function() { openCreatePOGModal(); };
+    btnAdd.disabled = true;
+    btnAdd.style.opacity = '0.4';
+    btnAdd.style.cursor = 'not-allowed';
+    btnCancel.disabled = true;
+    btnCancel.style.opacity = '0.4';
+    btnCancel.style.cursor = 'not-allowed';
+  }
+}
+
+function openCreatePOGModal(isEdit) {
+  if (isEdit) {
+    // Edit mode: fill existing POG info
+    const currentName = document.getElementById('pogNameInput').value.trim() || '';
+    const currentDesc = window._currentPOGDesc || '';
+    document.getElementById('newPogName').value = currentName;
+    document.getElementById('newPogDesc').value = currentDesc;
+    // Show locked badge
+    document.getElementById('pogCreateOnlyFields').style.display = 'none';
+    document.getElementById('pogEditLockedInfo').style.display = 'block';
+    const loai = pogLoai || 'ke';
+    const loaiLabels = {ke:'🗄️ Kệ đứng', tu:'🧊 Tủ lạnh', dumpin:'📦 Dumpin', uDao:'🔄 Ụ đảo'};
+    document.getElementById('pogLockedBadge').textContent = loaiLabels[loai] || loai;
+    document.getElementById('newPogCount').value = pogDevices ? pogDevices.length : 1;
+    // Update modal title and button
+    const titleEl = document.querySelector('#modalCreatePOG .modal-title');
+    if (titleEl) titleEl.textContent = '✏️ Edit POG';
+    const saveBtn = document.querySelector('#modalCreatePOG .btn-primary');
+    if (saveBtn) { saveBtn.textContent = '✅ Cập nhật POG'; saveBtn.onclick = function() { updateExistingPOG(); }; }
+    openModal('modalCreatePOG');
+    return;
+  }
+  // Create mode
+  document.getElementById('pogCreateOnlyFields').style.display = '';
+  document.getElementById('pogEditLockedInfo').style.display = 'none';
+  document.getElementById('newPogName').value = '';
+  document.getElementById('newPogDesc').value = '';
+  document.getElementById('newPogCount').value = '1';
+  const titleEl = document.querySelector('#modalCreatePOG .modal-title');
+  if (titleEl) titleEl.textContent = '📐 Tạo POG mới';
+  const saveBtn = document.querySelector('#modalCreatePOG .btn-primary');
+  if (saveBtn) { saveBtn.textContent = '📐 Tạo POG'; saveBtn.onclick = function() { createNewPOG(); }; }
   _updatePOGTemplateList();
   // Cập nhật mẫu kệ khi đổi loại TTB
   document.querySelectorAll('[name="newPogLoai"]').forEach(r => {
     r.onchange = _updatePOGTemplateList;
   });
   openModal('modalCreatePOG');
+}
+
+function updateExistingPOG() {
+  const ten = document.getElementById('newPogName').value.trim();
+  if (!ten) { showToast('Vui lòng nhập tên POG', 'warning'); return; }
+  const desc = document.getElementById('newPogDesc').value.trim();
+  window._currentPOGDesc = desc;
+  document.getElementById('pogNameInput').value = ten;
+  // Update desc label
+  const descLabel = document.getElementById('pogDescLabel');
+  if (descLabel) descLabel.textContent = desc ? ('- ' + desc) : '';
+  closeModal('modalCreatePOG');
+  markDirty();
+  showToast('✅ Đã cập nhật POG', 'success');
+  setTimeout(() => savePOG(), 300);
 }
 
 function _updatePOGTemplateList() {
@@ -3262,11 +3386,16 @@ function createNewPOG() {
   }));
   currentDeviceIdx = 0;
   currentPOGId = null;
+  const desc = document.getElementById('newPogDesc').value.trim();
+  window._currentPOGDesc = desc;
   document.getElementById('pogNameInput').value = ten;
+  const descLabel = document.getElementById('pogDescLabel');
+  if (descLabel) descLabel.textContent = desc ? ('- ' + desc) : '';
   setAutosave('new');
   isDirty = false;
   closeModal('modalCreatePOG');
   renderMultiDeviceCanvas();
+  _updatePOGToolbar(true);
   showToast('✅ Tạo POG "' + ten + '" với ' + count + ' TTB — đang lưu...', 'success');
   // Auto-save ngay sau khi tạo
   setTimeout(() => savePOG(), 500);
@@ -3277,8 +3406,7 @@ function renderMultiDeviceCanvas() {
   const container = document.getElementById('pogCanvasContainer');
   const emptyState = document.getElementById('pogEmptyState');
   if (emptyState) emptyState.style.display = 'none';
-  const addBtn = document.getElementById('btnAddDevice');
-  if (addBtn) addBtn.style.display = 'inline-block';
+  _updatePOGToolbar(true);
   // Clear toàn bộ canvas (giữ lại pogEmptyState)
   const _emptyEl = document.getElementById('pogEmptyState');
   while (container.firstChild) container.removeChild(container.firstChild);
@@ -3304,6 +3432,17 @@ function renderMultiDeviceCanvas() {
     const svgResult = generateCanvasShelfSVG(shelf, pxW, headerPxH+bodyPxH, sc);
     const isDumpin = dev.loai==='dumpin'||dev.loai==='uDao';
 
+    // Apply shelf border/text from shelfRef if stored in device
+    const shelfRef = allShelves.find(s => s.id === (dev.shelfId || dev.templateId)) || {};
+    const devBgColor = dev.bgColor || shelfRef.bgColor || '';
+    const devBorderTop = dev.borderTop != null ? dev.borderTop : (shelfRef.borderTop != null ? shelfRef.borderTop : 0);
+    const devBorderRight = dev.borderRight != null ? dev.borderRight : (shelfRef.borderRight != null ? shelfRef.borderRight : 0);
+    const devBorderBottom = dev.borderBottom != null ? dev.borderBottom : (shelfRef.borderBottom != null ? shelfRef.borderBottom : 2);
+    const devBorderLeft = dev.borderLeft != null ? dev.borderLeft : (shelfRef.borderLeft != null ? shelfRef.borderLeft : 0);
+    const devBorderColor = dev.borderColor || shelfRef.borderColor || '#1a3c6e';
+    const devHeaderText = dev.headerText || shelfRef.headerText || '';
+    const devBottomText = dev.bottomText || shelfRef.bottomText || '';
+
     const col = document.createElement('div');
     col.className = 'device-col';
     col.dataset.deviceIdx = di;
@@ -3327,9 +3466,32 @@ function renderMultiDeviceCanvas() {
 
     const shelfCont = document.createElement('div');
     shelfCont.style.position = 'relative';
+    if (devBgColor && devBgColor !== '#ffffff') {
+      shelfCont.style.background = devBgColor;
+    }
+    if (devBorderTop || devBorderRight || devBorderBottom || devBorderLeft) {
+      shelfCont.style.borderStyle = 'solid';
+      shelfCont.style.borderColor = devBorderColor;
+      shelfCont.style.borderWidth = devBorderTop+'px '+devBorderRight+'px '+devBorderBottom+'px '+devBorderLeft+'px';
+      shelfCont.style.boxSizing = 'border-box';
+    }
     shelfCont.innerHTML = svgResult.svg;
     const svgEl = shelfCont.querySelector('svg');
     if (svgEl) svgEl.style.pointerEvents = 'none';
+    // Header bar
+    if (devHeaderText) {
+      const hdrBar = document.createElement('div');
+      hdrBar.style.cssText = 'position:absolute;top:0;left:0;right:0;background:'+devBorderColor+';color:#fff;font-size:11px;font-weight:700;text-align:center;padding:2px 4px;z-index:20;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      hdrBar.textContent = devHeaderText;
+      shelfCont.appendChild(hdrBar);
+    }
+    // Bottom bar
+    if (devBottomText) {
+      const btmBar = document.createElement('div');
+      btmBar.style.cssText = 'position:absolute;bottom:0;left:0;right:0;background:'+devBorderColor+';color:#fff;font-size:11px;font-weight:700;text-align:center;padding:2px 4px;z-index:20;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      btmBar.textContent = devBottomText;
+      shelfCont.appendChild(btmBar);
+    }
 
     let cumH = svgResult.headerPxH||0;
     svgResult.tangPxHList.forEach((tangH, ti) => {
@@ -3644,7 +3806,11 @@ function cancelPOG() {
   if (empty) { cont && cont.appendChild(empty); empty.style.display = 'flex'; }
   const info = document.getElementById('pogInfoContent');
   if (info) info.innerHTML = '<div style="color:#adb5bd">Chọn kệ để bắt đầu</div>';
+  window._currentPOGDesc = '';
+  const descLabel = document.getElementById('pogDescLabel');
+  if (descLabel) descLabel.textContent = '';
   setAutosave('new');
+  _updatePOGToolbar(false);
   showToast('✅ Đã hủy POG', 'info');
 }
 function initPOGScreen() {
