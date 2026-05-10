@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v32.8</title>
+<title>POG DESIGN by HaoDT v32.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -899,7 +899,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v32.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v32.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +918,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1007,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v32.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -5546,20 +5546,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const wb = XLSX.read(ab, {type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-    const dataRows = rows.slice(1).filter(r => r[3]);
+    // Schema 7 cột: Loại TTB | STT | Tầng | Chiều rộng | Chiều cao | Mã SP | ĐVT
+    // Detect schema: 7 cột (có kích thước) hoặc 5 cột (cũ)
+    const hasSize = rows[0] && rows[0].length >= 7 && String(rows[0][3]).includes('rộng');
+    const colOffset = hasSize ? 2 : 0; // shift Mã SP, ĐVT sang phải 2 nếu có kích thước
+    const dataRows = rows.slice(1).filter(r => r[hasSize ? 5 : 3]);
     if (!dataRows.length) { showToast('File Excel không có dữ liệu!', 'warning'); return; }
     const deviceMap = {};
+    const tangSizeMap = {}; // {stt: {tang: {rong, cao}}}
     const loaiSet = new Set();
     dataRows.forEach(r => {
       const loai = (r[0]||'ke').toLowerCase();
       const stt = parseInt(r[1])||1;
       const tang = parseInt(r[2])||1;
-      const maSP = String(r[3]).trim();
-      const dvt = String(r[4]||'').trim();
+      const rong = hasSize ? (parseInt(r[3])||100) : 100;
+      const cao = hasSize ? (parseInt(r[4])||40) : 40;
+      const maSP = String(r[hasSize?5:3]).trim();
+      const dvt = String(r[hasSize?6:4]||'').trim();
       loaiSet.add(loai);
       if (!deviceMap[stt]) deviceMap[stt] = {};
       if (!deviceMap[stt][tang]) deviceMap[stt][tang] = [];
       deviceMap[stt][tang].push({maSP, dvt});
+      // Lưu kích thước tầng (lấy từ dòng đầu tiên của tầng đó)
+      if (!tangSizeMap[stt]) tangSizeMap[stt] = {};
+      if (!tangSizeMap[stt][tang]) tangSizeMap[stt][tang] = {rong, cao};
     });
     const loai = loaiSet.values().next().value || 'ke';
     const deviceKeys = Object.keys(deviceMap).map(Number).sort((a,b)=>a-b);
@@ -5568,6 +5578,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const tangData = deviceMap[stt];
       const tangKeys = Object.keys(tangData).map(Number).sort((a,b)=>a-b);
       const soTang = Math.max(...tangKeys);
+      // tangList với kích thước thực từ Excel
+      const tangList = Array.from({length: soTang}, (_,i) => {
+        const sz = (tangSizeMap[stt] && tangSizeMap[stt][i+1]) || {rong:100, cao:40};
+        return {rong: sz.rong, cao: sz.cao};
+      });
+      const rongTong = Math.max(...tangList.map(t=>t.rong));
       const tangArr = Array.from({length: soTang}, (_,i) => {
         const products = (tangData[i+1]||[]).map(item => {
           const sp = allProducts.find(p => p.maHang===item.maSP||p.maSP===item.maSP||p.barcode===item.maSP);
@@ -5575,7 +5591,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         return {index: i, products};
       });
-      return {id:stt, series:String(stt), soTang, rongTong:100, loai, tangList:Array.from({length:soTang},()=>({cao:40,rong:100})), tầng:tangArr};
+      return {id:stt, series:String(stt), soTang, rongTong, loai, tangList, tầng:tangArr};
     });
     currentDeviceIdx = 0; currentPOGId = null;
     const pogName = file.name.replace(/\.[^.]+$/,'');
