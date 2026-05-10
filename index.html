@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v33.1</title>
+<title>POG DESIGN by HaoDT v33.2</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -436,7 +436,7 @@ img { max-width: 100%; }
   font-size: 13px; outline: none; width: 100%;
   background: #fff; cursor: pointer;
 }
-.library-list { height: 420px; overflow-y: auto; padding: 8px; flex-shrink: 0; }
+.library-list { height: calc(100vh - 290px); min-height: 180px; overflow-y: auto; padding: 8px; flex-shrink: 0; }
 .lib-product-item {
   display: flex; align-items: center; gap: 10px;
   padding: 8px;
@@ -516,7 +516,14 @@ img { max-width: 100%; }
   min-width: 0;
 }
 .pog-info-panel {
-  display: none; /* ẩn panel diễn giải để mở rộng canvas */
+  width: 240px;
+  min-width: 200px;
+  background: #fff;
+  border-left: 2px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 .pog-toolbar {
   padding: 12px 20px;
@@ -899,7 +906,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v33.1</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v33.2</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -918,7 +925,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.2</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1007,7 +1014,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.1</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.2</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -1078,8 +1085,8 @@ img { max-width: 100%; }
     </div>
     <!-- INFO PANEL -->
     <div class="pog-info-panel" id="pogInfoPanel">
-      <div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#1a3c6e;text-transform:uppercase">
-        📋 Diễn giải
+      <div style="padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#1a3c6e;text-transform:uppercase;flex-shrink:0">
+        📋 SP theo Tầng
       </div>
       <div id="pogInfoContent" style="padding:12px 16px;overflow-y:auto;flex:1;font-size:12px"></div>
 </div>
