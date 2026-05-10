@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v33.3</title>
+<title>POG DESIGN by HaoDT v33.4</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -906,7 +906,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v33.3</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v33.4</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -925,7 +925,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.4</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -1014,7 +1014,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.3</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v33.4</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -3289,6 +3289,9 @@ function _updatePOGToolbar(hasActivePOG) {
     btnCancel.disabled = false;
     btnCancel.style.opacity = '1';
     btnCancel.style.cursor = 'pointer';
+    // Xóa file: active khi có currentPOGId (POG đã được lưu)
+    const delB = document.getElementById('btnDeleteCurrentPOG');
+    if (delB) { const hasSaved = !!currentPOGId; delB.disabled = !hasSaved; delB.style.opacity = hasSaved?'1':'0.4'; delB.style.cursor = hasSaved?'pointer':'not-allowed'; }
   } else {
     btnCreate.textContent = '➕ Tạo POG';
     btnCreate.style.background = 'var(--primary)';
@@ -3299,6 +3302,8 @@ function _updatePOGToolbar(hasActivePOG) {
     btnCancel.disabled = true;
     btnCancel.style.opacity = '0.4';
     btnCancel.style.cursor = 'not-allowed';
+    const delB2 = document.getElementById('btnDeleteCurrentPOG');
+    if (delB2) { delB2.disabled = true; delB2.style.opacity = '0.4'; delB2.style.cursor = 'not-allowed'; }
   }
 }
 
