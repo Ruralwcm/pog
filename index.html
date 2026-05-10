@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POG DESIGN by HaoDT v30.8</title>
+<title>POG DESIGN by HaoDT v30.9</title>
 <style>
 /* ============================================================
    RESET & BASE
@@ -896,7 +896,7 @@ img { max-width: 100%; }
 <div id="screenLogin" class="screen active">
   <div class="login-card">
     <div class="login-logo">📐</div>
-    <h1 class="login-title">POG DESIGN by HaoDT v30.8</h1>
+    <h1 class="login-title">POG DESIGN by HaoDT v30.9</h1>
     <p class="login-subtitle">Hệ thống thiết kế kệ hàng 2D</p>
     <div class="form-group">
       <label for="loginUsername">Tên đăng nhập</label>
@@ -915,7 +915,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenMenu" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.9</span></div>
     <div class="user-info">
       <span class="username" id="menuUsername"></span>
       <span id="menuRole" class="tag"></span>
@@ -929,7 +929,7 @@ img { max-width: 100%; }
         <div class="card-title">Danh mục SP</div>
         <div class="card-desc">Xem & chỉnh sửa sản phẩm, kích thước, hình ảnh</div>
       </div>
-      <div class="menu-card" onclick="showScreen('screenShelves'); loadShelves();">
+      <div class="menu-card" onclick="showScreen('screenShelves'); loadShelves(); setTimeout(_bindShelfScreenButtons,200);">
         <div class="card-icon">🗄️</div>
         <div class="card-title">Thư viện Kệ</div>
         <div class="card-desc">Tạo và quản lý kệ hàng, tủ lạnh</div>
@@ -987,7 +987,7 @@ img { max-width: 100%; }
   </header>
   <div class="screen-body">
     <div class="shelves-toolbar">
-      <button class="btn-create" onclick="openCreateShelfModal()">➕ Tạo kệ mới</button>
+      <button class="btn-create" id="btnCreateShelf">➕ Tạo kệ mới</button>
       <span class="text-muted" id="shelvesCount">0 kệ</span>
     </div>
     <div class="shelf-grid" id="shelfGrid">
@@ -1004,7 +1004,7 @@ img { max-width: 100%; }
      ============================================================ -->
 <div id="screenPOG" class="screen">
   <header class="app-header">
-    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.8</span></div>
+    <div class="logo">📐 POG DESIGN by HaoDT <span style="font-size:11px;opacity:0.7;font-weight:400">v30.9</span></div>
     <div class="user-info">
       <button class="btn-back" onclick="showScreen('screenMenu')">← Quay lại</button>
     </div>
@@ -2644,6 +2644,7 @@ async function saveProductEdit() {
 // SCREEN 4: SHELVES
 // ============================================================
 async function loadShelves() {
+  setTimeout(_bindShelfScreenButtons, 100);
   showLoading('Đang tải kệ...');
   try {
     const data = await apiGet({ action: 'getShelves', username: currentUser.username });
@@ -2704,6 +2705,12 @@ function renderShelfGrid() {
   grid.querySelectorAll('.shelf-del-btn').forEach(btn => {
     btn.addEventListener('click', () => deleteShelf(btn.getAttribute('data-sid'), btn.getAttribute('data-sname')));
   });
+}
+
+// Bind static buttons (called once on screen load)
+function _bindShelfScreenButtons() {
+  const btn = document.getElementById('btnCreateShelf');
+  if (btn && !btn._bound) { btn.addEventListener('click', () => openCreateShelfModal()); btn._bound = true; }
 }
 
 function getShelfIcon(loai) {
