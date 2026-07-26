@@ -85,8 +85,8 @@ button:hover { background: #1d4ed8; }
 <body>
 <div class="container">
   <div class="header">
-    <h1>📋 Khảo sát Nguyện vọng Thăng tiến</h1>
-    <p>CHT → QLKV | Khu vực Miền Bắc — 2026</p>
+    <h1>📋 KHẢO SÁT NGUYỆN VỌNG THĂNG TIẾN</h1>
+    <p>CHT → QLKV | KHU VỰC MIỀN BẮC — 2026</p>
     <div class="meta">
       <span>🔒 Bảo mật thông tin</span>
       <span>⏱ ~7 phút</span>
@@ -100,18 +100,18 @@ button:hover { background: #1d4ed8; }
     <div class="section">
       <div class="section-title">👤 THÔNG TIN CÁ NHÂN</div>
       <div class="row">
-        <div><label>Họ và tên <span class="req">*</span></label><input type="text" placeholder="VD: Nguyễn Văn A" required></div>
-        <div><label>Số điện thoại <span class="req">*</span></label><input type="tel" placeholder="VD: 0912345678" required></div>
+        <div><label>HỌ VÀ TÊN <span class="req">*</span></label><input type="text" placeholder="VD: Nguyễn Văn A" required></div>
+        <div><label>SỐ ĐIỆN THOẠI <span class="req">*</span></label><input type="tel" placeholder="VD: 0912345678" required></div>
       </div>
       <div class="row">
         <div>
-          <label>GĐV quản lý <span class="req">*</span></label>
+          <label>GĐV QUẢN LÝ <span class="req">*</span></label>
           <select id="gdv" required onchange="onGdvChange()">
             <option value="">— Chọn GĐV —</option>
           </select>
         </div>
         <div>
-          <label>Tỉnh/TP đang công tác <span class="req">*</span></label>
+          <label>TỈNH/TP ĐANG CÔNG TÁC <span class="req">*</span></label>
           <select id="tinh" required onchange="onTinhChange()" disabled>
             <option value="">— Chọn GĐV trước —</option>
           </select>
@@ -119,13 +119,13 @@ button:hover { background: #1d4ed8; }
       </div>
       <div class="row">
         <div>
-          <label>QLKV quản lý <span class="req">*</span></label>
+          <label>QLKV QUẢN LÝ <span class="req">*</span></label>
           <select id="qlkv" required onchange="onQlkvChange()" disabled>
             <option value="">— Chọn Tỉnh trước —</option>
           </select>
         </div>
         <div>
-          <label>Mã CHT / Mã CH hiện tại <span class="req">*</span></label>
+          <label>MÃ CHT / MÃ CH HIỆN TẠI <span class="req">*</span></label>
           <select id="ch" required disabled>
             <option value="">— Chọn QLKV trước —</option>
           </select>
@@ -138,17 +138,17 @@ button:hover { background: #1d4ed8; }
       <div class="section-title">🎓 BẰNG CẤP</div>
       <div class="row">
         <div>
-          <label>Trình độ học vấn cao nhất <span class="req">*</span></label>
+          <label>TRÌNH ĐỘ HỌC VẤN CAO NHẤT <span class="req">*</span></label>
           <select required>
             <option value="">— Chọn —</option>
             <option>THPT</option><option>Trung cấp</option><option>Cao đẳng</option><option>Đại học</option><option>Sau đại học</option>
           </select>
         </div>
-        <div><label>Chuyên ngành đào tạo</label><input type="text" placeholder="VD: Quản trị kinh doanh..."></div>
+        <div><label>CHUYÊN NGÀNH ĐÀO TẠO</label><input type="text" placeholder="VD: Quản trị kinh doanh..."></div>
       </div>
       <div class="row">
-        <div><label>Trường đào tạo</label><input type="text" placeholder="VD: Đại học Kinh tế Quốc dân..."></div>
-        <div><label>Chứng chỉ bổ sung (nếu có)</label><input type="text" placeholder="VD: Tin học VP, Ngoại ngữ..."></div>
+        <div><label>TRƯỜNG ĐÀO TẠO</label><input type="text" placeholder="VD: Đại học Kinh tế Quốc dân..."></div>
+        <div><label>CHỨNG CHỈ BỔ SUNG (NẾU CÓ)</label><input type="text" placeholder="VD: Tin học VP, Ngoại ngữ..."></div>
       </div>
     </div>
 
@@ -157,28 +157,28 @@ button:hover { background: #1d4ed8; }
       <div class="section-title">📊 KINH NGHIỆM & NĂNG LỰC</div>
       <div class="row">
         <div>
-          <label>Thời gian làm CHT <span class="req">*</span></label>
+          <label>THỜI GIAN LÀM CHT <span class="req">*</span></label>
           <select required>
             <option value="">— Chọn —</option>
             <option>&lt; 6 tháng</option><option>6–12 tháng</option><option>1–2 năm</option><option>2–3 năm</option><option>&gt; 3 năm</option>
           </select>
         </div>
         <div>
-          <label>Thời gian làm ở CH hiện tại</label>
+          <label>THỜI GIAN LÀM Ở CH HIỆN TẠI</label>
           <select>
             <option value="">— Chọn —</option>
             <option>&lt; 6 tháng</option><option>6–12 tháng</option><option>1–2 năm</option><option>&gt; 2 năm</option>
           </select>
         </div>
         <div>
-          <label>Kết quả KPI CH (tự đánh giá)</label>
+          <label>KẾT QUẢ KPI CH (TỰ ĐÁNH GIÁ)</label>
           <select>
             <option value="">— Chọn —</option>
             <option>⭐ Xuất sắc</option><option>👍 Tốt</option><option>👌 Khá</option><option>🔧 Cần cải thiện</option>
           </select>
         </div>
       </div>
-      <label>Điểm mạnh của bản thân <span class="hint">(chọn tối đa 3)</span></label>
+      <label>ĐIỂM MẠNH CỦA BẢN THÂN <span class="hint">(CHỌN TỐI ĐA 3)</span></label>
       <div class="check-group">
         <label><input type="checkbox"> Quản lý nhân sự / Đào tạo nhân viên</label>
         <label><input type="checkbox"> Bán hàng & Tư vấn khách hàng</label>
@@ -195,25 +195,25 @@ button:hover { background: #1d4ed8; }
     <div class="section">
       <div class="section-title">🏢 QUÁ TRÌNH CÔNG TÁC TẠI WINCOMMERCE</div>
       <div class="row">
-        <div><label>Ngày vào làm tại WinCommerce <span class="req">*</span></label><input type="text" placeholder="VD: 01/2022 (tháng/năm)"></div>
-        <div><label>Vị trí đầu tiên khi vào WinCommerce</label><input type="text" placeholder="VD: Nhân viên bán hàng..."></div>
+        <div><label>NGÀY VÀO LÀM TẠI WINCOMMERCE <span class="req">*</span></label><input type="text" placeholder="VD: 01/2022 (tháng/năm)"></div>
+        <div><label>VỊ TRÍ ĐẦU TIÊN KHI VÀO WINCOMMERCE</label><input type="text" placeholder="VD: Nhân viên bán hàng..."></div>
       </div>
-      <label>Vị trí hiện tại và thời gian đảm nhận</label>
+      <label>VỊ TRÍ HIỆN TẠI VÀ THỜI GIAN ĐẢM NHẬN</label>
       <input type="text" placeholder="VD: CHT — từ 01/2024 đến nay">
-      <label>Các vị trí đã từng đảm nhận tại WinCommerce</label>
+      <label>CÁC VỊ TRÍ ĐÃ TỪNG ĐẢM NHẬN TẠI WINCOMMERCE</label>
       <textarea placeholder="Liệt kê các vị trí và thời gian (VD: Nhân viên bán hàng (01/2022–06/2023), Trợ lý CHT (07/2023–12/2023)...)"></textarea>
-      <label>Thành tích nổi bật tại WinCommerce</label>
+      <label>THÀNH TÍCH NỔI BẬT TẠI WINCOMMERCE</label>
       <textarea placeholder="VD: CH tăng trưởng doanh số XX%, đạt CH xuất sắc tháng, đào tạo XX nhân viên mới..."></textarea>
     </div>
 
     <!-- SECTION 5: QUÁ TRÌNH CÔNG TÁC TRƯỚC WINCOMMERCE -->
     <div class="section">
       <div class="section-title">📋 QUÁ TRÌNH CÔNG TÁC TRƯỚC WINCOMMERCE</div>
-      <label>Đã từng làm việc ở đâu trước khi vào WinCommerce?</label>
+      <label>ĐÃ TỪNG LÀM VIỆC Ở ĐÂU TRƯỚC KHI VÀO WINCOMMERCE?</label>
       <select><option value="">— Chọn —</option><option>Có</option><option>Không (WinCommerce là nơi làm việc đầu tiên)</option></select>
-      <label>Nơi làm việc trước đây (nếu có)</label>
+      <label>NƠI LÀM VIỆC TRƯỚC ĐÂY (NẾU CÓ)</label>
       <textarea placeholder="Liệt kê: Tên công ty · Vị trí · Thời gian (VD: Công ty A — Nhân viên kinh doanh — 2019–2021)"></textarea>
-      <label>Kinh nghiệm / Kỹ năng mang lại từ công việc trước</label>
+      <label>KINH NGHIỆM / KỸ NĂNG MANG LẠI TỪ CÔNG VIỆC TRƯỚC</label>
       <textarea placeholder="VD: Kỹ năng bán hàng, quản lý nhóm, chăm sóc khách hàng..."></textarea>
     </div>
 
@@ -222,21 +222,21 @@ button:hover { background: #1d4ed8; }
       <div class="section-title">🚀 NGUYỆN VỌNG THĂNG TIẾN</div>
       <div class="row">
         <div>
-          <label>Vị trí mong muốn thăng tiến <span class="req">*</span></label>
+          <label>VỊ TRÍ MONG MUỐN THĂNG TIẾN <span class="req">*</span></label>
           <select required><option value="">— Chọn —</option><option>QLKV</option><option>GĐV (dài hạn)</option><option>Khác</option></select>
         </div>
         <div>
-          <label>Thời gian mong muốn <span class="req">*</span></label>
+          <label>THỜI GIAN MONG MUỐN <span class="req">*</span></label>
           <select required><option value="">— Chọn —</option><option>Trong 3 tháng</option><option>Trong 6 tháng</option><option>Trong 1 năm</option><option>Linh hoạt</option></select>
         </div>
         <div>
-          <label>Địa bàn mong muốn</label>
+          <label>ĐỊA BÀN MONG MUỐN</label>
           <select><option value="">— Chọn —</option><option>Cùng địa bàn hiện tại</option><option>Sẵn sàng di chuyển</option><option>Theo địa bàn cụ thể</option></select>
         </div>
       </div>
-      <label>Vị trí / Địa bàn cụ thể (nếu chọn "Khác" hoặc "Địa bàn cụ thể")</label>
+      <label>VỊ TRÍ / ĐỊA BÀN CỤ THỂ (NẾU CHỌN "KHÁC" HOẶC "ĐỊA BÀN CỤ THỂ")</label>
       <input type="text" placeholder="Ghi rõ vị trí hoặc Tỉnh/TP mong muốn...">
-      <label>Kỹ năng cần được đào tạo thêm</label>
+      <label>KỸ NĂNG CẦN ĐƯỢC ĐÀO TẠO THÊM</label>
       <div class="check-group">
         <label><input type="checkbox"> Quản lý đội nhóm</label>
         <label><input type="checkbox"> Phân tích dữ liệu / Excel</label>
@@ -246,16 +246,16 @@ button:hover { background: #1d4ed8; }
         <label><input type="checkbox"> Lập kế hoạch kinh doanh</label>
         <label><input type="checkbox"> Kỹ năng công nghệ / Phần mềm</label>
       </div>
-      <label>Sẵn sàng tham gia chương trình đào tạo QLKV dự bị?</label>
+      <label>SẴN SÀNG THAM GIA CHƯƠNG TRÌNH ĐÀO TẠO QLKV DỰ BỊ?</label>
       <select><option value="">— Chọn —</option><option>✅ Sẵn sàng</option><option>🤔 Cân nhắc</option><option>❌ Chưa sẵn sàng</option></select>
     </div>
 
     <!-- SECTION 7: Ý KIẾN KHÁC -->
     <div class="section">
       <div class="section-title">💬 Ý KIẾN KHÁC</div>
-      <label>Đề xuất / Nguyện vọng khác</label>
+      <label>ĐỀ XUẤT / NGUYỆN VỌNG KHÁC</label>
       <textarea placeholder="Nhập ý kiến, đề xuất hoặc nguyện vọng khác của bạn..."></textarea>
-      <label>Lý do bạn muốn trở thành QLKV</label>
+      <label>LÝ DO BẠN MUỐN TRỞ THÀNH QLKV</label>
       <textarea placeholder="Chia sẻ động lực của bạn..."></textarea>
     </div>
 
