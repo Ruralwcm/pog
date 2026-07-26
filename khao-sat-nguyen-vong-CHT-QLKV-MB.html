@@ -94,14 +94,14 @@ button:hover { background: #1d4ed8; }
     </div>
   </div>
 
-  <form onsubmit="event.preventDefault(); alert('👋 Đây là bản xem trước. Vui lòng điền qua Google Form chính thức.')">
+  <form id="surveyForm" onsubmit="submitForm(event)">
 
     <!-- SECTION 1: THÔNG TIN CÁ NHÂN -->
     <div class="section">
       <div class="section-title">👤 THÔNG TIN CÁ NHÂN</div>
       <div class="row">
-        <div><label>HỌ VÀ TÊN <span class="req">*</span></label><input type="text" placeholder="VD: Nguyễn Văn A" required></div>
-        <div><label>SỐ ĐIỆN THOẠI <span class="req">*</span></label><input type="tel" placeholder="VD: 0912345678" required></div>
+        <div><label>HỌ VÀ TÊN <span class="req">*</span></label><input type="text" id="hoTen" placeholder="VD: Nguyễn Văn A" required></div>
+        <div><label>SỐ ĐIỆN THOẠI <span class="req">*</span></label><input type="tel" id="sdt" placeholder="VD: 0912345678" required></div>
       </div>
       <div class="row">
         <div>
@@ -139,16 +139,16 @@ button:hover { background: #1d4ed8; }
       <div class="row">
         <div>
           <label>TRÌNH ĐỘ HỌC VẤN CAO NHẤT <span class="req">*</span></label>
-          <select required>
+          <select id="trinhDo" required>
             <option value="">— Chọn —</option>
             <option>THPT</option><option>Trung cấp</option><option>Cao đẳng</option><option>Đại học</option><option>Sau đại học</option>
           </select>
         </div>
-        <div><label>CHUYÊN NGÀNH ĐÀO TẠO</label><input type="text" placeholder="VD: Quản trị kinh doanh..."></div>
+        <div><label>CHUYÊN NGÀNH ĐÀO TẠO</label><input id="chuyenNganh" type="text" placeholder="VD: Quản trị kinh doanh..."></div>
       </div>
       <div class="row">
-        <div><label>TRƯỜNG ĐÀO TẠO</label><input type="text" placeholder="VD: Đại học Kinh tế Quốc dân..."></div>
-        <div><label>CHỨNG CHỈ BỔ SUNG (NẾU CÓ)</label><input type="text" placeholder="VD: Tin học VP, Ngoại ngữ..."></div>
+        <div><label>TRƯỜNG ĐÀO TẠO</label><input id="truong" type="text" placeholder="VD: Đại học Kinh tế Quốc dân..."></div>
+        <div><label>CHỨNG CHỈ BỔ SUNG (NẾU CÓ)</label><input id="chungChi" type="text" placeholder="VD: Tin học VP, Ngoại ngữ..."></div>
       </div>
     </div>
 
@@ -158,21 +158,21 @@ button:hover { background: #1d4ed8; }
       <div class="row">
         <div>
           <label>THỜI GIAN LÀM CHT <span class="req">*</span></label>
-          <select required>
+          <select id="tgCht" required>
             <option value="">— Chọn —</option>
             <option>&lt; 6 tháng</option><option>6–12 tháng</option><option>1–2 năm</option><option>2–3 năm</option><option>&gt; 3 năm</option>
           </select>
         </div>
         <div>
           <label>THỜI GIAN LÀM Ở CH HIỆN TẠI</label>
-          <select>
+          <select id="tgChHienTai">
             <option value="">— Chọn —</option>
             <option>&lt; 6 tháng</option><option>6–12 tháng</option><option>1–2 năm</option><option>&gt; 2 năm</option>
           </select>
         </div>
         <div>
           <label>KẾT QUẢ KPI CH (TỰ ĐÁNH GIÁ)</label>
-          <select>
+          <select id="kpiCh">
             <option value="">— Chọn —</option>
             <option>⭐ Xuất sắc</option><option>👍 Tốt</option><option>👌 Khá</option><option>🔧 Cần cải thiện</option>
           </select>
@@ -195,26 +195,26 @@ button:hover { background: #1d4ed8; }
     <div class="section">
       <div class="section-title">🏢 QUÁ TRÌNH CÔNG TÁC TẠI WINCOMMERCE</div>
       <div class="row">
-        <div><label>NGÀY VÀO LÀM TẠI WINCOMMERCE <span class="req">*</span></label><input type="text" placeholder="VD: 01/2022 (tháng/năm)"></div>
-        <div><label>VỊ TRÍ ĐẦU TIÊN KHI VÀO WINCOMMERCE</label><input type="text" placeholder="VD: Nhân viên bán hàng..."></div>
+        <div><label>NGÀY VÀO LÀM TẠI WINCOMMERCE <span class="req">*</span></label><input id="ngayVaoWcm" type="text" placeholder="VD: 01/2022 (tháng/năm)"></div>
+        <div><label>VỊ TRÍ ĐẦU TIÊN KHI VÀO WINCOMMERCE</label><input id="viTriDauTien" type="text" placeholder="VD: Nhân viên bán hàng..."></div>
       </div>
       <label>VỊ TRÍ HIỆN TẠI VÀ THỜI GIAN ĐẢM NHẬN</label>
-      <input type="text" placeholder="VD: CHT — từ 01/2024 đến nay">
+      <input id="viTriHienTai" type="text" placeholder="VD: CHT — từ 01/2024 đến nay">
       <label>CÁC VỊ TRÍ ĐÃ TỪNG ĐẢM NHẬN TẠI WINCOMMERCE</label>
-      <textarea placeholder="Liệt kê các vị trí và thời gian (VD: Nhân viên bán hàng (01/2022–06/2023), Trợ lý CHT (07/2023–12/2023)...)"></textarea>
+      <textarea id="cacViTriWcm" placeholder="Liệt kê các vị trí và thời gian (VD: Nhân viên bán hàng (01/2022–06/2023), Trợ lý CHT (07/2023–12/2023)...)"></textarea>
       <label>THÀNH TÍCH NỔI BẬT TẠI WINCOMMERCE</label>
-      <textarea placeholder="VD: CH tăng trưởng doanh số XX%, đạt CH xuất sắc tháng, đào tạo XX nhân viên mới..."></textarea>
+      <textarea id="thanhTich" placeholder="VD: CH tăng trưởng doanh số XX%, đạt CH xuất sắc tháng, đào tạo XX nhân viên mới..."></textarea>
     </div>
 
     <!-- SECTION 5: QUÁ TRÌNH CÔNG TÁC TRƯỚC WINCOMMERCE -->
     <div class="section">
       <div class="section-title">📋 QUÁ TRÌNH CÔNG TÁC TRƯỚC WINCOMMERCE</div>
       <label>ĐÃ TỪNG LÀM VIỆC Ở ĐÂU TRƯỚC KHI VÀO WINCOMMERCE?</label>
-      <select><option value="">— Chọn —</option><option>Có</option><option>Không (WinCommerce là nơi làm việc đầu tiên)</option></select>
+      <select id="tungLamTruoc"><option value="">— Chọn —</option><option>Có</option><option>Không (WinCommerce là nơi làm việc đầu tiên)</option></select>
       <label>NƠI LÀM VIỆC TRƯỚC ĐÂY (NẾU CÓ)</label>
-      <textarea placeholder="Liệt kê: Tên công ty · Vị trí · Thời gian (VD: Công ty A — Nhân viên kinh doanh — 2019–2021)"></textarea>
+      <textarea id="noiLamTruoc" placeholder="Liệt kê: Tên công ty · Vị trí · Thời gian (VD: Công ty A — Nhân viên kinh doanh — 2019–2021)"></textarea>
       <label>KINH NGHIỆM / KỸ NĂNG MANG LẠI TỪ CÔNG VIỆC TRƯỚC</label>
-      <textarea placeholder="VD: Kỹ năng bán hàng, quản lý nhóm, chăm sóc khách hàng..."></textarea>
+      <textarea id="knViecTruoc" placeholder="VD: Kỹ năng bán hàng, quản lý nhóm, chăm sóc khách hàng..."></textarea>
     </div>
 
     <!-- SECTION 6: NGUYỆN VỌNG THĂNG TIẾN -->
@@ -223,19 +223,19 @@ button:hover { background: #1d4ed8; }
       <div class="row">
         <div>
           <label>VỊ TRÍ MONG MUỐN THĂNG TIẾN <span class="req">*</span></label>
-          <select required><option value="">— Chọn —</option><option>QLKV</option><option>GĐV (dài hạn)</option><option>Khác</option></select>
+          <select id="viTriMongMuon" required><option value="">— Chọn —</option><option>QLKV</option><option>GĐV (dài hạn)</option><option>Khác</option></select>
         </div>
         <div>
           <label>THỜI GIAN MONG MUỐN <span class="req">*</span></label>
-          <select required><option value="">— Chọn —</option><option>Trong 3 tháng</option><option>Trong 6 tháng</option><option>Trong 1 năm</option><option>Linh hoạt</option></select>
+          <select id="tgMongMuon" required><option value="">— Chọn —</option><option>Trong 3 tháng</option><option>Trong 6 tháng</option><option>Trong 1 năm</option><option>Linh hoạt</option></select>
         </div>
         <div>
           <label>ĐỊA BÀN MONG MUỐN</label>
-          <select><option value="">— Chọn —</option><option>Cùng địa bàn hiện tại</option><option>Sẵn sàng di chuyển</option><option>Theo địa bàn cụ thể</option></select>
+          <select id="diaBanMongMuon"><option value="">— Chọn —</option><option>Cùng địa bàn hiện tại</option><option>Sẵn sàng di chuyển</option><option>Theo địa bàn cụ thể</option></select>
         </div>
       </div>
       <label>VỊ TRÍ / ĐỊA BÀN CỤ THỂ (NẾU CHỌN "KHÁC" HOẶC "ĐỊA BÀN CỤ THỂ")</label>
-      <input type="text" placeholder="Ghi rõ vị trí hoặc Tỉnh/TP mong muốn...">
+      <input id="vtDbCuThe" type="text" placeholder="Ghi rõ vị trí hoặc Tỉnh/TP mong muốn...">
       <label>KỸ NĂNG CẦN ĐƯỢC ĐÀO TẠO THÊM</label>
       <div class="check-group">
         <label><input type="checkbox"> Quản lý đội nhóm</label>
@@ -247,19 +247,20 @@ button:hover { background: #1d4ed8; }
         <label><input type="checkbox"> Kỹ năng công nghệ / Phần mềm</label>
       </div>
       <label>SẴN SÀNG THAM GIA CHƯƠNG TRÌNH ĐÀO TẠO QLKV DỰ BỊ?</label>
-      <select><option value="">— Chọn —</option><option>✅ Sẵn sàng</option><option>🤔 Cân nhắc</option><option>❌ Chưa sẵn sàng</option></select>
+      <select id="sanSangDaoTao"><option value="">— Chọn —</option><option>✅ Sẵn sàng</option><option>🤔 Cân nhắc</option><option>❌ Chưa sẵn sàng</option></select>
     </div>
 
     <!-- SECTION 7: Ý KIẾN KHÁC -->
     <div class="section">
       <div class="section-title">💬 Ý KIẾN KHÁC</div>
       <label>ĐỀ XUẤT / NGUYỆN VỌNG KHÁC</label>
-      <textarea placeholder="Nhập ý kiến, đề xuất hoặc nguyện vọng khác của bạn..."></textarea>
+      <textarea id="deXuat" placeholder="Nhập ý kiến, đề xuất hoặc nguyện vọng khác của bạn..."></textarea>
       <label>LÝ DO BẠN MUỐN TRỞ THÀNH QLKV</label>
-      <textarea placeholder="Chia sẻ động lực của bạn..."></textarea>
+      <textarea id="lyDoLamQlkv" placeholder="Chia sẻ động lực của bạn..."></textarea>
     </div>
 
-    <button type="submit">📤 GỬI KHẢO SÁT</button>
+    <div id="formStatus" style="display:none; text-align:center; padding:12px; border-radius:8px; margin-top:12px; font-weight:600; font-size:14px;"></div>
+    <button type="submit" id="submitBtn">📤 GỬI KHẢO SÁT</button>
   </form>
 
   <div class="footer">WinMart+ Rural · Miền Bắc · 2026</div>
@@ -276,6 +277,123 @@ function init() {
     const opt = document.createElement('option');
     opt.value = g; opt.textContent = g;
     gdv.appendChild(opt);
+  });
+}
+
+// ═══════════ FORM SUBMISSION ═══════════
+// 🔧 THAY URL NÀY BẰNG URL APPS SCRIPT SAU KHI DEPLOY
+var APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+function getVal(id) {
+  var el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function getChecked(labelPattern) {
+  var checks = document.querySelectorAll('.check-group input[type="checkbox"]');
+  var selected = [];
+  checks.forEach(function(cb) {
+    if (cb.checked) {
+      var txt = cb.parentElement.textContent.trim();
+      selected.push(txt);
+    }
+  });
+  return selected.join('; ');
+}
+
+function submitForm(e) {
+  e.preventDefault();
+  
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    alert('⚠️ Form chưa được kết nối backend. Vui lòng deploy Apps Script và cập nhật APPS_SCRIPT_URL.');
+    return;
+  }
+  
+  var btn = document.getElementById('submitBtn');
+  var status = document.getElementById('formStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ ĐANG GỬI...';
+  status.style.display = 'block';
+  status.style.background = '#eff6ff';
+  status.style.color = '#2563eb';
+  status.textContent = 'Đang gửi dữ liệu...';
+  
+  // Phân biệt checkbox giữa section 3 (điểm mạnh) và section 6 (kỹ năng đào tạo)
+  var sections = document.querySelectorAll('.section');
+  var diemManh = '';
+  var knCanDaoTao = '';
+  
+  if (sections.length >= 6) {
+    // Section 3 = index 2 (index 0-based)
+    var s3 = sections[2];
+    var cb3 = s3.querySelectorAll('.check-group input[type="checkbox"]');
+    diemManh = Array.from(cb3).filter(function(c) { return c.checked; })
+                          .map(function(c) { return c.parentElement.textContent.trim(); }).join('; ');
+    
+    // Section 6 = index 5
+    var s6 = sections[5];
+    var cb6 = s6.querySelectorAll('.check-group input[type="checkbox"]');
+    knCanDaoTao = Array.from(cb6).filter(function(c) { return c.checked; })
+                         .map(function(c) { return c.parentElement.textContent.trim(); }).join('; ');
+  }
+  
+  var payload = {
+    hoTen: getVal('hoTen'),
+    sdt: getVal('sdt'),
+    gdv: getVal('gdv'),
+    tinh: getVal('tinh'),
+    qlkv: getVal('qlkv'),
+    ch: getVal('ch'),
+    trinhDo: getVal('trinhDo'),
+    chuyenNganh: getVal('chuyenNganh'),
+    truong: getVal('truong'),
+    chungChi: getVal('chungChi'),
+    tgCht: getVal('tgCht'),
+    tgChHienTai: getVal('tgChHienTai'),
+    kpi: getVal('kpiCh'),
+    diemManh: diemManh,
+    ngayVaoWcm: getVal('ngayVaoWcm'),
+    viTriDauTien: getVal('viTriDauTien'),
+    viTriHienTai: getVal('viTriHienTai'),
+    cacViTriWcm: getVal('cacViTriWcm'),
+    thanhTich: getVal('thanhTich'),
+    tungLamTruoc: getVal('tungLamTruoc'),
+    noiLamTruoc: getVal('noiLamTruoc'),
+    knViecTruoc: getVal('knViecTruoc'),
+    viTriMongMuon: getVal('viTriMongMuon'),
+    tgMongMuon: getVal('tgMongMuon'),
+    diaBanMongMuon: getVal('diaBanMongMuon'),
+    vtDbCuThe: getVal('vtDbCuThe'),
+    knCanDaoTao: knCanDaoTao,
+    sanSangDaoTao: getVal('sanSangDaoTao'),
+    deXuat: getVal('deXuat'),
+    lyDoLamQlkv: getVal('lyDoLamQlkv')
+  };
+  
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function() {
+    status.style.background = '#dcfce7';
+    status.style.color = '#16a34a';
+    status.textContent = '✅ GỬI THÀNH CÔNG! Cảm ơn bạn đã hoàn thành khảo sát.';
+    document.getElementById('surveyForm').reset();
+    // Reset cascading dropdowns
+    document.getElementById('tinh').disabled = true;
+    document.getElementById('qlkv').disabled = true;
+    document.getElementById('ch').disabled = true;
+  })
+  .catch(function(err) {
+    status.style.background = '#fef2f2';
+    status.style.color = '#ef4444';
+    status.textContent = '❌ Có lỗi xảy ra. Vui lòng thử lại hoặc liên hệ QLKV của bạn.';
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = '📤 GỬI KHẢO SÁT';
   });
 }
 
