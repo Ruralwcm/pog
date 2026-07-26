@@ -21,7 +21,7 @@ function doPost(e) {
     if (!sheet) {
       sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_NAME);
       sheet.appendRow([
-        'Timestamp', 'Họ và tên', 'SĐT', 'GĐV', 'Tỉnh/TP', 'QLKV', 'Mã CHT / CH',
+        'Timestamp', 'Họ và tên', 'SĐT', 'Ngày sinh', 'GĐV', 'Tỉnh/TP', 'QLKV', 'Mã CHT / CH',
         'Trình độ', 'Chuyên ngành', 'Trường', 'Chứng chỉ',
         'TG làm CHT', 'TG làm CH hiện tại', 'KPI CH', 'Điểm mạnh',
         'Ngày vào WCM', 'Vị trí đầu tiên', 'Vị trí hiện tại', 'Các vị trí WCM', 'Thành tích WCM',
@@ -34,7 +34,7 @@ function doPost(e) {
     
     sheet.appendRow([
       new Date(),
-      data.hoTen || '', data.sdt || '', data.gdv || '', data.tinh || '', data.qlkv || '', data.ch || '',
+      data.hoTen || '', data.sdt || '', data.ngaySinh || '', data.gdv || '', data.tinh || '', data.qlkv || '', data.ch || '',
       data.trinhDo || '', data.chuyenNganh || '', data.truong || '', data.chungChi || '',
       data.tgCht || '', data.tgChHienTai || '', data.kpi || '', data.diemManh || '',
       data.ngayVaoWcm || '', data.viTriDauTien || '', data.viTriHienTai || '', data.cacViTriWcm || '', data.thanhTich || '',
