@@ -103,6 +103,7 @@ button:hover { background: #1d4ed8; }
         <div><label>HỌ VÀ TÊN <span class="req">*</span></label><input type="text" id="hoTen" placeholder="VD: Nguyễn Văn A" required></div>
         <div><label>SỐ ĐIỆN THOẠI <span class="req">*</span></label><input type="tel" id="sdt" placeholder="VD: 0912345678" required></div>
         <div><label>NGÀY/THÁNG/NĂM SINH <span class="req">*</span></label><input type="date" id="ngaySinh" required></div>
+        <div><label>MÃ NHÂN VIÊN <span class="req">*</span></label><input type="text" id="maNV" placeholder="VD: 3012345" required></div>
       </div>
       <div class="row">
         <div>
@@ -342,6 +343,7 @@ function submitForm(e) {
     hoTen: getVal('hoTen'),
     sdt: getVal('sdt'),
     ngaySinh: getVal('ngaySinh'),
+    maNV: getVal('maNV'),
     gdv: getVal('gdv'),
     tinh: getVal('tinh'),
     qlkv: getVal('qlkv'),
