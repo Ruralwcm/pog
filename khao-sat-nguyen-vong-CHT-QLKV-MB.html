@@ -372,11 +372,12 @@ function submitForm(e) {
   
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   })
-  .then(function() {
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.ok) {
     status.style.background = '#dcfce7';
     status.style.color = '#16a34a';
     status.textContent = '✅ GỬI THÀNH CÔNG! Cảm ơn bạn đã hoàn thành khảo sát.';
