@@ -27,7 +27,7 @@
   --gray-700: #495057;
   --gray-800: #343a40;
   --gray-900: #212529;
-  --wood-light: #f5e6c8;
+  --wood-light: #fef9c3;
   --wood-dark: #d71920;
   --fridge-header: #d71920;
   --fridge-body: #e8f4fd;
@@ -3095,7 +3095,7 @@ function generateShelfSVG(shelf, svgW, svgH) {
   // ── Dumpin / Ụ đảo ─────────────────────────────────────────
   if (loai === 'dumpin' || loai === 'uDao') {
     const isDumpin = loai === 'dumpin';
-    const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
+    const outerFill = isDumpin ? '#fef9c3' : '#e8d5f5';
     const borderColor = isDumpin ? '#d71920' : '#6b46c1';
     const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
 
@@ -3152,7 +3152,7 @@ function generateShelfSVG(shelf, svgW, svgH) {
     svg += `<text x="${x+innerW/2}" y="${y+headerH/2+5}" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
     svg += `<rect x="${x}" y="${y+headerH}" width="${innerW}" height="${bodyH}" fill="#e8f4fd"/>`;
   } else {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="#f5e6c8"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="#fef9c3"/>`;
   }
 
   // Tầng dividers — proportional to each cao
@@ -3217,7 +3217,7 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   // ── Dumpin / Ụ đảo canvas SVG ──────────────────────────────
   if (loai === 'dumpin' || loai === 'uDao') {
     const isDumpin = loai === 'dumpin';
-    const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
+    const outerFill = isDumpin ? '#fef9c3' : '#e8d5f5';
     const borderColor = isDumpin ? '#d71920' : '#6b46c1';
     const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
     const rx = isDumpin ? 0 : 8;
@@ -3260,7 +3260,7 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
     svg += `<text x="${pxW/2}" y="${headerPxH/2+6}" text-anchor="middle" fill="white" font-size="${Math.max(12,headerPxH*0.4)}" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
     svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${bodyPxH}" fill="#e8f4fd"/>`;
   } else {
-    svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="#f5e6c8"/>`;
+    svg += `<rect x="0" y="0" width="${pxW}" height="${bodyPxH}" fill="#fef9c3"/>`;
   }
 
   // Tầng dividers
@@ -5036,7 +5036,7 @@ async function exportPNG() {
         const startY = titleH + margin;
 
         if (isDumpinType) {
-          const outerFill = dev.loai === 'dumpin' ? '#f5e6c8' : '#e8d5f5';
+          const outerFill = dev.loai === 'dumpin' ? '#fef9c3' : '#e8d5f5';
           const borderColor = dev.loai === 'dumpin' ? '#d71920' : '#6b46c1';
           const mamFill = dev.loai === 'dumpin' ? '#eedcc0' : '#d8bff5';
           const rxPx = dev.loai === 'uDao' ? 12 : 0;
@@ -5083,7 +5083,7 @@ async function exportPNG() {
             ctx.textAlign = 'center';
             ctx.fillText('TU LANH/DONG', startX + pxW / 2, startY + headerPxH / 2 + 8);
           }
-          ctx.fillStyle = hasHeader ? '#e8f4fd' : '#f5e6c8';
+          ctx.fillStyle = hasHeader ? '#e8f4fd' : '#fef9c3';
           ctx.fillRect(startX, startY + headerPxH, pxW, bodyPxH);
           ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
           ctx.lineWidth = 2;
@@ -5271,7 +5271,7 @@ async function exportPNG() {
 
     if (isDumpinType) {
       // ── Draw Dumpin / Ụ đảo ─────────────────────────────────
-      const outerFill = shelf.loai === 'dumpin' ? '#f5e6c8' : '#e8d5f5';
+      const outerFill = shelf.loai === 'dumpin' ? '#fef9c3' : '#e8d5f5';
       const borderColor = shelf.loai === 'dumpin' ? '#d71920' : '#6b46c1';
       const mamFill = shelf.loai === 'dumpin' ? '#eedcc0' : '#d8bff5';
       const rxPx = shelf.loai === 'uDao' ? 12 : 0;
@@ -5332,7 +5332,7 @@ async function exportPNG() {
       }
 
       // Draw shelf body
-      ctx.fillStyle = hasHeader ? '#e8f4fd' : '#f5e6c8';
+      ctx.fillStyle = hasHeader ? '#e8f4fd' : '#fef9c3';
       ctx.fillRect(startX, startY + headerPxH, pxW, bodyPxH);
 
       // Draw tầng dividers
