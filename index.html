@@ -11,7 +11,7 @@
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --primary: #0f5f57;
+  --primary: #d71920;
   --primary-light: #2a5298;
   --primary-dark: #122a50;
   --accent: #e8a020;
@@ -28,8 +28,8 @@
   --gray-800: #343a40;
   --gray-900: #212529;
   --wood-light: #f5e6c8;
-  --wood-dark: #0f5f57;
-  --fridge-header: #0f5f57;
+  --wood-dark: #d71920;
+  --fridge-header: #d71920;
   --fridge-body: #e8f4fd;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
@@ -1096,7 +1096,7 @@ img { max-width: 100%; }
     </div>
     <!-- INFO PANEL -->
     <div class="pog-info-panel" id="pogInfoPanel">
-      <div style="padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#0f5f57;text-transform:uppercase;flex-shrink:0">
+      <div style="padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#d71920;text-transform:uppercase;flex-shrink:0">
         📋 SP theo Tầng
       </div>
       <div id="pogInfoContent" style="padding:12px 16px;overflow-y:auto;flex:1;font-size:12px"></div>
@@ -1119,7 +1119,7 @@ img { max-width: 100%; }
         <img id="editProductImgHeader" style="width:64px;height:64px;object-fit:contain;border-radius:8px;border:1px solid #e2e8f0;background:#f8f9fa;flex-shrink:0;display:none" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">
         <div id="editProductImgHeaderPlaceholder" style="width:64px;height:64px;background:#e9ecef;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">📦</div>
         <div>
-          <strong id="editProductName" style="font-size:15px;color:#0f5f57"></strong><br>
+          <strong id="editProductName" style="font-size:15px;color:#d71920"></strong><br>
           <span class="text-muted" id="editProductMaSP"></span>
         </div>
       </div>
@@ -1293,7 +1293,7 @@ img { max-width: 100%; }
             <input type="number" id="shelfBorderRight" value="0" min="0" max="20" style="width:60px" class="form-input" placeholder="R">
             <input type="number" id="shelfBorderBottom" value="2" min="0" max="20" style="width:60px" class="form-input" placeholder="B">
             <input type="number" id="shelfBorderLeft" value="0" min="0" max="20" style="width:60px" class="form-input" placeholder="L">
-            <input type="color" id="shelfBorderColor" value="#0f5f57" style="width:40px;height:32px;padding:2px;border:1px solid #cbd5e0;border-radius:4px;cursor:pointer">
+            <input type="color" id="shelfBorderColor" value="#d71920" style="width:40px;height:32px;padding:2px;border:1px solid #cbd5e0;border-radius:4px;cursor:pointer">
           </div>
         </div>
         <div class="full-width">
@@ -2776,7 +2776,7 @@ function openCreateShelfModal(shelfId) {
   document.getElementById('shelfBorderRight').value = existing ? (existing.borderRight != null ? existing.borderRight : 0) : 0;
   document.getElementById('shelfBorderBottom').value = existing ? (existing.borderBottom != null ? existing.borderBottom : 2) : 2;
   document.getElementById('shelfBorderLeft').value = existing ? (existing.borderLeft != null ? existing.borderLeft : 0) : 0;
-  document.getElementById('shelfBorderColor').value = existing ? (existing.borderColor || '#0f5f57') : '#0f5f57';
+  document.getElementById('shelfBorderColor').value = existing ? (existing.borderColor || '#d71920') : '#d71920';
   document.getElementById('shelfHeaderText').value = existing ? (existing.headerText || '') : '';
   document.getElementById('shelfBottomText').value = existing ? (existing.bottomText || '') : '';
   const loai = existing ? existing.loai : 'ke';
@@ -2993,7 +2993,7 @@ async function saveShelf() {
       borderRight: parseInt(document.getElementById('shelfBorderRight').value)||0,
       borderBottom: parseInt(document.getElementById('shelfBorderBottom').value)||2,
       borderLeft: parseInt(document.getElementById('shelfBorderLeft').value)||0,
-      borderColor: document.getElementById('shelfBorderColor').value || '#0f5f57',
+      borderColor: document.getElementById('shelfBorderColor').value || '#d71920',
       headerText: document.getElementById('shelfHeaderText').value.trim(),
       bottomText: document.getElementById('shelfBottomText').value.trim(),
       username: currentUser.username
@@ -3096,7 +3096,7 @@ function generateShelfSVG(shelf, svgW, svgH) {
   if (loai === 'dumpin' || loai === 'uDao') {
     const isDumpin = loai === 'dumpin';
     const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
-    const borderColor = isDumpin ? '#0f5f57' : '#6b46c1';
+    const borderColor = isDumpin ? '#d71920' : '#6b46c1';
     const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
 
     const bodyH = svgH - padding * 2;
@@ -3148,7 +3148,7 @@ function generateShelfSVG(shelf, svgW, svgH) {
   let svg = `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">`;
 
   if (hasHeader) {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH}" fill="#0f5f57" rx="4" ry="4"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH}" fill="#d71920" rx="4" ry="4"/>`;
     svg += `<text x="${x+innerW/2}" y="${y+headerH/2+5}" text-anchor="middle" fill="white" font-size="10" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
     svg += `<rect x="${x}" y="${y+headerH}" width="${innerW}" height="${bodyH}" fill="#e8f4fd"/>`;
   } else {
@@ -3170,13 +3170,13 @@ function generateShelfSVG(shelf, svgW, svgH) {
   svg += `<text x="${x+innerW-4}" y="${y+headerH+bodyH-4}" text-anchor="end" fill="${hasHeader ? '#2b6cb0' : '#744210'}" font-size="8" font-family="sans-serif">${caoList[soTang-1]}cm</text>`;
 
   // Bottom line
-  svg += `<line x1="${x}" y1="${y+headerH+bodyH-3}" x2="${x+innerW}" y2="${y+headerH+bodyH-3}" stroke="${hasHeader ? '#1a6e9e' : '#0f5f57'}" stroke-width="3"/>`;
+  svg += `<line x1="${x}" y1="${y+headerH+bodyH-3}" x2="${x+innerW}" y2="${y+headerH+bodyH-3}" stroke="${hasHeader ? '#1a6e9e' : '#d71920'}" stroke-width="3"/>`;
 
   // Outer border
   if (hasHeader) {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH+bodyH}" fill="none" stroke="#0f5f57" stroke-width="2" rx="4" ry="4"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${headerH+bodyH}" fill="none" stroke="#d71920" stroke-width="2" rx="4" ry="4"/>`;
   } else {
-    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="none" stroke="#0f5f57" stroke-width="2"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${innerW}" height="${bodyH}" fill="none" stroke="#d71920" stroke-width="2"/>`;
   }
 
   svg += '</svg>';
@@ -3218,7 +3218,7 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   if (loai === 'dumpin' || loai === 'uDao') {
     const isDumpin = loai === 'dumpin';
     const outerFill = isDumpin ? '#f5e6c8' : '#e8d5f5';
-    const borderColor = isDumpin ? '#0f5f57' : '#6b46c1';
+    const borderColor = isDumpin ? '#d71920' : '#6b46c1';
     const mamFill = isDumpin ? '#eedcc0' : '#d8bff5';
     const rx = isDumpin ? 0 : 8;
 
@@ -3256,7 +3256,7 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
   let svg = `<svg width="${pxW}" height="${pxH + shelfLineH}" xmlns="http://www.w3.org/2000/svg" id="shelfSVGMain">`;
 
   if (hasHeader) {
-    svg += `<rect x="0" y="0" width="${pxW}" height="${headerPxH}" fill="#0f5f57"/>`;
+    svg += `<rect x="0" y="0" width="${pxW}" height="${headerPxH}" fill="#d71920"/>`;
     svg += `<text x="${pxW/2}" y="${headerPxH/2+6}" text-anchor="middle" fill="white" font-size="${Math.max(12,headerPxH*0.4)}" font-weight="bold" font-family="sans-serif">TỦ LẠNH/ĐÔNG</text>`;
     svg += `<rect x="0" y="${headerPxH}" width="${pxW}" height="${bodyPxH}" fill="#e8f4fd"/>`;
   } else {
@@ -3273,10 +3273,10 @@ function generateCanvasShelfSVG(shelf, pxW, pxH, scale) {
 
   // Bottom thick shelf line
   const bottomY = headerPxH + bodyPxH;
-  svg += `<rect x="0" y="${bottomY}" width="${pxW}" height="${shelfLineH}" fill="${hasHeader ? '#0f5f57' : '#0f5f57'}"/>`;
+  svg += `<rect x="0" y="${bottomY}" width="${pxW}" height="${shelfLineH}" fill="${hasHeader ? '#d71920' : '#d71920'}"/>`;
 
   // Outer border
-  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH-1}" fill="none" stroke="${hasHeader ? '#0f5f57' : '#0f5f57'}" stroke-width="2"/>`;
+  svg += `<rect x="1" y="1" width="${pxW-2}" height="${pxH-1}" fill="none" stroke="${hasHeader ? '#d71920' : '#d71920'}" stroke-width="2"/>`;
 
   svg += '</svg>';
   return { svg, headerPxH, bodyPxH, tangPxHList, tangPxWList, shelfLineH };
@@ -3463,7 +3463,7 @@ function renderMultiDeviceCanvas() {
     const devBorderRight = dev.borderRight != null ? dev.borderRight : (shelfRef.borderRight != null ? shelfRef.borderRight : 0);
     const devBorderBottom = dev.borderBottom != null ? dev.borderBottom : (shelfRef.borderBottom != null ? shelfRef.borderBottom : 2);
     const devBorderLeft = dev.borderLeft != null ? dev.borderLeft : (shelfRef.borderLeft != null ? shelfRef.borderLeft : 0);
-    const devBorderColor = dev.borderColor || shelfRef.borderColor || '#0f5f57';
+    const devBorderColor = dev.borderColor || shelfRef.borderColor || '#d71920';
     const devHeaderText = dev.headerText || shelfRef.headerText || '';
     const devBottomText = dev.bottomText || shelfRef.bottomText || '';
 
@@ -3650,7 +3650,7 @@ function addProductToTangMulti(deviceIdx, tangIdx, maSP) {
   if (variants.length === 1) { _doAddMulti(deviceIdx, tangIdx, variants[0]); }
   else {
     const body = document.getElementById('dvtPickerBody');
-    body.innerHTML = variants.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:8px" onclick="_doAddMultiByIdx(${deviceIdx},${tangIdx},${allProducts.indexOf(v)});closeModal('modalDvtPicker')"><div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div><div><div style="font-weight:700;color:#0f5f57">${escHtml(v.dvt||'N/A')}</div><div style="font-size:12px;color:#6c757d">${v.rong||'?'}×${v.cao||'?'}cm</div></div></div>`).join('');
+    body.innerHTML = variants.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:8px" onclick="_doAddMultiByIdx(${deviceIdx},${tangIdx},${allProducts.indexOf(v)});closeModal('modalDvtPicker')"><div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div><div><div style="font-weight:700;color:#d71920">${escHtml(v.dvt||'N/A')}</div><div style="font-size:12px;color:#6c757d">${v.rong||'?'}×${v.cao||'?'}cm</div></div></div>`).join('');
     openModal('modalDvtPicker');
   }
 }
@@ -3731,12 +3731,12 @@ function openDeviceConfig(deviceIdx) {
   panel.id = 'devCfgPanel';
   panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.2);padding:20px;z-index:9999;min-width:280px;';
   const tangListStr = dev.tangList.map((tl,i) => `<div style="display:flex;gap:8px;margin-bottom:6px;align-items:center"><span style="font-size:12px;color:#718096;min-width:55px">Tầng ${i+1}:</span><input type="number" value="${tl.cao}" min="5" max="300" style="width:70px;padding:4px 6px;border:1px solid #cbd5e0;border-radius:4px;font-size:13px" data-tang="${i}" data-field="cao" class="tang-input"> cm cao${dev.loai==='dumpin'||dev.loai==='uDao'?` <input type="number" value="${tl.rong||dev.rongTong}" min="1" max="${dev.rongTong}" style="width:70px;padding:4px 6px;border:1px solid #cbd5e0;border-radius:4px;font-size:13px" data-tang="${i}" data-field="rong" class="tang-input"> cm rộng`:''}</div>`).join('');
-  panel.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:12px"><strong style="color:#0f5f57">⚙️ TTB #${deviceIdx+1}: ${escHtml(dev.series||('TTB '+(deviceIdx+1)))}</strong><button onclick="document.getElementById('devCfgPanel').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#718096">×</button></div>
+  panel.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:12px"><strong style="color:#d71920">⚙️ TTB #${deviceIdx+1}: ${escHtml(dev.series||('TTB '+(deviceIdx+1)))}</strong><button onclick="document.getElementById('devCfgPanel').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#718096">×</button></div>
     <label style="font-size:12px;font-weight:600;color:#4a5568">Số tầng/mâm:</label>
     <input type="number" id="devCfgSoTang" value="${dev.soTang}" min="1" max="20" style="width:80px;padding:6px;border:1px solid #cbd5e0;border-radius:4px;margin-left:8px;margin-bottom:10px">
     <div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:6px">Kích thước từng tầng:</div>
     <div id="devCfgTangs">${tangListStr}</div>
-    <button onclick="_applyDeviceConfig(${deviceIdx})" style="width:100%;padding:8px;background:#0f5f57;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;margin-top:10px">✅ Áp dụng</button>`;
+    <button onclick="_applyDeviceConfig(${deviceIdx})" style="width:100%;padding:8px;background:#d71920;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;margin-top:10px">✅ Áp dụng</button>`;
   document.body.appendChild(panel);
 }
 
@@ -4012,7 +4012,7 @@ function _startPointerDrag(e, maSP, sourceEl) {
   _ptrGhost = sourceEl.cloneNode(true);
   _ptrGhost.classList.add('_ptr-ghost-el');
   _ptrGhost.style.cssText = `position:fixed;z-index:99999;pointer-events:none;opacity:0.8;
-    width:${sourceEl.offsetWidth}px;background:#fff;border:2px solid #0f5f57;
+    width:${sourceEl.offsetWidth}px;background:#fff;border:2px solid #d71920;
     border-radius:8px;padding:4px;box-shadow:0 4px 12px rgba(0,0,0,0.3)`;
   _ptrGhost.style.left = (e.clientX - 20) + 'px';
   _ptrGhost.style.top  = (e.clientY - 20) + 'px';
@@ -4510,7 +4510,7 @@ function _updateInfoPanel() {
     const tConfig = pogConfig.tầng[ti] || { products: [] };
     const prods = tConfig.products || [];
     html += `<div style="margin-bottom:12px">
-      <div style="font-weight:700;color:#0f5f57;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e2e8f0">Tầng ${ti+1}</div>`;
+      <div style="font-weight:700;color:#d71920;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e2e8f0">Tầng ${ti+1}</div>`;
     if (prods.length === 0) {
       html += `<div style="color:#adb5bd;font-style:italic">Chưa có SP</div>`;
     } else {
@@ -4526,7 +4526,7 @@ function _updateInfoPanel() {
         html += `<div style="display:flex;gap:6px;align-items:baseline;margin-bottom:3px;padding:3px 0;border-bottom:1px dotted #f0f0f0">
           <span style="color:#495057;font-weight:600;flex-shrink:0">${escHtml(g.maSP)}</span>
           <span style="color:#6c757d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${escHtml(g.tenSP)}</span>
-          ${facingStr ? `<span style="color:#0f5f57;font-weight:700;flex-shrink:0">${facingStr}</span>` : ''}
+          ${facingStr ? `<span style="color:#d71920;font-weight:700;flex-shrink:0">${facingStr}</span>` : ''}
         </div>`;
       });
     }
@@ -4567,7 +4567,7 @@ function _showDvtPicker(tangIndex, variants) {
         : '<div style="width:48px;height:48px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div>'
       }
       <div>
-        <div style="font-weight:700;color:#0f5f57">${escHtml(v.dvt || 'N/A')}</div>
+        <div style="font-weight:700;color:#d71920">${escHtml(v.dvt || 'N/A')}</div>
         <div style="font-size:12px;color:#6c757d">${v.rong || '?'}cm × ${v.cao || '?'}cm</div>
       </div>
     </div>`;
@@ -4887,7 +4887,7 @@ async function openPOGListModal() {
     item.className = 'pog-list-item';
     item.style.cursor = 'pointer';
     const isCurrent = currentPOGId === p.id;
-    item.innerHTML = '<span class="pog-list-icon">📐</span><div class="pog-list-details"><div class="pog-list-name">' + escHtml(p.ten) + (isCurrent ? ' <span style="background:#0f5f57;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px">Hiện tại</span>' : '') + '</div><div class="pog-list-meta">Tạo: ' + formatDate(p.ngayTao) + ' · ' + escHtml(p.nguoiTao) + '</div></div><span class="pog-list-arrow">›</span>';
+    item.innerHTML = '<span class="pog-list-icon">📐</span><div class="pog-list-details"><div class="pog-list-name">' + escHtml(p.ten) + (isCurrent ? ' <span style="background:#d71920;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px">Hiện tại</span>' : '') + '</div><div class="pog-list-meta">Tạo: ' + formatDate(p.ngayTao) + ' · ' + escHtml(p.nguoiTao) + '</div></div><span class="pog-list-arrow">›</span>';
     item.addEventListener('click', (function(pid) { return function() { console.log('[POG] Loading:', pid); loadPOG(pid); }; })(p.id));
     const delFileBtn = document.createElement('button');
     delFileBtn.textContent = '🗑️ Xóa file';
@@ -5000,7 +5000,7 @@ async function exportPNG() {
       ctx.fillRect(0, 0, A4_W, totalH);
 
       // Title
-      ctx.fillStyle = '#0f5f57';
+      ctx.fillStyle = '#d71920';
       ctx.font = 'bold 48px sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText('\uD83D\uDCCF ' + pogName, margin, margin + 50);
@@ -5037,7 +5037,7 @@ async function exportPNG() {
 
         if (isDumpinType) {
           const outerFill = dev.loai === 'dumpin' ? '#f5e6c8' : '#e8d5f5';
-          const borderColor = dev.loai === 'dumpin' ? '#0f5f57' : '#6b46c1';
+          const borderColor = dev.loai === 'dumpin' ? '#d71920' : '#6b46c1';
           const mamFill = dev.loai === 'dumpin' ? '#eedcc0' : '#d8bff5';
           const rxPx = dev.loai === 'uDao' ? 12 : 0;
           ctx.fillStyle = outerFill;
@@ -5076,7 +5076,7 @@ async function exportPNG() {
           ctx.fillRect(startX, startY + bodyPxH, pxW, shelfLineH);
         } else {
           if (hasHeader) {
-            ctx.fillStyle = '#0f5f57';
+            ctx.fillStyle = '#d71920';
             ctx.fillRect(startX, startY, pxW, headerPxH);
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold ' + Math.max(16, headerPxH * 0.4) + 'px sans-serif';
@@ -5096,9 +5096,9 @@ async function exportPNG() {
             ctx.lineTo(startX + pxW, ty);
             ctx.stroke();
           }
-          ctx.fillStyle = hasHeader ? '#0f5f57' : '#0f5f57';
+          ctx.fillStyle = hasHeader ? '#d71920' : '#d71920';
           ctx.fillRect(startX, startY + headerPxH + bodyPxH, pxW, shelfLineH);
-          ctx.strokeStyle = hasHeader ? '#0f5f57' : '#0f5f57';
+          ctx.strokeStyle = hasHeader ? '#d71920' : '#d71920';
           ctx.lineWidth = 4;
           ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
         }
@@ -5157,7 +5157,7 @@ async function exportPNG() {
         // Device label
         const labelText = dev.series ? dev.series : ('TTB #' + (di + 1));
         const labelY = startY + headerPxH + bodyPxH + shelfLineH + 30;
-        ctx.fillStyle = '#0f5f57';
+        ctx.fillStyle = '#d71920';
         ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(labelText, startX + pxW / 2, labelY);
@@ -5184,11 +5184,11 @@ async function exportPNG() {
         const startY = titleH + margin;
 
         if (isDumpinType) {
-          const borderColor = dev.loai === 'dumpin' ? '#0f5f57' : '#6b46c1';
+          const borderColor = dev.loai === 'dumpin' ? '#d71920' : '#6b46c1';
           ctx.strokeStyle = borderColor; ctx.lineWidth = 4;
           ctx.strokeRect(startX, startY, pxW, bodyPxH);
         } else {
-          ctx.strokeStyle = hasHeader ? '#0f5f57' : '#0f5f57';
+          ctx.strokeStyle = hasHeader ? '#d71920' : '#d71920';
           ctx.lineWidth = 4;
           ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
           ctx.strokeStyle = hasHeader ? '#7ab8d8' : '#c4a07a';
@@ -5272,7 +5272,7 @@ async function exportPNG() {
     if (isDumpinType) {
       // ── Draw Dumpin / Ụ đảo ─────────────────────────────────
       const outerFill = shelf.loai === 'dumpin' ? '#f5e6c8' : '#e8d5f5';
-      const borderColor = shelf.loai === 'dumpin' ? '#0f5f57' : '#6b46c1';
+      const borderColor = shelf.loai === 'dumpin' ? '#d71920' : '#6b46c1';
       const mamFill = shelf.loai === 'dumpin' ? '#eedcc0' : '#d8bff5';
       const rxPx = shelf.loai === 'uDao' ? 12 : 0;
 
@@ -5323,7 +5323,7 @@ async function exportPNG() {
       // ── Draw Ke / Tu ─────────────────────────────────────────
       // Draw header if fridge
       if (hasHeader) {
-        ctx.fillStyle = '#0f5f57';
+        ctx.fillStyle = '#d71920';
         ctx.fillRect(startX, startY, pxW, headerPxH);
         ctx.fillStyle = '#ffffff';
         ctx.font = `bold ${Math.max(16, headerPxH * 0.4)}px sans-serif`;
@@ -5349,11 +5349,11 @@ async function exportPNG() {
       }
 
       // Bottom shelf line
-      ctx.fillStyle = hasHeader ? '#0f5f57' : '#0f5f57';
+      ctx.fillStyle = hasHeader ? '#d71920' : '#d71920';
       ctx.fillRect(startX, startY + headerPxH + bodyPxH, pxW, shelfLineH);
 
       // Outer border
-      ctx.strokeStyle = hasHeader ? '#0f5f57' : '#0f5f57';
+      ctx.strokeStyle = hasHeader ? '#d71920' : '#d71920';
       ctx.lineWidth = 4;
       ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
     }
@@ -5430,7 +5430,7 @@ async function exportPNG() {
 
     // Title
     const pogName = (document.getElementById('pogNameDisplay')?.textContent||window._currentPOGName||'POG').trim();
-    ctx.fillStyle = '#0f5f57';
+    ctx.fillStyle = '#d71920';
     ctx.font = `bold 36px sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillText(`📐 ${pogName}`, margin, margin - 20);
@@ -5444,12 +5444,12 @@ async function exportPNG() {
 
     // Re-draw borders on top of images
     if (isDumpinType) {
-      const borderColor = shelf.loai === 'dumpin' ? '#0f5f57' : '#6b46c1';
+      const borderColor = shelf.loai === 'dumpin' ? '#d71920' : '#6b46c1';
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = 4;
       ctx.strokeRect(startX, startY, pxW, bodyPxH);
     } else {
-      ctx.strokeStyle = hasHeader ? '#0f5f57' : '#0f5f57';
+      ctx.strokeStyle = hasHeader ? '#d71920' : '#d71920';
       ctx.lineWidth = 4;
       ctx.strokeRect(startX, startY, pxW, headerPxH + bodyPxH);
 
